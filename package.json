@@ -1,0 +1,13 @@
+{
+  "name": "taskflow-pro-audit",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:syntax": "node tests/syntax-check.js",
+    "test:smoke": "node tests/smoke.js",
+    "test": "npm run test:syntax && npm run test:smoke"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.55.0"
+  }
+}

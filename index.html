@@ -1,0 +1,423 @@
+﻿<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow Pro — Team Task Monitor</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TaskFlow">
+<meta name="description" content="Professional task monitoring and productivity tracker">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="logo-big">T</div>
+    <h1>TaskFlow Pro</h1>
+    <p>Team Task Monitoring System</p>
+    <div class="login-error" id="loginError"></div>
+    <input type="email" id="loginEmail" placeholder="Enter your email" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn btn-primary" onclick="doLogin()">Sign In</button>
+    <div class="login-team">Powered by TaskFlow Pro &bull; Team Edition</div>
+  </div>
+</div>
+<!-- APP -->
+<div class="app" id="appContainer" style="display:none">
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header"><div class="logo">T</div><h1>TaskFlow Pro</h1></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section" data-i18n="nav_main">Main</div>
+    <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span data-i18n="dashboard">Dashboard</span></button>
+    <button class="nav-item" data-page="myday" onclick="showPage('myday')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span data-i18n="my_day">My Day</span></button>
+    <button class="nav-item" data-page="tasks" onclick="showPage('tasks')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span data-i18n="all_tasks">All Tasks</span> <span class="badge" id="taskBadge">0</span></button>
+    <button class="nav-item" data-page="kanban" onclick="showPage('kanban')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg><span data-i18n="kanban">Kanban Board</span></button>
+    <button class="nav-item" data-page="calendar" onclick="showPage('calendar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span data-i18n="calendar">Calendar</span></button>
+    <button class="nav-item" data-page="eisenhower" onclick="showPage('eisenhower')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg><span data-i18n="matrix">Eisenhower Matrix</span></button>
+    <div class="nav-section" data-i18n="nav_plan">Planning</div>
+    <button class="nav-item" data-page="projects" onclick="showPage('projects')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><span data-i18n="projects">Projects</span></button>
+    <button class="nav-item" data-page="goals" onclick="showPage('goals')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span data-i18n="goals">Goals</span></button>
+    <button class="nav-item" data-page="habits" onclick="showPage('habits')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span data-i18n="habits">Habits</span></button>
+    <button class="nav-item" data-page="notes" onclick="showPage('notes')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span data-i18n="notes">Notes</span></button>
+    <div class="nav-section" data-i18n="nav_analytics">Analytics</div>
+    <button class="nav-item" data-page="analytics" onclick="showPage('analytics')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg><span data-i18n="analytics">Analytics</span></button>
+    <button class="nav-item" data-page="reports" onclick="showPage('reports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 21V13h3v8"/><path d="M13 21v-6h3v6"/></svg><span data-i18n="time_reports">Time Reports</span></button>
+    <div class="nav-section" data-i18n="nav_categories">Categories</div>
+    <div id="categoryNav" style="padding:4px 16px 8px;display:flex;flex-wrap:wrap;gap:6px"></div>
+    <div class="nav-section" data-i18n="nav_quick">Quick</div>
+    <button class="nav-item" onclick="openPomodoro()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span data-i18n="pomodoro">Pomodoro Timer</span></button>
+    <button class="nav-item" onclick="openTemplatesModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span data-i18n="templates">Templates</span></button>
+    <button class="nav-item" data-page="archive" onclick="showPage('archive')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg><span data-i18n="archive">Archive</span></button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="user-bar" onclick="openSettings()" style="background:none;border:none;width:100%;text-align:left;cursor:pointer">
+      <div class="user-avatar" id="userAvatar">U</div>
+      <div class="user-info"><div class="uname" id="userName">User</div><div class="urole" id="userRole">Member</div></div>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--text3)"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+</aside>
+<div class="main" id="mainContent">
+  <header class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <div class="search-box" id="globalSearchBox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search tasks..." oninput="handleGlobalSearch(event)" onfocus="handleGlobalSearch(event)" onblur="setTimeout(()=>closeSearch(),200)">
+      <span class="shortcut-hint">/</span>
+      <div class="search-results" id="searchResults"></div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+      <button class="icon-btn" id="notifBtn" onclick="showOverdueTasks()" title="Overdue tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span class="dot" id="notifDot" style="display:none"></span></button>
+      <button class="icon-btn" onclick="toggleLang()" title="Language / RTL"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></button>
+      <button class="icon-btn" id="installBtn" onclick="installApp()" title="Install App" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+      <button class="btn btn-primary" onclick="openModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span data-i18n="new_task">New Task</span></button>
+    </div>
+  </header>
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="font-size:1.3rem;font-weight:700">Good <span id="greeting"></span>, <span id="greetUser" style="color:var(--primary)"></span></div>
+      <div class="filter-bar">
+        <select id="dashDateFilter" class="filter-select" onchange="renderDashboard()"><option value="all">All Dates</option><option value="today">Today</option><option value="week">This Week</option><option value="month">This Month</option></select>
+        <select id="dashProjectFilter" class="filter-select" onchange="renderDashboard()"><option value="all">All Projects</option></select>
+        <select id="dashAssigneeFilter" class="filter-select" onchange="renderDashboard()"><option value="all">All Owners</option></select>
+      </div>
+    </div>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="dash-row"><div class="card"><div class="card-title" data-i18n="weekly_overview">Weekly Overview</div><div class="chart-area" id="weeklyChart"></div></div><div class="card"><div class="card-title" data-i18n="priority_dist">Priority Distribution</div><div class="priority-ring"><div class="ring-chart"><canvas id="ringCanvas" width="130" height="130"></canvas><div class="ring-center"><span class="pct" id="ringPct">0%</span><small>done</small></div></div><div class="ring-legend" id="ringLegend"></div></div></div></div>
+    <div class="dash-row"><div class="card"><div class="card-title">Productivity Heatmap <span style="font-size:.7rem;font-weight:400;color:var(--text3)">Last 16 weeks</span></div><div class="heatmap-wrap" id="heatmapWrap"></div></div><div class="card"><div class="card-title" data-i18n="upcoming">Upcoming Deadlines</div><div id="upcomingDeadlines"></div></div></div>
+    <div class="dash-row"><div class="card"><div class="card-title" data-i18n="goal_progress">Goal Progress</div><div id="dashGoals"></div></div><div class="card"><div class="card-title" data-i18n="habit_streaks">Habit Streaks</div><div id="dashHabits"></div></div></div>
+    <div class="card"><div class="card-title" data-i18n="recent_activity">Recent Activity</div><div class="activity-list" id="activityList"></div></div>
+  </div>
+  <!-- MY DAY -->
+  <div class="page" id="page-myday">
+    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="my_day">My Day</h2><div style="display:flex;gap:6px"><span id="myDayDate" style="font-size:.85rem;color:var(--text2)"></span></div></div>
+    <div class="stats-grid" id="myDayStats"></div>
+    <div id="myDayBlocks"></div>
+    <div class="card"><div class="card-title" data-i18n="daily_notes">Daily Notes</div><textarea id="dailyNoteInput" rows="3" placeholder="Write your notes for today..." style="width:100%;resize:vertical" oninput="saveDailyNote()"></textarea></div>
+  </div>
+  <!-- TASKS -->
+  <div class="page" id="page-tasks">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <h2 style="font-size:1.2rem;font-weight:700" data-i18n="all_tasks">All Tasks</h2>
+      <div class="filter-bar">
+        <select id="filterStatus" class="filter-select" onchange="renderTasks()"><option value="all">All Status</option><option value="todo">To Do</option><option value="in-progress">In Progress</option><option value="done">Done</option></select>
+        <select id="filterPriority" class="filter-select" onchange="renderTasks()"><option value="all">All Priorities</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+        <select id="filterCategory" class="filter-select" onchange="renderTasks()"><option value="all">All Categories</option></select>
+        <select id="filterProject" class="filter-select" onchange="renderTasks()"><option value="all">All Projects</option></select>
+        <select id="filterAssignee" class="filter-select" onchange="renderTasks()"><option value="all">All Owners</option></select>
+        <select id="sortBy" class="filter-select" onchange="renderTasks()"><option value="created-desc">Newest</option><option value="created-asc">Oldest</option><option value="due-asc">Due Soon</option><option value="priority-desc">Priority</option><option value="score-desc">Smart Score</option><option value="alpha-asc">A-Z</option></select>
+        <button class="filter-star" onclick="openSavedFilters()" title="Saved filters">&#9733;</button>
+      </div>
+    </div>
+    <div id="bulkBar" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
+      <span id="selectedCount" style="font-size:.82rem;font-weight:600"></span>
+      <button class="btn btn-sm btn-outline" onclick="bulkAction('done')">Mark Done</button>
+      <button class="btn btn-sm btn-outline" onclick="bulkAction('todo')">Mark To Do</button>
+      <button class="btn btn-sm btn-outline" onclick="bulkAction('archive')">Archive</button>
+      <button class="btn btn-sm btn-danger" onclick="bulkAction('delete')">Delete</button>
+      <button class="btn btn-sm btn-outline" onclick="clearSelection()">Cancel</button>
+    </div>
+    <div id="taskListContainer"></div>
+  </div>
+  <!-- KANBAN -->
+  <div class="page" id="page-kanban">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div><h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="kanban">Kanban Board</h2><p style="font-size:.78rem;color:var(--text3);margin:4px 0 0">Drag and drop tasks between columns to update status</p></div>
+    </div>
+    <div class="kanban-board" id="kanbanBoard"></div>
+  </div>
+  <!-- CALENDAR -->
+  <div class="page" id="page-calendar">
+    <div class="cal-header">
+      <h2 id="calTitle">March 2026</h2>
+      <div class="cal-header-actions">
+        <button class="cal-nav-btn" onclick="calNav(-1)" title="Previous month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="cal-today-btn" onclick="calToday()">Today</button>
+        <button class="cal-nav-btn" onclick="calNav(1)" title="Next month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="cal-add-btn" onclick="openEventModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Event</button>
+      </div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+  <!-- EISENHOWER -->
+  <div class="page" id="page-eisenhower">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px">
+      <div>
+        <h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="matrix">Eisenhower Matrix</h2>
+        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0">Prioritize tasks by urgency and importance &mdash; drag tasks between quadrants</p>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block"></span>Do First</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block"></span>Schedule</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block"></span>Delegate</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#6b7280;display:inline-block"></span>Eliminate</div>
+      </div>
+    </div>
+    <div class="eisenhower-grid" id="eisenhowerGrid"></div>
+  </div>
+  <!-- PROJECTS -->
+  <div class="page" id="page-projects">
+    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="projects">Projects</h2><button class="btn btn-sm btn-primary" onclick="openProjectModal()">+ New Project</button></div>
+    <div class="project-grid" id="projectGrid"></div>
+  </div>
+  <!-- GOALS -->
+  <div class="page" id="page-goals">
+    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="goals">Goals</h2><button class="btn btn-sm btn-primary" onclick="openGoalModal()">+ New Goal</button></div>
+    <div class="filter-bar" style="margin-bottom:8px"><button class="filter-chip" onclick="filterGoals('weekly')" id="goalFilterWeekly">Weekly</button><button class="filter-chip" onclick="filterGoals('monthly')" id="goalFilterMonthly">Monthly</button><button class="filter-chip active" onclick="filterGoals('all')" id="goalFilterAll">All</button></div>
+    <div id="goalsList" style="display:flex;flex-direction:column;gap:12px"></div>
+  </div>
+  <!-- HABITS -->
+  <div class="page" id="page-habits">
+    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="habits">Habits</h2><button class="btn btn-sm btn-primary" onclick="openHabitModal()">+ New Habit</button></div>
+    <div id="habitsList" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+  <!-- NOTES -->
+  <div class="page" id="page-notes">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="notes">Notes</h2><div style="display:flex;gap:8px;align-items:center"><input id="noteSearch" type="search" placeholder="Search notes..." oninput="renderNotes()" style="min-width:180px"><button class="btn btn-sm btn-primary" onclick="openNoteEditor()">+ New Note</button></div></div>
+    <div class="notes-layout"><div class="notes-sidebar" id="notesFolders"></div><div class="notes-grid" id="notesGrid"></div></div>
+  </div>
+  <!-- ANALYTICS -->
+  <div class="page" id="page-analytics">
+    <h2 style="font-size:1.2rem;font-weight:700" data-i18n="analytics">Analytics & Insights</h2>
+    <div class="analytics-grid" id="analyticsGrid"></div>
+    <div class="card" style="margin-top:4px"><div class="card-title">Gantt Timeline</div><div class="gantt-container" id="ganttContainer"></div></div>
+  </div>
+  <!-- TIME REPORTS -->
+  <div class="page" id="page-reports">
+    <h2 style="font-size:1.2rem;font-weight:700" data-i18n="time_reports">Time Reports</h2>
+    <div class="report-grid" id="reportGrid"></div>
+  </div>
+  <!-- ARCHIVE -->
+  <div class="page" id="page-archive">
+    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="archive">Archive</h2><button class="btn btn-sm btn-danger" onclick="clearArchive()">Clear Archive</button></div>
+    <div id="archiveContainer"></div>
+  </div>
+</div>
+</div>
+<!-- TASK MODAL -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header"><h2 id="modalTitle">New Task</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label for="taskTitleInput">Title *</label><input type="text" id="taskTitleInput" placeholder="What needs to be done?" maxlength="200"></div>
+      <div class="form-group"><label for="taskDescInput">Description</label><textarea id="taskDescInput" rows="3" placeholder="Add details..." maxlength="2000"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label for="taskPriorityInput">Priority</label><select id="taskPriorityInput"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div>
+        <div class="form-group"><label for="taskCategoryInput">Category</label><input type="text" id="taskCategoryInput" placeholder="e.g. Work" maxlength="50" list="catSugg"><datalist id="catSugg"></datalist></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label for="taskProjectInput">Project</label><select id="taskProjectInput"><option value="">No Project</option></select></div>
+        <div class="form-group"><label for="taskAssigneeInput">Owner</label><select id="taskAssigneeInput"><option value="">Unassigned</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label for="taskEisenhowerInput">Quadrant</label><select id="taskEisenhowerInput"><option value="">Auto</option><option value="q1">Urgent & Important</option><option value="q2">Important</option><option value="q3">Urgent</option><option value="q4">Neither</option></select></div>
+        <div class="form-group"><label for="taskRecurInput">Recurring</label><select id="taskRecurInput" onchange="updateRecurringPreview()"><option value="">None</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select><div class="field-hint" id="recurringPreview">No recurrence</div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label for="taskDueInput">Due Date</label><input type="date" id="taskDueInput" onchange="updateRecurringPreview()"></div>
+        <div class="form-group"><label for="taskDueTimeInput">Due Time</label><input type="time" id="taskDueTimeInput"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label for="taskStatusInput">Status</label><select id="taskStatusInput"><option value="todo">To Do</option><option value="in-progress">In Progress</option><option value="done">Done</option></select></div>
+        <div class="form-group"><label for="taskProgressInput">Progress</label><div style="display:flex;align-items:center;gap:6px"><input type="range" id="taskProgressInput" class="progress-slider" min="0" max="100" value="0" oninput="document.getElementById('progressVal').textContent=this.value+'%'"><span class="progress-value" id="progressVal">0%</span></div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label for="taskEstHoursInput">Est. Hours</label><input type="number" id="taskEstHoursInput" placeholder="0" min="0" step="0.5"></div>
+        <div class="form-group"><label for="taskLogHoursInput">Logged Hours</label><input type="number" id="taskLogHoursInput" placeholder="0" min="0" step="0.5"></div>
+      </div>
+      <div class="form-group"><label for="taskLinkInput">Link / URL</label><input type="url" id="taskLinkInput" placeholder="https://..." maxlength="500"></div>
+      <div class="form-group"><label for="taskNoteInput">Note</label><textarea id="taskNoteInput" rows="2" placeholder="Notes..." maxlength="500"></textarea></div>
+      <div class="form-group"><label for="taskTagsInput">Tags (comma separated)</label><input type="text" id="taskTagsInput" placeholder="urgent, frontend" maxlength="200"></div>
+      <div class="form-group"><label for="taskReminderInput">Reminder</label><input type="datetime-local" id="taskReminderInput"></div>
+      <div class="form-row">
+        <div class="form-group"><label for="taskMilestoneInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="taskMilestoneInput" style="width:auto"> Milestone</label></div>
+        <div class="form-group"><label for="taskDepsInput">Dependencies</label><select id="taskDepsInput" multiple style="min-height:60px;font-size:.8rem"></select></div>
+      </div>
+      <div class="form-group"><label for="newSubtaskInput">Subtasks</label><div id="subtasksList"></div><div style="display:flex;gap:6px;margin-top:6px"><input type="text" id="newSubtaskInput" placeholder="Add subtask..." maxlength="150" style="flex:1;font-size:.85rem" onkeydown="if(event.key==='Enter'){event.preventDefault();addSubtaskInput()}"><button class="btn btn-sm btn-outline" onclick="addSubtaskInput()">+</button></div></div>
+      <div class="form-group" id="commentsSection" style="display:none">
+        <label for="commentInput">Comments</label>
+        <div class="comment-list" id="commentList"></div>
+        <div class="comment-input-row" style="margin-top:6px"><input type="text" id="commentInput" placeholder="Add a comment..." maxlength="300" onkeydown="if(event.key==='Enter'){event.preventDefault();addComment()}"><button class="btn btn-sm btn-primary" onclick="addComment()">Post</button></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-sm btn-outline" onclick="saveAsTemplate()" title="Save as template">&#9733; Template</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="saveTaskBtn" onclick="saveTask()">Create Task</button>
+    </div>
+  </div>
+</div>
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay confirm-modal" id="confirmModal">
+  <div class="modal"><div class="modal-body" style="padding:28px">
+    <div class="confirm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></div>
+    <h3 style="font-size:1rem;font-weight:700;margin:4px 0" id="confirmTitle">Delete?</h3>
+    <p style="font-size:.88rem;color:var(--text2)" id="confirmMsg">This cannot be undone.</p>
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-outline" onclick="closeConfirm()">Cancel</button><button class="btn btn-danger" id="confirmBtn" onclick="confirmAction()">Delete</button></div>
+  </div></div>
+</div>
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h2 data-i18n="settings">Settings</h2><button class="icon-btn" onclick="closeSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body"><div class="settings-grid">
+      <div class="setting-item"><div><div class="setting-label">Logged in as</div><div class="setting-desc" id="settingsEmail">user@example.com</div></div><button class="btn btn-sm btn-outline" onclick="doLogout()">Logout</button></div>
+      <div class="setting-item"><div><div class="setting-label">Apps Script URL</div><div class="setting-desc" id="scriptUrlStatus">Not configured</div></div><button class="btn btn-sm btn-outline" onclick="editSheetUrl()">Edit</button></div>
+      <div class="setting-item"><div><div class="setting-label">Sync Token</div><div class="setting-desc" id="syncTokenStatus">Required for Google Sheets sync</div></div><button class="btn btn-sm btn-outline" onclick="editSyncToken()">Edit</button></div>
+      <div class="setting-item"><div><div class="setting-label">Google Sheets Sync</div><div class="setting-desc" id="syncStateLabel">Not synced yet</div></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-sm btn-outline" onclick="testSyncConnection()">Test</button><button class="btn btn-sm btn-outline" onclick="syncPullAll()">Pull</button><button class="btn btn-sm btn-primary" onclick="syncPushAll()">Push</button></div></div>
+      <div class="setting-item" id="adminSyncSetting" style="display:none"><div><div class="setting-label">Sync All to Google Sheets</div><div class="setting-desc">Admin token required; pushes all local users</div></div><button class="btn btn-sm btn-primary" onclick="syncAllUsersToSheet()">Sync All</button></div>
+      <div class="setting-item"><div><div class="setting-label">Pomodoro Work (min)</div><div class="setting-desc">Default: 25</div></div><input type="number" id="pomoWorkMin" value="25" min="1" max="90" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
+      <div class="setting-item"><div><div class="setting-label">Pomodoro Break (min)</div><div class="setting-desc">Default: 5</div></div><input type="number" id="pomoBreakMin" value="5" min="1" max="30" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
+      <div class="setting-item"><div><div class="setting-label">Language / RTL</div><div class="setting-desc" id="currentLangLabel">English</div></div><button class="btn btn-sm btn-outline" onclick="toggleLang()">Toggle</button></div>
+      <div class="setting-item"><div><div class="setting-label">Export Tasks</div><div class="setting-desc">CSV, JSON, or Excel</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="exportCSV()">CSV</button><button class="btn btn-sm btn-outline" onclick="exportJSON()">JSON</button><button class="btn btn-sm btn-outline" onclick="exportExcel()">Excel</button></div></div>
+      <div class="setting-item"><div><div class="setting-label">Import Tasks</div><div class="setting-desc">Upload JSON backup</div></div><button class="btn btn-sm btn-outline" onclick="document.getElementById('importFile').click()">Import</button><input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)"></div>
+      <div class="setting-item"><div><div class="setting-label">Enable Notifications</div><div class="setting-desc">Browser reminders</div></div><button class="btn btn-sm btn-outline" onclick="requestNotifPermission()">Enable</button></div>
+      <div class="setting-item"><div><div class="setting-label">Clear All Data</div><div class="setting-desc">Permanently erase</div></div><button class="btn btn-sm btn-danger" onclick="clearAllData()">Clear</button></div>
+    </div></div>
+  </div>
+</div>
+<!-- TEMPLATES MODAL -->
+<div class="modal-overlay" id="templatesModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header"><h2>Task Templates</h2><button class="icon-btn" onclick="closeTemplates()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body"><div class="template-list" id="templateList"><p style="color:var(--text3);font-size:.85rem;text-align:center">No templates yet.</p></div></div>
+  </div>
+</div>
+<!-- SAVED FILTERS MODAL -->
+<div class="modal-overlay" id="filtersModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><h2>Saved Filters</h2><button class="icon-btn" onclick="closeFiltersModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body"><button class="btn btn-sm btn-primary" onclick="saveCurrentFilter()" style="align-self:flex-start">Save Current Filter</button><div id="savedFiltersList"></div></div>
+  </div>
+</div>
+<!-- PROJECT MODAL -->
+<div class="modal-overlay" id="projectModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><h2 id="projectModalTitle">New Project</h2><button class="icon-btn" onclick="closeProjectModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label for="projectNameInput">Name</label><input type="text" id="projectNameInput" maxlength="100" placeholder="Project name"></div>
+      <div class="form-group"><label for="projectDescInput">Description</label><textarea id="projectDescInput" rows="2" maxlength="300" placeholder="Description..."></textarea></div>
+      <div class="form-group"><label for="projectColorInput">Color</label><input type="color" id="projectColorInput" value="#4f46e5" style="width:50px;height:36px;padding:2px;cursor:pointer"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeProjectModal()">Cancel</button><button class="btn btn-primary" onclick="saveProject()">Save</button></div>
+  </div>
+</div>
+<!-- GOAL MODAL -->
+<div class="modal-overlay" id="goalModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><h2 id="goalModalTitle">New Goal</h2><button class="icon-btn" onclick="closeGoalModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label for="goalTitleInput">Goal</label><input type="text" id="goalTitleInput" maxlength="150" placeholder="e.g. Complete 10 tasks"></div>
+      <div class="form-row">
+        <div class="form-group"><label for="goalTypeInput">Type</label><select id="goalTypeInput"><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
+        <div class="form-group"><label for="goalTargetInput">Target</label><input type="number" id="goalTargetInput" min="1" value="5" placeholder="5"></div>
+      </div>
+      <div class="form-group"><label for="goalUnitInput">Unit</label><input type="text" id="goalUnitInput" maxlength="30" placeholder="tasks, hours, etc." value="tasks"></div>
+      <div class="form-group"><label for="goalCurrentInput">Current Progress</label><input type="number" id="goalCurrentInput" min="0" value="0"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeGoalModal()">Cancel</button><button class="btn btn-primary" onclick="saveGoal()">Save</button></div>
+  </div>
+</div>
+<!-- HABIT MODAL -->
+<div class="modal-overlay" id="habitModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><h2 id="habitModalTitle">New Habit</h2><button class="icon-btn" onclick="closeHabitModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label for="habitNameInput">Habit Name</label><input type="text" id="habitNameInput" maxlength="100" placeholder="e.g. Read 30 minutes"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeHabitModal()">Cancel</button><button class="btn btn-primary" onclick="saveHabit()">Save</button></div>
+  </div>
+</div>
+<!-- NOTE EDITOR MODAL -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h2 id="eventModalTitle">New Event</h2><button class="icon-btn" onclick="closeEventModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label for="eventTitleInput">Title</label><input type="text" id="eventTitleInput" maxlength="150" placeholder="Meeting with team..."></div>
+      <div class="form-row">
+        <div class="form-group"><label for="eventDateInput">Date</label><input type="date" id="eventDateInput"></div>
+        <div class="form-group"><label for="eventTimeInput">Time</label><input type="time" id="eventTimeInput"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label for="eventEndTimeInput">End Time</label><input type="time" id="eventEndTimeInput"></div>
+        <div class="form-group"><label for="eventTypeInput">Type</label><select id="eventTypeInput"><option value="meeting">Meeting</option><option value="event">Event</option><option value="reminder">Reminder</option><option value="deadline">Deadline</option></select></div>
+      </div>
+      <div class="form-group"><label for="eventColorInput">Color</label><div style="display:flex;gap:8px;flex-wrap:wrap" id="eventColorPicker"><button type="button" class="ev-color-opt" data-color="#818cf8" style="background:#818cf8" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#f59e0b" style="background:#f59e0b" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#10b981" style="background:#10b981" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#ef4444" style="background:#ef4444" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#3b82f6" style="background:#3b82f6" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#ec4899" style="background:#ec4899" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#8b5cf6" style="background:#8b5cf6" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#64748b" style="background:#64748b" onclick="pickEventColor(this)"></button></div></div>
+      <div class="form-group"><label for="eventDescInput">Description (optional)</label><textarea id="eventDescInput" rows="3" placeholder="Add details..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" id="eventDeleteBtn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteEvent()">Delete</button><div style="flex:1"></div><button class="btn btn-outline" onclick="closeEventModal()">Cancel</button><button class="btn btn-primary" onclick="saveEvent()">Save</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="noteEditorModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header"><h2 id="noteEditorTitle">New Note</h2><button class="icon-btn" onclick="closeNoteEditor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label for="noteTitleInput">Title</label><input type="text" id="noteTitleInput" maxlength="150" placeholder="Note title"></div>
+      <div class="form-row">
+        <div class="form-group"><label for="noteFolderInput">Folder</label><input type="text" id="noteFolderInput" maxlength="50" placeholder="General" list="folderSugg"><datalist id="folderSugg"></datalist></div>
+        <div class="form-group"><label for="notePinInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="notePinInput" style="width:auto"> Pin Note</label></div>
+      </div>
+      <div class="form-group"><label for="noteContentInput">Content (Markdown)</label><textarea id="noteContentInput" rows="10" placeholder="Write your note..." style="font-family:monospace;font-size:.85rem" oninput="updateNotePreview()"></textarea></div>
+      <div class="form-group"><div style="font-weight:600;font-size:.85rem;margin-bottom:4px">Preview</div><div id="notePreview" style="border:1px solid var(--border);border-radius:8px;padding:10px;min-height:60px;font-size:.85rem;background:var(--surface2)"><p style="color:var(--text3)">Preview will appear here...</p></div></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeNoteEditor()">Cancel</button><button class="btn btn-primary" onclick="saveNote()">Save</button></div>
+  </div>
+</div>
+<!-- IMPORT PREVIEW MODAL -->
+<div class="modal-overlay" id="importPreviewModal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header"><h2>Import Preview</h2><button class="icon-btn" onclick="closeImportPreview()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div id="importPreviewSummary" class="sync-panel">No file selected</div>
+      <p class="setting-desc" style="margin-top:10px">Import replaces the current account's matching data sections after validation.</p>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeImportPreview()">Cancel</button><button class="btn btn-primary" onclick="confirmImportPreview()">Import</button></div>
+  </div>
+</div>
+<!-- QUICK ADD -->
+<div class="quick-add-overlay" id="quickAddOverlay">
+  <div class="quick-add-box">
+    <input type="text" id="quickAddInput" placeholder="Quick add task... (Enter to create)" onkeydown="handleQuickAdd(event)">
+    <div class="quick-add-hint">Enter = create &bull; Esc = close &bull; #tag !high @category ~project</div>
+  </div>
+</div>
+<!-- POMODORO -->
+<div class="focus-overlay" id="focusOverlay">
+  <button class="icon-btn" onclick="closePomodoro()" style="position:absolute;top:20px;right:20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <div id="pomoModeLabel" class="pomo-mode pomo-work">WORK</div>
+  <div class="focus-task-title" id="focusTaskTitle">Select a task to focus on</div>
+  <div class="focus-timer" id="focusTimer">25:00</div>
+  <div class="pomo-sessions" id="pomoSessions"></div>
+  <div class="focus-controls">
+    <button class="btn btn-primary" id="focusStartBtn" onclick="togglePomoTimer()">Start</button>
+    <button class="btn btn-outline" onclick="resetPomoTimer()">Reset</button>
+    <button class="btn btn-success" onclick="savePomoTime()">Save Time</button>
+  </div>
+  <select id="focusTaskSelect" onchange="selectFocusTask()" style="margin-top:20px;max-width:400px;width:100%"></select>
+</div>
+<!-- ONBOARDING -->
+<div class="onboard-overlay" id="onboardOverlay">
+  <div class="onboard-card">
+    <div class="onboard-icon" id="onboardIcon">&#128640;</div>
+    <h2 id="onboardTitle">Welcome to TaskFlow Pro!</h2>
+    <p id="onboardDesc">Your all-in-one professional task platform.</p>
+    <div class="onboard-dots" id="onboardProgress"></div>
+    <div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-outline" onclick="skipOnboarding()">Skip</button><button class="btn btn-primary" id="onboardNextBtn" onclick="nextOnboardStep()">Next</button></div>
+  </div>
+</div>
+<div class="confetti-container" id="confettiContainer"></div>
+<div class="toast-container" id="toastContainer"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
+<script src="app.js"></script>
+</body>
+</html>
