@@ -3,3 +3,9 @@ node_modules/
 *.tmp
 dist/
 coverage/
+
+# .NET build output
+bin/
+obj/
+*.user
+TestResults/

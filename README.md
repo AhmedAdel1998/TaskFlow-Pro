@@ -1,54 +1,77 @@
 # TaskFlow Pro Documentation
 
-TaskFlow Pro is a static, browser-based task management Progressive Web App (PWA). It stores work locally in the browser and can optionally sync task data to Google Sheets through a hardened Google Apps Script web app.
+TaskFlow Pro is a task management product currently made of **two parts that are not yet connected to each other**:
+
+1. **The client app** (`index.html`, `styles.css`, `app.js`, `sw.js`, `AppsScript.gs`) — a static, browser-based Progressive Web App (PWA). It stores work locally in the browser and can optionally sync task data to Google Sheets. This is what a person actually opens and uses today.
+2. **The backend foundation** (`src/TaskFlow.*`, `tests/TaskFlow.IntegrationTests`) — a real ASP.NET Core Web API with PostgreSQL, JWT authentication, and organization-scoped (multi-tenant) data, built to replace `localStorage` as the system of record. It is functional and covered by automated tests, but **no UI is wired up to it yet** — it cannot currently be used by an end user.
+
+This split is deliberate: see `docs/phase-1-audit.md` for why (short version — the client app has no real authentication, authorization, or tenant isolation, so it is not safe to sell to teams/companies as-is; the backend is being built as a staged "strangler" replacement rather than a risky big-bang rewrite). `docs/feature-parity-matrix.md` tracks which features have moved from "local-only" to "built and tested on the API" so far.
 
 ## Contents
 
 - Application overview
-- Features
-- File structure
-- Running the app
-- User guide
+- Repository structure
+- Running the client app
+- User guide (client app)
 - Google Sheets sync setup
+- Backend API (in progress)
 - Security model
 - Backup, restore, import, and export
 - Offline/PWA behavior
 - Testing
 - Developer notes
+- Project status and roadmap
 - Known limitations
 - Troubleshooting
 
 ## Application Overview
 
-TaskFlow Pro is designed for personal and lightweight team task monitoring. The app runs entirely in the browser from static files:
+TaskFlow Pro is designed for personal and lightweight team task monitoring, with a longer-term goal of becoming a commercial multi-tenant SaaS product (see `docs/phase-1-audit.md` for the full target architecture).
 
-- No build step is required to open or host the app.
+### Client app (what exists today, usable now)
+
+- No build step is required to open or host it.
 - User data is stored in browser `localStorage`.
 - Optional sync pushes/pulls task data to a Google Sheet using `AppsScript.gs`.
 - PWA support allows browser installation and offline access when served over `http` or `https`.
+- Includes task lists, Kanban, calendar events, Eisenhower matrix, projects, goals, habits, notes, analytics, reports, archive, Pomodoro timer, templates, saved filters, import/export, RTL language toggle, theme toggle, and Google Sheets sync.
 
-The application includes task lists, Kanban, calendar events, Eisenhower matrix, projects, goals, habits, notes, analytics, reports, archive, Pomodoro timer, templates, saved filters, import/export, RTL language toggle, theme toggle, and Google Sheets sync.
+### Backend API (new, not yet connected to any UI)
 
-## File Structure
+- ASP.NET Core 9 Web API (`src/TaskFlow.Api`) following a Clean Architecture split: `TaskFlow.Domain` (entities), `TaskFlow.Application` (contracts/use-case interfaces), `TaskFlow.Infrastructure` (EF Core/PostgreSQL, JWT auth, tenant-scoped services), `TaskFlow.Api` (thin HTTP endpoints).
+- Real registration/login (password hashing, JWT access token + refresh token), organization-scoped tasks/projects/subtasks/comments/tags, row-version optimistic concurrency, and server-side tenant isolation enforced on every query.
+- Verified with an automated integration test suite that runs against a real, ephemeral PostgreSQL container (see "Backend API" section below).
+
+## Repository Structure
 
 ```text
 E:\Task Pro
-  index.html          Main HTML shell and UI markup
-  styles.css          Application styling and responsive design
-  app.js              Main application logic
-  sw.js               Service worker for PWA/offline caching
-  manifest.json       PWA manifest
-  AppsScript.gs       Google Apps Script sync backend
-  icon-192.png        PWA icon
-  icon-512.png        PWA icon
-  package.json        Test scripts and dev dependency metadata
-  package-lock.json   Locked npm dependency versions
+  index.html                        Client app: HTML shell and UI markup
+  styles.css                        Client app: styling and responsive design
+  app.js                            Client app: main application logic
+  sw.js                             Client app: service worker for PWA/offline caching
+  manifest.json                     Client app: PWA manifest
+  AppsScript.gs                     Client app: Google Apps Script sync backend
+  icon-192.png, icon-512.png        Client app: PWA icons
+  package.json, package-lock.json   Client app: test scripts and dev dependency metadata
   tests/
-    syntax-check.js   Syntax and DOM reference validation
-    smoke.js          Browser smoke test using Playwright Core
+    syntax-check.js                 Client app: syntax and DOM reference validation
+    smoke.js                        Client app: browser smoke test using Playwright Core
+    TaskFlow.IntegrationTests/      Backend: xUnit integration tests (auth, tenant isolation, concurrency)
+
+  TaskFlow.sln                      Backend: .NET solution file
+  src/
+    TaskFlow.Domain/                Backend: entities (User, Organization, TaskItem, Subtask, TaskComment, Tag, ...)
+    TaskFlow.Application/           Backend: DTOs, commands, and service interfaces
+    TaskFlow.Infrastructure/        Backend: EF Core DbContext, migrations, auth/task/project/subtask/comment/tag services
+    TaskFlow.Api/                   Backend: Program.cs — endpoint mapping, JWT config, rate limiting, health checks
+
+  docs/
+    phase-1-audit.md                Architecture, security, and data-model audit of the client app
+    feature-parity-matrix.md        Feature-by-feature status: local-only vs. built-and-tested on the API
 ```
 
-## Running The App
+## Running The Client App
 
 ### Simple local use
 
@@ -346,9 +369,112 @@ If local tasks changed after the last sync, the app warns before pulling.
 
 Admin-only client control for pushing all local users from this browser to separate sheets. Server-side Apps Script also checks `ADMIN_EMAILS`.
 
+## Backend API (In Progress)
+
+This is the real API/database foundation described in the audit. It is functional and tested but **has no connected UI** — there is no login screen, task list, or any other page that talks to it. It is meant to eventually replace the client app's `localStorage` layer.
+
+### Architecture
+
+```text
+src/TaskFlow.Api            Program.cs: minimal-API endpoint mapping, JWT bearer auth, rate limiting,
+                             security headers, exception-to-HTTP-status middleware, health checks
+src/TaskFlow.Application     Commands/DTOs (RegisterCommand, CreateTaskCommand, TaskDto, ...) and
+                             service interfaces (IAuthService, ITaskService, IProjectService, ...)
+src/TaskFlow.Infrastructure  EF Core DbContext + PostgreSQL migrations, and the concrete service
+                             implementations that enforce organization membership on every query
+src/TaskFlow.Domain          Plain entities: User, Organization, OrganizationMember, Project,
+                             TaskItem, Subtask, TaskComment, Tag, TaskTag, RefreshSession
+```
+
+Every entity that belongs to an organization carries an `OrganizationId`, and every service method re-checks that the authenticated user is a member of that organization before touching any row — the organization ID is read from the signed JWT claim, never from a client-supplied value.
+
+### Endpoints implemented so far
+
+```text
+POST /api/auth/register        Create user + organization + Owner membership; returns JWT + refresh token
+POST /api/auth/login            Returns JWT + refresh token, or 401
+POST /api/auth/refresh          Rotates a refresh token, or 401 if invalid/expired/revoked
+
+GET  /api/tasks                 List tasks in the caller's organization
+POST /api/tasks                 Create a task
+PUT  /api/tasks/{id}             Update a task (requires the row's current Version; stale Version -> 409)
+
+GET  /api/projects              List projects in the caller's organization
+POST /api/projects              Create a project
+
+GET  /api/tasks/{taskId}/subtasks    List a task's subtasks
+POST /api/tasks/{taskId}/subtasks    Add a subtask
+PUT  /api/tasks/{taskId}/subtasks/{id} Update a subtask
+
+GET  /api/tasks/{taskId}/comments    List a task's comments
+POST /api/tasks/{taskId}/comments    Add a comment
+
+GET  /api/tags                  List organization tags
+POST /api/tags                  Create a tag
+
+GET  /health/live               Liveness probe
+GET  /health/ready               Readiness probe (checks DB connectivity)
+```
+
+All `/api/*` routes except `/api/auth/*` require a valid `Authorization: Bearer <token>` header. Unauthenticated requests get 401; requests for another organization's data get 403/404 rather than leaking whether the record exists.
+
+### Running it locally
+
+Requires the .NET 9 SDK and a PostgreSQL instance. The quickest way to get a database is Docker:
+
+```powershell
+docker run -d --name taskflow-postgres -e POSTGRES_PASSWORD=devpassword123 -e POSTGRES_DB=taskflow -p 5432:5432 postgres:16-alpine
+```
+
+Set the connection string and JWT signing key (either edit `src/TaskFlow.Api/appsettings.Development.json` or set environment variables), then apply migrations and run:
+
+```powershell
+cd "E:\Task Pro"
+dotnet ef database update --project src\TaskFlow.Infrastructure --startup-project src\TaskFlow.Api
+dotnet run --project src\TaskFlow.Api
+```
+
+The API listens on the URL printed at startup (see `src/TaskFlow.Api/Properties/launchSettings.json`). Try it with:
+
+```powershell
+curl -X POST http://localhost:5299/api/auth/register -H "Content-Type: application/json" -d "{\"email\":\"you@example.com\",\"password\":\"a-long-enough-password\",\"organizationName\":\"My Org\"}"
+```
+
+### Configuration
+
+`src/TaskFlow.Api/appsettings.json` reads:
+
+```text
+ConnectionStrings:TaskFlow   PostgreSQL connection string (required)
+Jwt:Key                      HMAC-SHA256 signing key for access tokens (required, 32+ bytes recommended)
+RateLimits:Auth              Requests/minute permitted per policy window on /api/auth/* (default 10)
+```
+
+The checked-in `appsettings.json` value for `Jwt:Key` and the PostgreSQL password are placeholders for local development only — replace both before deploying anywhere real. Real secrets must never be committed; use environment variables or a secrets manager in any shared or production environment.
+
+### Testing
+
+```powershell
+cd "E:\Task Pro"
+dotnet build TaskFlow.sln
+dotnet test TaskFlow.sln
+```
+
+`dotnet test` runs `tests/TaskFlow.IntegrationTests`, which spins up a real, ephemeral PostgreSQL container per test class (via Testcontainers) and exercises the running API through `WebApplicationFactory`. It currently proves:
+
+- Registration, login, and task creation succeed end-to-end.
+- Wrong password and duplicate-email registration are rejected.
+- **Cross-tenant isolation**: one organization's tasks, subtasks, and comments are invisible to, and cannot be modified by, a user in a different organization (404, not just an empty list).
+- Anonymous requests to protected endpoints are rejected (401).
+- A stale optimistic-concurrency `Version` on update is rejected (409), proving two concurrent editors cannot silently clobber each other.
+- Blank/invalid input is rejected server-side (400), not trusted from the client.
+- The auth rate limiter actually returns 429 once its configured threshold is exceeded.
+
+As of 2026-09-15, all 9 integration tests pass against a clean build. This is evidence for the claims above — it is not a claim that the backend is production-ready as a whole (see "Known Limitations").
+
 ## Security Model
 
-### What is protected
+### Client app: what is protected
 
 - The Apps Script rejects requests without the configured `SYNC_TOKEN`.
 - Spreadsheet ID is stored in Apps Script Properties, not in source.
@@ -357,11 +483,27 @@ Admin-only client control for pushing all local users from this browser to separ
 - XLSX CDN script includes Subresource Integrity.
 - A Content Security Policy is defined in `index.html`.
 
-### What is not protected
+### Client app: what is not protected
 
-TaskFlow Pro is still a static browser app. It does not provide true server-side login, sessions, or role permissions.
+The client app is still a static browser app. It does not provide true server-side login, sessions, or role permissions.
 
-The login screen is local identity selection only. Anyone with browser access can inspect localStorage. For sensitive team data, use a real backend with authentication, authorization, audit logs, and server-side storage.
+The login screen is local identity selection only. Anyone with browser access can inspect localStorage. For sensitive team data, use a real backend with authentication, authorization, audit logs, and server-side storage — which is exactly what the backend API above is being built to provide, once it is wired up.
+
+### Backend API: what is protected
+
+- Passwords are hashed (`Microsoft.AspNetCore.Identity.PasswordHasher`), never stored or logged in plain text.
+- Access tokens are short-lived (15 min) signed JWTs; refresh tokens are long random values stored server-side only as a SHA-256 hash, so a leaked database row cannot be replayed as a token.
+- Every data-access path derives the organization ID from the signed JWT, then re-verifies organization membership before any read or write — a client cannot request another organization's data by guessing or forging an ID.
+- Row-version optimistic concurrency prevents silent overwrite on concurrent edits.
+- `/api/auth/*` is rate-limited; unhandled exceptions are mapped to generic HTTP status codes instead of leaking stack traces.
+- Security response headers (`X-Content-Type-Options`, `Referrer-Policy`) are set on every response; HTTPS redirection is enabled.
+
+### Backend API: what is not yet protected
+
+- No email verification, password reset flow, account lockout, or MFA.
+- Only the `Owner` role currently exists in practice — the `OrganizationRole` enum has Admin/Manager/Member/Viewer values, but no endpoint yet checks role beyond "is a member of this organization."
+- No audit log, no invitations, no CORS policy configured, no secrets manager integration — the JWT key and DB password in `appsettings.json` are dev-only placeholders.
+- Not deployed anywhere; no CI/CD; no production configuration has been created or tested.
 
 ## Backup, Restore, Import, And Export
 
@@ -416,6 +558,8 @@ Service workers require HTTP/HTTPS. They do not run from direct `file://` loadin
 
 ## Testing
 
+This section covers the client app's own test suite (Node/Playwright). For the backend API's test suite (`dotnet test`), see "Backend API > Testing" above.
+
 Install dependencies:
 
 ```powershell
@@ -459,6 +603,16 @@ The smoke test verifies:
 - Local data persistence
 
 ## Developer Notes
+
+### Backend layout and conventions
+
+- Keep tenant scoping mandatory: every new `Infrastructure` service method must take the caller's `Guid organizationId` (read from the JWT claim by the endpoint, never from the request body) and verify membership (see the `Tenant.Require`/`Tenant.IsMember` helper in `src/TaskFlow.Infrastructure/Services.cs`) before touching any row.
+- Add new entities to `src/TaskFlow.Domain/Entities.cs`, configure them in `TaskFlowDbContext.OnModelCreating`, then generate a migration:
+  ```powershell
+  dotnet ef migrations add <Name> --project src\TaskFlow.Infrastructure --startup-project src\TaskFlow.Api --output-dir Migrations
+  ```
+- Add new endpoints in `src/TaskFlow.Api/Program.cs`; wrap anything that should map to a specific HTTP status by throwing `UnauthorizedAccessException` (403), `KeyNotFoundException` (404), `ArgumentException`/`InvalidOperationException` (400), or letting EF Core throw `DbUpdateConcurrencyException` (409) — the shared exception-handling middleware maps these consistently.
+- Add integration test coverage in `tests/TaskFlow.IntegrationTests`. Prefer proving negative/security cases (cross-tenant access, missing auth, stale versions) over only happy-path cases — that is what makes the test suite meaningful evidence rather than a smoke check.
 
 ### Main client files
 
@@ -553,7 +707,22 @@ Add coverage in:
 
 Run `npm test` before deployment.
 
+## Project Status And Roadmap
+
+TaskFlow Pro is mid-migration from a local-only client app to a real multi-tenant SaaS backend, following the staged plan in `docs/phase-1-audit.md`. Current state, honestly:
+
+| Layer | Status |
+| --- | --- |
+| Client app (`index.html`/`app.js`) | Fully functional as a local/single-browser tool. This is the only part an end user can currently use. |
+| Backend API (`src/TaskFlow.*`) | Auth, tasks, projects, subtasks, comments, and tags are implemented, tenant-isolated, and covered by passing integration tests against a real database. Not deployed; not connected to any UI. |
+| Frontend-to-API integration | Not started. The client app still reads/writes only `localStorage`. |
+| Everything else in the audit (roles beyond Owner, invitations, goals/habits/notes/calendar/reports on the API, billing, CI/CD, deployment) | Not started. |
+
+See `docs/feature-parity-matrix.md` for the up-to-date feature-by-feature status, and `docs/phase-1-audit.md` for the full architecture/security audit and target design. Do not describe this project as "production-ready" or safe for real company/team data until both the audit's critical findings are resolved and a frontend is actually wired to the authenticated API.
+
 ## Known Limitations
+
+### Client app
 
 - No true server-side authentication.
 - No true role-based authorization inside the static client.
@@ -562,6 +731,14 @@ Run `npm test` before deployment.
 - LocalStorage can be cleared by the browser or user.
 - Large task histories may eventually hit browser storage limits.
 - Excel export depends on the XLSX CDN being available.
+
+### Backend API
+
+- No UI is connected to it yet — it cannot be used end-to-end today.
+- No password reset, email verification, or account recovery flow.
+- No role enforcement beyond "is an organization member" (the Admin/Manager/Member/Viewer roles exist in the data model but are not yet checked anywhere).
+- No invitations, audit log, notifications, or reporting endpoints.
+- Not deployed, no CI/CD pipeline, and the checked-in dev configuration values (JWT key, DB password) must be replaced before any real deployment.
 
 ## Troubleshooting
 
