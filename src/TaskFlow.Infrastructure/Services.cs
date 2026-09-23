@@ -6,7 +6,7 @@ public sealed partial class AuthService(TaskFlowDbContext db, IConfiguration con
  public async Task<AuthResult> RegisterAsync(RegisterCommand c,CancellationToken ct){
   var username=c.Username.Trim().ToLowerInvariant();
   if(!UsernamePattern().IsMatch(username))throw new ArgumentException("Username must be 3-32 characters: letters, numbers, and underscores only.");
-  if(c.Password.Length<12)throw new ArgumentException("Password must have at least 12 characters.");
+  if(c.Password.Length<6)throw new ArgumentException("Password must have at least 6 characters.");
   if(await db.Users.AnyAsync(x=>x.Username==username,ct))throw new InvalidOperationException("Username is already taken.");
   var u=new User{Username=username};u.PasswordHash=hasher.HashPassword(u,c.Password);var o=new Organization{Name=c.OrganizationName.Trim()};db.AddRange(u,o,new OrganizationMember{UserId=u.Id,OrganizationId=o.Id,Role=OrganizationRole.Owner});await db.SaveChangesAsync(ct);return await Issue(u,o.Id,ct);
  }

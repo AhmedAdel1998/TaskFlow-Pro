@@ -22,13 +22,13 @@
   <div class="login-box">
     <div class="logo-big">T</div>
     <h1>TaskFlow Pro</h1>
-    <p>Team Task Monitoring System</p>
+    <p data-i18n="login_tagline">Team Task Monitoring System</p>
     <div class="login-error" id="loginError"></div>
-    <input type="text" id="loginUsername" aria-label="Username" placeholder="Username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
-    <input type="password" id="loginPassword" aria-label="Password" placeholder="Password (min 12 characters)" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="btn btn-primary" onclick="doLogin()" id="loginSubmitBtn">Sign In</button>
-    <div style="font-size:.82rem;color:var(--text2);margin-top:10px"><span id="loginSwitchText">New here?</span> <a href="#" onclick="toggleAuthMode();return false;" id="loginSwitchLink" style="color:var(--primary);font-weight:600">Create an account</a></div>
-    <div class="login-team">Powered by TaskFlow Pro &bull; Team Edition</div>
+    <input type="text" id="loginUsername" aria-label="Username" data-i18n-ph="ph_username" placeholder="Username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    <input type="password" id="loginPassword" aria-label="Password" data-i18n-ph="ph_password" placeholder="Password (min 6 characters)" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn btn-primary" onclick="doLogin()" id="loginSubmitBtn" data-i18n="sign_in">Sign In</button>
+    <div style="font-size:.82rem;color:var(--text2);margin-top:10px"><span id="loginSwitchText" data-i18n="new_here">New here?</span> <a href="#" onclick="toggleAuthMode();return false;" id="loginSwitchLink" style="color:var(--primary);font-weight:600" data-i18n="switch_to_create">Create an account</a></div>
+    <div class="login-team" data-i18n="login_footer">Powered by TaskFlow Pro &bull; Team Edition</div>
   </div>
 </div>
 <!-- APP -->
@@ -74,32 +74,32 @@
     <button class="hamburger" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="search-box" id="globalSearchBox">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" placeholder="Search tasks..." oninput="handleGlobalSearch(event)" onfocus="handleGlobalSearch(event)" onblur="setTimeout(()=>closeSearch(),200)">
+      <input type="text" id="searchInput" data-i18n-ph="ph_search_tasks" placeholder="Search tasks..." oninput="handleGlobalSearch(event)" onfocus="handleGlobalSearch(event)" onblur="setTimeout(()=>closeSearch(),200)">
       <span class="shortcut-hint">/</span>
       <div class="search-results" id="searchResults"></div>
     </div>
     <div class="topbar-actions">
-      <button class="icon-btn" id="syncStatusBtn" onclick="openSettings()" title="Sync status" style="display:none"><svg id="syncStatusIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg><span class="dot" id="syncPendingDot" style="display:none"></span></button>
-      <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
-      <button class="icon-btn" id="notifBtn" onclick="showOverdueTasks()" title="Overdue tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span class="dot" id="notifDot" style="display:none"></span></button>
-      <button class="icon-btn" onclick="toggleLang()" title="Language / RTL"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></button>
-      <button class="icon-btn" id="installBtn" onclick="installApp()" title="Install App" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+      <button class="icon-btn" id="syncStatusBtn" onclick="openSettings()" data-i18n-title="title_sync_status" title="Sync status" style="display:none"><svg id="syncStatusIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg><span class="dot" id="syncPendingDot" style="display:none"></span></button>
+      <button class="icon-btn" onclick="toggleTheme()" data-i18n-title="title_toggle_theme" title="Toggle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
+      <button class="icon-btn" id="notifBtn" onclick="showOverdueTasks()" data-i18n-title="title_overdue_tasks" title="Overdue tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span class="dot" id="notifDot" style="display:none"></span></button>
+      <button class="icon-btn" onclick="toggleLang()" data-i18n-title="title_language" title="Language / RTL"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></button>
+      <button class="icon-btn" id="installBtn" onclick="installApp()" data-i18n-title="title_install_app" title="Install App" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
       <button class="btn btn-primary" onclick="openModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span data-i18n="new_task">New Task</span></button>
     </div>
   </header>
   <!-- DASHBOARD -->
   <div class="page active" id="page-dashboard">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div style="font-size:1.3rem;font-weight:700">Good <span id="greeting"></span>, <span id="greetUser" style="color:var(--primary)"></span></div>
+      <div style="font-size:1.3rem;font-weight:700"><span id="greeting"></span> <span id="greetUser" style="color:var(--primary)"></span></div>
       <div class="filter-bar">
-        <select id="dashDateFilter" class="filter-select" onchange="renderDashboard()"><option value="all">All Dates</option><option value="today">Today</option><option value="week">This Week</option><option value="month">This Month</option></select>
-        <select id="dashProjectFilter" class="filter-select" onchange="renderDashboard()"><option value="all">All Projects</option></select>
-        <select id="dashAssigneeFilter" class="filter-select" onchange="renderDashboard()"><option value="all">All Owners</option></select>
+        <select id="dashDateFilter" class="filter-select" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_dates">All Dates</option><option value="today" data-i18n-opt="filter_today">Today</option><option value="week" data-i18n-opt="filter_this_week">This Week</option><option value="month" data-i18n-opt="filter_this_month">This Month</option></select>
+        <select id="dashProjectFilter" class="filter-select" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_projects">All Projects</option></select>
+        <select id="dashAssigneeFilter" class="filter-select" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_owners">All Owners</option></select>
       </div>
     </div>
     <div class="stats-grid" id="statsGrid"></div>
-    <div class="dash-row"><div class="card"><div class="card-title" data-i18n="weekly_overview">Weekly Overview</div><div class="chart-area" id="weeklyChart"></div></div><div class="card"><div class="card-title" data-i18n="priority_dist">Priority Distribution</div><div class="priority-ring"><div class="ring-chart"><canvas id="ringCanvas" width="130" height="130"></canvas><div class="ring-center"><span class="pct" id="ringPct">0%</span><small>done</small></div></div><div class="ring-legend" id="ringLegend"></div></div></div></div>
-    <div class="dash-row"><div class="card"><div class="card-title">Productivity Heatmap <span style="font-size:.7rem;font-weight:400;color:var(--text3)">Last 16 weeks</span></div><div class="heatmap-wrap" id="heatmapWrap"></div></div><div class="card"><div class="card-title" data-i18n="upcoming">Upcoming Deadlines</div><div id="upcomingDeadlines"></div></div></div>
+    <div class="dash-row"><div class="card"><div class="card-title" data-i18n="weekly_overview">Weekly Overview</div><div class="chart-area" id="weeklyChart"></div></div><div class="card"><div class="card-title" data-i18n="priority_dist">Priority Distribution</div><div class="priority-ring"><div class="ring-chart"><canvas id="ringCanvas" width="130" height="130"></canvas><div class="ring-center"><span class="pct" id="ringPct">0%</span><small data-i18n="done_label">done</small></div></div><div class="ring-legend" id="ringLegend"></div></div></div></div>
+    <div class="dash-row"><div class="card"><div class="card-title"><span data-i18n="heatmap_title">Productivity Heatmap</span> <span style="font-size:.7rem;font-weight:400;color:var(--text3)" data-i18n="heatmap_subtitle">Last 16 weeks</span></div><div class="heatmap-wrap" id="heatmapWrap"></div></div><div class="card"><div class="card-title" data-i18n="upcoming">Upcoming Deadlines</div><div id="upcomingDeadlines"></div></div></div>
     <div class="dash-row"><div class="card"><div class="card-title" data-i18n="goal_progress">Goal Progress</div><div id="dashGoals"></div></div><div class="card"><div class="card-title" data-i18n="habit_streaks">Habit Streaks</div><div id="dashHabits"></div></div></div>
     <div class="card"><div class="card-title" data-i18n="recent_activity">Recent Activity</div><div class="activity-list" id="activityList"></div></div>
   </div>
@@ -108,36 +108,36 @@
     <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="my_day">My Day</h2><div style="display:flex;gap:6px"><span id="myDayDate" style="font-size:.85rem;color:var(--text2)"></span></div></div>
     <div class="stats-grid" id="myDayStats"></div>
     <div id="myDayBlocks"></div>
-    <div class="card"><div class="card-title" data-i18n="daily_notes">Daily Notes</div><textarea id="dailyNoteInput" rows="3" placeholder="Write your notes for today..." style="width:100%;resize:vertical" oninput="saveDailyNote()"></textarea></div>
+    <div class="card"><div class="card-title" data-i18n="daily_notes">Daily Notes</div><textarea id="dailyNoteInput" rows="3" data-i18n-ph="ph_daily_notes" placeholder="Write your notes for today..." style="width:100%;resize:vertical" oninput="saveDailyNote()"></textarea></div>
   </div>
   <!-- TASKS -->
   <div class="page" id="page-tasks">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
       <h2 style="font-size:1.2rem;font-weight:700" data-i18n="all_tasks">All Tasks</h2>
       <div class="filter-bar">
-        <select id="filterStatus" class="filter-select" onchange="renderTasks()"><option value="all">All Status</option><option value="todo">To Do</option><option value="in-progress">In Progress</option><option value="done">Done</option></select>
-        <select id="filterPriority" class="filter-select" onchange="renderTasks()"><option value="all">All Priorities</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
-        <select id="filterCategory" class="filter-select" onchange="renderTasks()"><option value="all">All Categories</option></select>
-        <select id="filterProject" class="filter-select" onchange="renderTasks()"><option value="all">All Projects</option></select>
-        <select id="filterAssignee" class="filter-select" onchange="renderTasks()"><option value="all">All Owners</option></select>
-        <select id="sortBy" class="filter-select" onchange="renderTasks()"><option value="created-desc">Newest</option><option value="created-asc">Oldest</option><option value="due-asc">Due Soon</option><option value="priority-desc">Priority</option><option value="score-desc">Smart Score</option><option value="alpha-asc">A-Z</option></select>
-        <button class="filter-star" onclick="openSavedFilters()" title="Saved filters">&#9733;</button>
+        <select id="filterStatus" class="filter-select" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_status">All Status</option><option value="todo" data-i18n-opt="status_todo">To Do</option><option value="in-progress" data-i18n-opt="status_inprogress">In Progress</option><option value="done" data-i18n-opt="status_done">Done</option></select>
+        <select id="filterPriority" class="filter-select" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_priorities">All Priorities</option><option value="high" data-i18n-opt="priority_high">High</option><option value="medium" data-i18n-opt="priority_medium">Medium</option><option value="low" data-i18n-opt="priority_low">Low</option></select>
+        <select id="filterCategory" class="filter-select" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_categories">All Categories</option></select>
+        <select id="filterProject" class="filter-select" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_projects">All Projects</option></select>
+        <select id="filterAssignee" class="filter-select" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_owners">All Owners</option></select>
+        <select id="sortBy" class="filter-select" onchange="renderTasks()"><option value="created-desc" data-i18n-opt="sort_newest">Newest</option><option value="created-asc" data-i18n-opt="sort_oldest">Oldest</option><option value="due-asc" data-i18n-opt="sort_due_soon">Due Soon</option><option value="priority-desc" data-i18n-opt="sort_priority">Priority</option><option value="score-desc" data-i18n-opt="sort_smart_score">Smart Score</option><option value="alpha-asc" data-i18n-opt="sort_az">A-Z</option></select>
+        <button class="filter-star" onclick="openSavedFilters()" data-i18n-title="title_saved_filters" title="Saved filters">&#9733;</button>
       </div>
     </div>
     <div id="bulkBar" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
       <span id="selectedCount" style="font-size:.82rem;font-weight:600"></span>
-      <button class="btn btn-sm btn-outline" onclick="bulkAction('done')">Mark Done</button>
-      <button class="btn btn-sm btn-outline" onclick="bulkAction('todo')">Mark To Do</button>
-      <button class="btn btn-sm btn-outline" onclick="bulkAction('archive')">Archive</button>
-      <button class="btn btn-sm btn-danger" onclick="bulkAction('delete')">Delete</button>
-      <button class="btn btn-sm btn-outline" onclick="clearSelection()">Cancel</button>
+      <button class="btn btn-sm btn-outline" onclick="bulkAction('done')" data-i18n="bulk_mark_done">Mark Done</button>
+      <button class="btn btn-sm btn-outline" onclick="bulkAction('todo')" data-i18n="bulk_mark_todo">Mark To Do</button>
+      <button class="btn btn-sm btn-outline" onclick="bulkAction('archive')" data-i18n="action_archive">Archive</button>
+      <button class="btn btn-sm btn-danger" onclick="bulkAction('delete')" data-i18n="action_delete">Delete</button>
+      <button class="btn btn-sm btn-outline" onclick="clearSelection()" data-i18n="action_cancel">Cancel</button>
     </div>
     <div id="taskListContainer"></div>
   </div>
   <!-- KANBAN -->
   <div class="page" id="page-kanban">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-      <div><h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="kanban">Kanban Board</h2><p style="font-size:.78rem;color:var(--text3);margin:4px 0 0">Drag and drop tasks between columns to update status</p></div>
+      <div><h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="kanban">Kanban Board</h2><p style="font-size:.78rem;color:var(--text3);margin:4px 0 0" data-i18n="kanban_subtitle">Drag and drop tasks between columns to update status</p></div>
     </div>
     <div class="kanban-board" id="kanbanBoard"></div>
   </div>
@@ -146,10 +146,10 @@
     <div class="cal-header">
       <h2 id="calTitle">March 2026</h2>
       <div class="cal-header-actions">
-        <button class="cal-nav-btn" onclick="calNav(-1)" title="Previous month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
-        <button class="cal-today-btn" onclick="calToday()">Today</button>
-        <button class="cal-nav-btn" onclick="calNav(1)" title="Next month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
-        <button class="cal-add-btn" onclick="openEventModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Event</button>
+        <button class="cal-nav-btn" onclick="calNav(-1)" data-i18n-title="title_prev_month" title="Previous month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="cal-today-btn" onclick="calToday()" data-i18n="today_label">Today</button>
+        <button class="cal-nav-btn" onclick="calNav(1)" data-i18n-title="title_next_month" title="Next month"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="cal-add-btn" onclick="openEventModal()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> <span data-i18n="new_event">New Event</span></button>
       </div>
     </div>
     <div class="cal-grid" id="calGrid"></div>
@@ -159,15 +159,15 @@
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
         <h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="timetable">Timetable</h2>
-        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0">Tasks are auto-scheduled into today's free hours &mdash; updates automatically as tasks or hours change</p>
+        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0" data-i18n="timetable_subtitle">Tasks are auto-scheduled into today's free hours &mdash; updates automatically as tasks or hours change</p>
       </div>
       <div class="tt-toolbar">
-        <button class="cal-nav-btn" onclick="timetableNav(-1)" title="Previous day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
-        <button class="cal-today-btn" onclick="timetableToday()">Today</button>
-        <button class="cal-nav-btn" onclick="timetableNav(1)" title="Next day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="cal-nav-btn" onclick="timetableNav(-1)" data-i18n-title="title_prev_day" title="Previous day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="cal-today-btn" onclick="timetableToday()" data-i18n="today_label">Today</button>
+        <button class="cal-nav-btn" onclick="timetableNav(1)" data-i18n-title="title_next_day" title="Next day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
         <span id="ttDateLabel" style="font-weight:700;font-size:.9rem;margin:0 4px"></span>
-        <span class="tt-hours-input"><label for="ttStartInput">From</label><input type="number" id="ttStartInput" min="0" max="23" style="width:52px" onchange="updateWorkHours()"></span>
-        <span class="tt-hours-input"><label for="ttEndInput">To</label><input type="number" id="ttEndInput" min="1" max="24" style="width:52px" onchange="updateWorkHours()"></span>
+        <span class="tt-hours-input"><label for="ttStartInput" data-i18n="label_from">From</label><input type="number" id="ttStartInput" min="0" max="23" style="width:52px" onchange="updateWorkHours()"></span>
+        <span class="tt-hours-input"><label for="ttEndInput" data-i18n="label_to">To</label><input type="number" id="ttEndInput" min="1" max="24" style="width:52px" onchange="updateWorkHours()"></span>
       </div>
     </div>
     <div class="stats-grid" id="ttStats"></div>
@@ -175,7 +175,7 @@
       <div class="tt-layout">
         <div class="tt-container" id="ttGrid"></div>
         <div class="tt-side">
-          <div class="tt-side-title">Not Scheduled Today</div>
+          <div class="tt-side-title" data-i18n="tt_not_scheduled">Not Scheduled Today</div>
           <div id="ttOverflow"></div>
         </div>
       </div>
@@ -186,43 +186,43 @@
     <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px">
       <div>
         <h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="matrix">Eisenhower Matrix</h2>
-        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0">Prioritize tasks by urgency and importance &mdash; drag tasks between quadrants</p>
+        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0" data-i18n="eisenhower_subtitle">Prioritize tasks by urgency and importance &mdash; drag tasks between quadrants</p>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block"></span>Do First</div>
-        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block"></span>Schedule</div>
-        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block"></span>Delegate</div>
-        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#6b7280;display:inline-block"></span>Eliminate</div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#ef4444;display:inline-block"></span><span data-i18n="eh_do_first">Do First</span></div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#3b82f6;display:inline-block"></span><span data-i18n="eh_schedule">Schedule</span></div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block"></span><span data-i18n="eh_delegate">Delegate</span></div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text3)"><span style="width:8px;height:8px;border-radius:50%;background:#6b7280;display:inline-block"></span><span data-i18n="eh_eliminate">Eliminate</span></div>
       </div>
     </div>
     <div class="eisenhower-grid" id="eisenhowerGrid"></div>
   </div>
   <!-- PROJECTS -->
   <div class="page" id="page-projects">
-    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="projects">Projects</h2><button class="btn btn-sm btn-primary" onclick="openProjectModal()">+ New Project</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="projects">Projects</h2><button class="btn btn-sm btn-primary" onclick="openProjectModal()" data-i18n="new_project">+ New Project</button></div>
     <div class="project-grid" id="projectGrid"></div>
   </div>
   <!-- GOALS -->
   <div class="page" id="page-goals">
-    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="goals">Goals</h2><button class="btn btn-sm btn-primary" onclick="openGoalModal()">+ New Goal</button></div>
-    <div class="filter-bar" style="margin-bottom:8px"><button class="filter-chip" onclick="filterGoals('weekly')" id="goalFilterWeekly">Weekly</button><button class="filter-chip" onclick="filterGoals('monthly')" id="goalFilterMonthly">Monthly</button><button class="filter-chip active" onclick="filterGoals('all')" id="goalFilterAll">All</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="goals">Goals</h2><button class="btn btn-sm btn-primary" onclick="openGoalModal()" data-i18n="new_goal">+ New Goal</button></div>
+    <div class="filter-bar" style="margin-bottom:8px"><button class="filter-chip" onclick="filterGoals('weekly')" id="goalFilterWeekly" data-i18n="goal_weekly">Weekly</button><button class="filter-chip" onclick="filterGoals('monthly')" id="goalFilterMonthly" data-i18n="goal_monthly">Monthly</button><button class="filter-chip active" onclick="filterGoals('all')" id="goalFilterAll" data-i18n="filter_all">All</button></div>
     <div id="goalsList" style="display:flex;flex-direction:column;gap:12px"></div>
   </div>
   <!-- HABITS -->
   <div class="page" id="page-habits">
-    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="habits">Habits</h2><button class="btn btn-sm btn-primary" onclick="openHabitModal()">+ New Habit</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="habits">Habits</h2><button class="btn btn-sm btn-primary" onclick="openHabitModal()" data-i18n="new_habit">+ New Habit</button></div>
     <div id="habitsList" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
   <!-- NOTES -->
   <div class="page" id="page-notes">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="notes">Notes</h2><div style="display:flex;gap:8px;align-items:center"><input id="noteSearch" type="search" placeholder="Search notes..." oninput="renderNotes()" style="min-width:180px"><button class="btn btn-sm btn-primary" onclick="openNoteEditor()">+ New Note</button></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="notes">Notes</h2><div style="display:flex;gap:8px;align-items:center"><input id="noteSearch" type="search" data-i18n-ph="ph_search_notes" placeholder="Search notes..." oninput="renderNotes()" style="min-width:180px"><button class="btn btn-sm btn-primary" onclick="openNoteEditor()" data-i18n="new_note">+ New Note</button></div></div>
     <div class="notes-layout"><div class="notes-sidebar" id="notesFolders"></div><div class="notes-grid" id="notesGrid"></div></div>
   </div>
   <!-- ANALYTICS -->
   <div class="page" id="page-analytics">
     <h2 style="font-size:1.2rem;font-weight:700" data-i18n="analytics">Analytics & Insights</h2>
     <div class="analytics-grid" id="analyticsGrid"></div>
-    <div class="card" style="margin-top:4px"><div class="card-title">Gantt Timeline</div><div class="gantt-container" id="ganttContainer"></div></div>
+    <div class="card" style="margin-top:4px"><div class="card-title" data-i18n="gantt_timeline">Gantt Timeline</div><div class="gantt-container" id="ganttContainer"></div></div>
   </div>
   <!-- TIME REPORTS -->
   <div class="page" id="page-reports">
@@ -234,26 +234,26 @@
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
         <h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="life_balance">Life Balance</h2>
-        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0;max-width:560px">Log how you actually spend your day and see how it compares to sleep, work-hour and well-being research &mdash; not a diagnosis, a mirror.</p>
+        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0;max-width:560px" data-i18n="lb_subtitle">Log how you actually spend your day and see how it compares to sleep, work-hour and well-being research &mdash; not a diagnosis, a mirror.</p>
       </div>
       <div class="tt-toolbar">
-        <button class="cal-nav-btn" onclick="lbNav(-1)" title="Previous day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
-        <button class="cal-today-btn" onclick="lbToday()">Today</button>
-        <button class="cal-nav-btn" onclick="lbNav(1)" title="Next day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="cal-nav-btn" onclick="lbNav(-1)" data-i18n-title="title_prev_day" title="Previous day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="cal-today-btn" onclick="lbToday()" data-i18n="today_label">Today</button>
+        <button class="cal-nav-btn" onclick="lbNav(1)" data-i18n-title="title_next_day" title="Next day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
         <span id="lbDateLabel" style="font-weight:700;font-size:.9rem;margin:0 4px"></span>
       </div>
     </div>
     <div class="card">
-      <div class="card-title">Log Today's Hours <span style="font-weight:400;font-size:.7rem;color:var(--text3)" id="lbSumHint"></span></div>
+      <div class="card-title"><span data-i18n="lb_log_hours">Log Today's Hours</span> <span style="font-weight:400;font-size:.7rem;color:var(--text3)" id="lbSumHint"></span></div>
       <div class="lb-input-grid" id="lbInputGrid"></div>
     </div>
     <div class="card" id="lbScoreCard"></div>
     <div class="dash-row">
-      <div class="card"><div class="card-title">Category Breakdown</div><div id="lbBreakdown"></div></div>
-      <div class="card"><div class="card-title">Weekly Work-Hours Check</div><div id="lbWeekly"></div></div>
+      <div class="card"><div class="card-title" data-i18n="lb_category_breakdown">Category Breakdown</div><div id="lbBreakdown"></div></div>
+      <div class="card"><div class="card-title" data-i18n="lb_weekly_check">Weekly Work-Hours Check</div><div id="lbWeekly"></div></div>
     </div>
     <div class="card">
-      <button class="btn btn-sm btn-outline" onclick="toggleLbSources()" id="lbSourcesToggle">Show Methodology &amp; Sources</button>
+      <button class="btn btn-sm btn-outline" onclick="toggleLbSources()" id="lbSourcesToggle" data-i18n="lb_show_sources">Show Methodology &amp; Sources</button>
       <div id="lbSources" style="display:none;margin-top:12px;font-size:.78rem;color:var(--text2);line-height:1.7"></div>
     </div>
   </div>
@@ -262,29 +262,29 @@
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div>
         <h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="progress">Progress</h2>
-        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0;max-width:560px">Auto-calculated from your tasks, habits and Life Balance logs &mdash; no manual entry. Compete with your own record, not anyone else's.</p>
+        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0;max-width:560px" data-i18n="progress_subtitle">Auto-calculated from your tasks, habits and Life Balance logs &mdash; no manual entry. Compete with your own record, not anyone else's.</p>
       </div>
-      <button class="btn btn-sm btn-primary" onclick="openChallengeModal()">+ New Challenge</button>
+      <button class="btn btn-sm btn-primary" onclick="openChallengeModal()" data-i18n="new_challenge">+ New Challenge</button>
     </div>
     <div class="stats-grid" id="progStats"></div>
-    <div class="card"><div class="card-title">Activity Score &mdash; Last 30 Days</div><div id="progActivityChart"></div></div>
+    <div class="card"><div class="card-title" data-i18n="progress_activity_chart">Activity Score &mdash; Last 30 Days</div><div id="progActivityChart"></div></div>
     <div class="dash-row">
-      <div class="card"><div class="card-title">Tasks Completed &mdash; Last 14 Days</div><div class="chart-area" id="progTasksChart"></div></div>
-      <div class="card"><div class="card-title">Habit Consistency &mdash; Last 30 Days</div><div id="progHabitConsistency"></div></div>
+      <div class="card"><div class="card-title" data-i18n="progress_tasks_chart">Tasks Completed &mdash; Last 14 Days</div><div class="chart-area" id="progTasksChart"></div></div>
+      <div class="card"><div class="card-title" data-i18n="progress_habit_consistency">Habit Consistency &mdash; Last 30 Days</div><div id="progHabitConsistency"></div></div>
     </div>
     <div class="card">
-      <div class="card-title">Your Challenges</div>
+      <div class="card-title" data-i18n="your_challenges">Your Challenges</div>
       <div id="challengeList"></div>
     </div>
     <div class="card">
-      <div class="card-title">Beat Your Record</div>
-      <p style="font-size:.78rem;color:var(--text3);margin-bottom:8px">Suggested challenges based on your own best-ever performance.</p>
+      <div class="card-title" data-i18n="beat_your_record">Beat Your Record</div>
+      <p style="font-size:.78rem;color:var(--text3);margin-bottom:8px" data-i18n="beat_record_subtitle">Suggested challenges based on your own best-ever performance.</p>
       <div id="challengeSuggestions"></div>
     </div>
   </div>
   <!-- ARCHIVE -->
   <div class="page" id="page-archive">
-    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="archive">Archive</h2><button class="btn btn-sm btn-danger" onclick="clearArchive()">Clear Archive</button></div>
+    <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="archive">Archive</h2><button class="btn btn-sm btn-danger" onclick="clearArchive()" data-i18n="clear_archive">Clear Archive</button></div>
     <div id="archiveContainer"></div>
   </div>
 </div>
@@ -292,54 +292,54 @@
 <!-- TASK MODAL -->
 <div class="modal-overlay" id="taskModal">
   <div class="modal" style="max-width:600px">
-    <div class="modal-header"><h2 id="modalTitle">New Task</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="modalTitle" data-i18n="modal_new_task">New Task</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
-      <div class="form-group"><label for="taskTitleInput">Title *</label><input type="text" id="taskTitleInput" placeholder="What needs to be done?" maxlength="200"></div>
-      <div class="form-group"><label for="taskDescInput">Description</label><textarea id="taskDescInput" rows="3" placeholder="Add details..." maxlength="2000"></textarea></div>
+      <div class="form-group"><label for="taskTitleInput" data-i18n="field_title">Title *</label><input type="text" id="taskTitleInput" data-i18n-ph="ph_task_title" placeholder="What needs to be done?" maxlength="200"></div>
+      <div class="form-group"><label for="taskDescInput" data-i18n="field_description">Description</label><textarea id="taskDescInput" rows="3" data-i18n-ph="ph_add_details" placeholder="Add details..." maxlength="2000"></textarea></div>
       <div class="form-row">
-        <div class="form-group"><label for="taskPriorityInput">Priority</label><select id="taskPriorityInput"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></div>
-        <div class="form-group"><label for="taskCategoryInput">Category</label><input type="text" id="taskCategoryInput" placeholder="e.g. Work" maxlength="50" list="catSugg"><datalist id="catSugg"></datalist></div>
+        <div class="form-group"><label for="taskPriorityInput" data-i18n="field_priority">Priority</label><select id="taskPriorityInput"><option value="low" data-i18n-opt="priority_low">Low</option><option value="medium" selected data-i18n-opt="priority_medium">Medium</option><option value="high" data-i18n-opt="priority_high">High</option></select></div>
+        <div class="form-group"><label for="taskCategoryInput" data-i18n="field_category">Category</label><input type="text" id="taskCategoryInput" data-i18n-ph="ph_category_example" placeholder="e.g. Work" maxlength="50" list="catSugg"><datalist id="catSugg"></datalist></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label for="taskProjectInput">Project</label><select id="taskProjectInput"><option value="">No Project</option></select></div>
-        <div class="form-group"><label for="taskAssigneeInput">Owner</label><select id="taskAssigneeInput"><option value="">Unassigned</option></select></div>
+        <div class="form-group"><label for="taskProjectInput" data-i18n="field_project">Project</label><select id="taskProjectInput"><option value="" data-i18n-opt="option_no_project">No Project</option></select></div>
+        <div class="form-group"><label for="taskAssigneeInput" data-i18n="field_owner">Owner</label><select id="taskAssigneeInput"><option value="" data-i18n-opt="option_unassigned">Unassigned</option></select></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label for="taskEisenhowerInput">Quadrant</label><select id="taskEisenhowerInput"><option value="">Auto</option><option value="q1">Urgent & Important</option><option value="q2">Important</option><option value="q3">Urgent</option><option value="q4">Neither</option></select></div>
-        <div class="form-group"><label for="taskRecurInput">Recurring</label><select id="taskRecurInput" onchange="updateRecurringPreview()"><option value="">None</option><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select><div class="field-hint" id="recurringPreview">No recurrence</div></div>
+        <div class="form-group"><label for="taskEisenhowerInput" data-i18n="field_quadrant">Quadrant</label><select id="taskEisenhowerInput"><option value="" data-i18n-opt="option_auto">Auto</option><option value="q1" data-i18n-opt="option_urgent_important">Urgent & Important</option><option value="q2" data-i18n-opt="option_important">Important</option><option value="q3" data-i18n-opt="option_urgent">Urgent</option><option value="q4" data-i18n-opt="option_neither">Neither</option></select></div>
+        <div class="form-group"><label for="taskRecurInput" data-i18n="field_recurring">Recurring</label><select id="taskRecurInput" onchange="updateRecurringPreview()"><option value="" data-i18n-opt="option_none">None</option><option value="daily" data-i18n-opt="option_daily">Daily</option><option value="weekly" data-i18n-opt="option_weekly">Weekly</option><option value="monthly" data-i18n-opt="option_monthly">Monthly</option></select><div class="field-hint" id="recurringPreview" data-i18n="no_recurrence">No recurrence</div></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label for="taskDueInput">Due Date</label><input type="date" id="taskDueInput" onchange="updateRecurringPreview()"></div>
-        <div class="form-group"><label for="taskDueTimeInput">Due Time</label><input type="time" id="taskDueTimeInput"></div>
+        <div class="form-group"><label for="taskDueInput" data-i18n="field_due_date">Due Date</label><input type="date" id="taskDueInput" onchange="updateRecurringPreview()"></div>
+        <div class="form-group"><label for="taskDueTimeInput" data-i18n="field_due_time">Due Time</label><input type="time" id="taskDueTimeInput"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label for="taskStatusInput">Status</label><select id="taskStatusInput"><option value="todo">To Do</option><option value="in-progress">In Progress</option><option value="done">Done</option></select></div>
-        <div class="form-group"><label for="taskProgressInput">Progress</label><div style="display:flex;align-items:center;gap:6px"><input type="range" id="taskProgressInput" class="progress-slider" min="0" max="100" value="0" oninput="document.getElementById('progressVal').textContent=this.value+'%'"><span class="progress-value" id="progressVal">0%</span></div></div>
+        <div class="form-group"><label for="taskStatusInput" data-i18n="field_status">Status</label><select id="taskStatusInput"><option value="todo" data-i18n-opt="status_todo">To Do</option><option value="in-progress" data-i18n-opt="status_inprogress">In Progress</option><option value="done" data-i18n-opt="status_done">Done</option></select></div>
+        <div class="form-group"><label for="taskProgressInput" data-i18n="field_progress">Progress</label><div style="display:flex;align-items:center;gap:6px"><input type="range" id="taskProgressInput" class="progress-slider" min="0" max="100" value="0" oninput="document.getElementById('progressVal').textContent=this.value+'%'"><span class="progress-value" id="progressVal">0%</span></div></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label for="taskEstHoursInput">Est. Hours</label><input type="number" id="taskEstHoursInput" placeholder="0" min="0" step="0.5"></div>
-        <div class="form-group"><label for="taskLogHoursInput">Logged Hours</label><input type="number" id="taskLogHoursInput" placeholder="0" min="0" step="0.5"></div>
+        <div class="form-group"><label for="taskEstHoursInput" data-i18n="field_est_hours">Est. Hours</label><input type="number" id="taskEstHoursInput" placeholder="0" min="0" step="0.5"></div>
+        <div class="form-group"><label for="taskLogHoursInput" data-i18n="field_logged_hours">Logged Hours</label><input type="number" id="taskLogHoursInput" placeholder="0" min="0" step="0.5"></div>
       </div>
-      <div class="form-group"><label for="taskLinkInput">Link / URL</label><input type="url" id="taskLinkInput" placeholder="https://..." maxlength="500"></div>
-      <div class="form-group"><label for="taskNoteInput">Note</label><textarea id="taskNoteInput" rows="2" placeholder="Notes..." maxlength="500"></textarea></div>
-      <div class="form-group"><label for="taskTagsInput">Tags (comma separated)</label><input type="text" id="taskTagsInput" placeholder="urgent, frontend" maxlength="200"></div>
-      <div class="form-group"><label for="taskReminderInput">Reminder</label><input type="datetime-local" id="taskReminderInput"></div>
+      <div class="form-group"><label for="taskLinkInput" data-i18n="field_link">Link / URL</label><input type="url" id="taskLinkInput" placeholder="https://..." maxlength="500"></div>
+      <div class="form-group"><label for="taskNoteInput" data-i18n="field_note">Note</label><textarea id="taskNoteInput" rows="2" data-i18n-ph="ph_notes_dots" placeholder="Notes..." maxlength="500"></textarea></div>
+      <div class="form-group"><label for="taskTagsInput" data-i18n="field_tags">Tags (comma separated)</label><input type="text" id="taskTagsInput" data-i18n-ph="ph_tags_example" placeholder="urgent, frontend" maxlength="200"></div>
+      <div class="form-group"><label for="taskReminderInput" data-i18n="field_reminder">Reminder</label><input type="datetime-local" id="taskReminderInput"></div>
       <div class="form-row">
-        <div class="form-group"><label for="taskMilestoneInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="taskMilestoneInput" style="width:auto"> Milestone</label></div>
-        <div class="form-group"><label for="taskDepsInput">Dependencies</label><select id="taskDepsInput" multiple style="min-height:60px;font-size:.8rem"></select></div>
+        <div class="form-group"><label for="taskMilestoneInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="taskMilestoneInput" style="width:auto"> <span data-i18n="field_milestone">Milestone</span></label></div>
+        <div class="form-group"><label for="taskDepsInput" data-i18n="field_dependencies">Dependencies</label><select id="taskDepsInput" multiple style="min-height:60px;font-size:.8rem"></select></div>
       </div>
-      <div class="form-group"><label for="newSubtaskInput">Subtasks</label><div id="subtasksList"></div><div style="display:flex;gap:6px;margin-top:6px"><input type="text" id="newSubtaskInput" placeholder="Add subtask..." maxlength="150" style="flex:1;font-size:.85rem" onkeydown="if(event.key==='Enter'){event.preventDefault();addSubtaskInput()}"><button class="btn btn-sm btn-outline" onclick="addSubtaskInput()">+</button></div></div>
+      <div class="form-group"><label for="newSubtaskInput" data-i18n="field_subtasks">Subtasks</label><div id="subtasksList"></div><div style="display:flex;gap:6px;margin-top:6px"><input type="text" id="newSubtaskInput" data-i18n-ph="ph_add_subtask" placeholder="Add subtask..." maxlength="150" style="flex:1;font-size:.85rem" onkeydown="if(event.key==='Enter'){event.preventDefault();addSubtaskInput()}"><button class="btn btn-sm btn-outline" onclick="addSubtaskInput()">+</button></div></div>
       <div class="form-group" id="commentsSection" style="display:none">
-        <label for="commentInput">Comments</label>
+        <label for="commentInput" data-i18n="field_comments">Comments</label>
         <div class="comment-list" id="commentList"></div>
-        <div class="comment-input-row" style="margin-top:6px"><input type="text" id="commentInput" placeholder="Add a comment..." maxlength="300" onkeydown="if(event.key==='Enter'){event.preventDefault();addComment()}"><button class="btn btn-sm btn-primary" onclick="addComment()">Post</button></div>
+        <div class="comment-input-row" style="margin-top:6px"><input type="text" id="commentInput" data-i18n-ph="ph_add_comment" placeholder="Add a comment..." maxlength="300" onkeydown="if(event.key==='Enter'){event.preventDefault();addComment()}"><button class="btn btn-sm btn-primary" onclick="addComment()" data-i18n="btn_post">Post</button></div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-sm btn-outline" onclick="saveAsTemplate()" title="Save as template">&#9733; Template</button>
+      <button class="btn btn-sm btn-outline" onclick="saveAsTemplate()" data-i18n-title="title_save_template" title="Save as template">&#9733; <span data-i18n="btn_save_template">Template</span></button>
       <div style="flex:1"></div>
-      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" id="saveTaskBtn" onclick="saveTask()">Create Task</button>
+      <button class="btn btn-outline" onclick="closeModal()" data-i18n="btn_cancel">Cancel</button>
+      <button class="btn btn-primary" id="saveTaskBtn" onclick="saveTask()" data-i18n="btn_create_task">Create Task</button>
     </div>
   </div>
 </div>
@@ -347,9 +347,9 @@
 <div class="modal-overlay confirm-modal" id="confirmModal">
   <div class="modal"><div class="modal-body" style="padding:28px">
     <div class="confirm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></div>
-    <h3 style="font-size:1rem;font-weight:700;margin:4px 0" id="confirmTitle">Delete?</h3>
-    <p style="font-size:.88rem;color:var(--text2)" id="confirmMsg">This cannot be undone.</p>
-    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-outline" onclick="closeConfirm()">Cancel</button><button class="btn btn-danger" id="confirmBtn" onclick="confirmAction()">Delete</button></div>
+    <h3 style="font-size:1rem;font-weight:700;margin:4px 0" id="confirmTitle" data-i18n="confirm_delete_title">Delete?</h3>
+    <p style="font-size:.88rem;color:var(--text2)" id="confirmMsg" data-i18n="confirm_delete_msg">This cannot be undone.</p>
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-outline" onclick="closeConfirm()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-danger" id="confirmBtn" onclick="confirmAction()" data-i18n="btn_delete">Delete</button></div>
   </div></div>
 </div>
 <!-- SETTINGS MODAL -->
@@ -357,154 +357,154 @@
   <div class="modal" style="max-width:480px">
     <div class="modal-header"><h2 data-i18n="settings">Settings</h2><button class="icon-btn" onclick="closeSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body"><div class="settings-grid">
-      <div class="setting-item"><div><div class="setting-label">Logged in as</div><div class="setting-desc" id="settingsEmail">user@example.com</div></div><button class="btn btn-sm btn-outline" onclick="doLogout()">Logout</button></div>
-      <div class="setting-item"><div><div class="setting-label">Account Database URL</div><div class="setting-desc" id="apiUrlStatus">Not configured</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="testApiConnection()">Test</button><button class="btn btn-sm btn-outline" onclick="editApiUrl()">Edit</button></div></div>
-      <div class="setting-item" id="syncNowSetting" style="display:none"><div><div class="setting-label">Sync Status</div><div class="setting-desc" id="syncPendingStatus">Up to date</div></div><button class="btn btn-sm btn-primary" onclick="pushAllLocalDataToServer()">Sync Now</button></div>
-      <div class="setting-item"><div><div class="setting-label">Apps Script URL</div><div class="setting-desc" id="scriptUrlStatus">Not configured</div></div><button class="btn btn-sm btn-outline" onclick="editSheetUrl()">Edit</button></div>
-      <div class="setting-item"><div><div class="setting-label">Sync Token</div><div class="setting-desc" id="syncTokenStatus">Required for Google Sheets sync</div></div><button class="btn btn-sm btn-outline" onclick="editSyncToken()">Edit</button></div>
-      <div class="setting-item"><div><div class="setting-label">Google Sheets Sync</div><div class="setting-desc" id="syncStateLabel">Not synced yet</div></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-sm btn-outline" onclick="testSyncConnection()">Test</button><button class="btn btn-sm btn-outline" onclick="syncPullAll()">Pull</button><button class="btn btn-sm btn-primary" onclick="syncPushAll()">Push</button></div></div>
-      <div class="setting-item" id="adminSyncSetting" style="display:none"><div><div class="setting-label">Sync All to Google Sheets</div><div class="setting-desc">Admin token required; pushes all local users</div></div><button class="btn btn-sm btn-primary" onclick="syncAllUsersToSheet()">Sync All</button></div>
-      <div class="setting-item"><div><div class="setting-label">Pomodoro Work (min)</div><div class="setting-desc">Default: 25</div></div><input type="number" id="pomoWorkMin" value="25" min="1" max="90" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
-      <div class="setting-item"><div><div class="setting-label">Pomodoro Break (min)</div><div class="setting-desc">Default: 5</div></div><input type="number" id="pomoBreakMin" value="5" min="1" max="30" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
-      <div class="setting-item"><div><div class="setting-label">Language / RTL</div><div class="setting-desc" id="currentLangLabel">English</div></div><button class="btn btn-sm btn-outline" onclick="toggleLang()">Toggle</button></div>
-      <div class="setting-item"><div><div class="setting-label">Export Tasks</div><div class="setting-desc">CSV, JSON, or Excel</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="exportCSV()">CSV</button><button class="btn btn-sm btn-outline" onclick="exportJSON()">JSON</button><button class="btn btn-sm btn-outline" onclick="exportExcel()">Excel</button></div></div>
-      <div class="setting-item"><div><div class="setting-label">Import Tasks</div><div class="setting-desc">Upload JSON backup</div></div><button class="btn btn-sm btn-outline" onclick="document.getElementById('importFile').click()">Import</button><input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)"></div>
-      <div class="setting-item"><div><div class="setting-label">Enable Notifications</div><div class="setting-desc">Browser reminders</div></div><button class="btn btn-sm btn-outline" onclick="requestNotifPermission()">Enable</button></div>
-      <div class="setting-item"><div><div class="setting-label">Clear All Data</div><div class="setting-desc">Permanently erase</div></div><button class="btn btn-sm btn-danger" onclick="clearAllData()">Clear</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="logged_in_as">Logged in as</div><div class="setting-desc" id="settingsEmail">user@example.com</div></div><button class="btn btn-sm btn-outline" onclick="doLogout()" data-i18n="logout">Logout</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_api_url">Account Database URL</div><div class="setting-desc" id="apiUrlStatus" data-i18n="setting_not_configured">Not configured</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="testApiConnection()" data-i18n="btn_test">Test</button><button class="btn btn-sm btn-outline" onclick="editApiUrl()" data-i18n="btn_edit">Edit</button></div></div>
+      <div class="setting-item" id="syncNowSetting" style="display:none"><div><div class="setting-label" data-i18n="setting_sync_status">Sync Status</div><div class="setting-desc" id="syncPendingStatus" data-i18n="setting_up_to_date">Up to date</div></div><button class="btn btn-sm btn-primary" onclick="pushAllLocalDataToServer()" data-i18n="btn_sync_now">Sync Now</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_apps_script_url">Apps Script URL</div><div class="setting-desc" id="scriptUrlStatus" data-i18n="setting_not_configured">Not configured</div></div><button class="btn btn-sm btn-outline" onclick="editSheetUrl()" data-i18n="btn_edit">Edit</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_sync_token">Sync Token</div><div class="setting-desc" id="syncTokenStatus" data-i18n="setting_sync_token_desc">Required for Google Sheets sync</div></div><button class="btn btn-sm btn-outline" onclick="editSyncToken()" data-i18n="btn_edit">Edit</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_gsheets_sync">Google Sheets Sync</div><div class="setting-desc" id="syncStateLabel" data-i18n="setting_not_synced">Not synced yet</div></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-sm btn-outline" onclick="testSyncConnection()" data-i18n="btn_test">Test</button><button class="btn btn-sm btn-outline" onclick="syncPullAll()" data-i18n="btn_pull">Pull</button><button class="btn btn-sm btn-primary" onclick="syncPushAll()" data-i18n="btn_push">Push</button></div></div>
+      <div class="setting-item" id="adminSyncSetting" style="display:none"><div><div class="setting-label" data-i18n="setting_sync_all">Sync All to Google Sheets</div><div class="setting-desc" data-i18n="setting_sync_all_desc">Admin token required; pushes all local users</div></div><button class="btn btn-sm btn-primary" onclick="syncAllUsersToSheet()" data-i18n="btn_sync_all">Sync All</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_pomo_work">Pomodoro Work (min)</div><div class="setting-desc"><span data-i18n="setting_default_prefix">Default</span>: 25</div></div><input type="number" id="pomoWorkMin" value="25" min="1" max="90" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_pomo_break">Pomodoro Break (min)</div><div class="setting-desc"><span data-i18n="setting_default_prefix">Default</span>: 5</div></div><input type="number" id="pomoBreakMin" value="5" min="1" max="30" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_language">Language / RTL</div><div class="setting-desc" id="currentLangLabel">English</div></div><button class="btn btn-sm btn-outline" onclick="toggleLang()" data-i18n="btn_toggle">Toggle</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_export">Export Tasks</div><div class="setting-desc" data-i18n="setting_export_desc">CSV, JSON, or Excel</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="exportCSV()">CSV</button><button class="btn btn-sm btn-outline" onclick="exportJSON()">JSON</button><button class="btn btn-sm btn-outline" onclick="exportExcel()">Excel</button></div></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_import">Import Tasks</div><div class="setting-desc" data-i18n="setting_import_desc">Upload JSON backup</div></div><button class="btn btn-sm btn-outline" onclick="document.getElementById('importFile').click()" data-i18n="btn_import">Import</button><input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)"></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_notifications">Enable Notifications</div><div class="setting-desc" data-i18n="setting_notifications_desc">Browser reminders</div></div><button class="btn btn-sm btn-outline" onclick="requestNotifPermission()" data-i18n="btn_enable">Enable</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_clear_data">Clear All Data</div><div class="setting-desc" data-i18n="setting_clear_data_desc">Permanently erase</div></div><button class="btn btn-sm btn-danger" onclick="clearAllData()" data-i18n="btn_clear">Clear</button></div>
     </div></div>
   </div>
 </div>
 <!-- TEMPLATES MODAL -->
 <div class="modal-overlay" id="templatesModal">
   <div class="modal" style="max-width:440px">
-    <div class="modal-header"><h2>Task Templates</h2><button class="icon-btn" onclick="closeTemplates()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-    <div class="modal-body"><div class="template-list" id="templateList"><p style="color:var(--text3);font-size:.85rem;text-align:center">No templates yet.</p></div></div>
+    <div class="modal-header"><h2 data-i18n="modal_templates_title">Task Templates</h2><button class="icon-btn" onclick="closeTemplates()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body"><div class="template-list" id="templateList"><p style="color:var(--text3);font-size:.85rem;text-align:center" data-i18n="no_templates">No templates yet.</p></div></div>
   </div>
 </div>
 <!-- SAVED FILTERS MODAL -->
 <div class="modal-overlay" id="filtersModal">
   <div class="modal" style="max-width:400px">
-    <div class="modal-header"><h2>Saved Filters</h2><button class="icon-btn" onclick="closeFiltersModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-    <div class="modal-body"><button class="btn btn-sm btn-primary" onclick="saveCurrentFilter()" style="align-self:flex-start">Save Current Filter</button><div id="savedFiltersList"></div></div>
+    <div class="modal-header"><h2 data-i18n="modal_saved_filters">Saved Filters</h2><button class="icon-btn" onclick="closeFiltersModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body"><button class="btn btn-sm btn-primary" onclick="saveCurrentFilter()" style="align-self:flex-start" data-i18n="btn_save_current_filter">Save Current Filter</button><div id="savedFiltersList"></div></div>
   </div>
 </div>
 <!-- PROJECT MODAL -->
 <div class="modal-overlay" id="projectModal">
   <div class="modal" style="max-width:420px">
-    <div class="modal-header"><h2 id="projectModalTitle">New Project</h2><button class="icon-btn" onclick="closeProjectModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="projectModalTitle" data-i18n="modal_new_project">New Project</h2><button class="icon-btn" onclick="closeProjectModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
-      <div class="form-group"><label for="projectNameInput">Name</label><input type="text" id="projectNameInput" maxlength="100" placeholder="Project name"></div>
-      <div class="form-group"><label for="projectDescInput">Description</label><textarea id="projectDescInput" rows="2" maxlength="300" placeholder="Description..."></textarea></div>
-      <div class="form-group"><label for="projectColorInput">Color</label><input type="color" id="projectColorInput" value="#4f46e5" style="width:50px;height:36px;padding:2px;cursor:pointer"></div>
+      <div class="form-group"><label for="projectNameInput" data-i18n="field_name">Name</label><input type="text" id="projectNameInput" maxlength="100" data-i18n-ph="ph_project_name" placeholder="Project name"></div>
+      <div class="form-group"><label for="projectDescInput" data-i18n="field_description">Description</label><textarea id="projectDescInput" rows="2" maxlength="300" data-i18n-ph="ph_description_dots" placeholder="Description..."></textarea></div>
+      <div class="form-group"><label for="projectColorInput" data-i18n="field_color">Color</label><input type="color" id="projectColorInput" value="#4f46e5" style="width:50px;height:36px;padding:2px;cursor:pointer"></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeProjectModal()">Cancel</button><button class="btn btn-primary" onclick="saveProject()">Save</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeProjectModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveProject()" data-i18n="btn_save">Save</button></div>
   </div>
 </div>
 <!-- GOAL MODAL -->
 <div class="modal-overlay" id="goalModal">
   <div class="modal" style="max-width:420px">
-    <div class="modal-header"><h2 id="goalModalTitle">New Goal</h2><button class="icon-btn" onclick="closeGoalModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="goalModalTitle" data-i18n="modal_new_goal">New Goal</h2><button class="icon-btn" onclick="closeGoalModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
-      <div class="form-group"><label for="goalTitleInput">Goal</label><input type="text" id="goalTitleInput" maxlength="150" placeholder="e.g. Complete 10 tasks"></div>
+      <div class="form-group"><label for="goalTitleInput" data-i18n="field_goal">Goal</label><input type="text" id="goalTitleInput" maxlength="150" data-i18n-ph="ph_goal_example" placeholder="e.g. Complete 10 tasks"></div>
       <div class="form-row">
-        <div class="form-group"><label for="goalTypeInput">Type</label><select id="goalTypeInput"><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></div>
-        <div class="form-group"><label for="goalTargetInput">Target</label><input type="number" id="goalTargetInput" min="1" value="5" placeholder="5"></div>
+        <div class="form-group"><label for="goalTypeInput" data-i18n="field_type">Type</label><select id="goalTypeInput"><option value="weekly" data-i18n-opt="goal_weekly">Weekly</option><option value="monthly" data-i18n-opt="goal_monthly">Monthly</option></select></div>
+        <div class="form-group"><label for="goalTargetInput" data-i18n="field_target">Target</label><input type="number" id="goalTargetInput" min="1" value="5" placeholder="5"></div>
       </div>
-      <div class="form-group"><label for="goalUnitInput">Unit</label><input type="text" id="goalUnitInput" maxlength="30" placeholder="tasks, hours, etc." value="tasks"></div>
-      <div class="form-group"><label for="goalCurrentInput">Current Progress</label><input type="number" id="goalCurrentInput" min="0" value="0"></div>
+      <div class="form-group"><label for="goalUnitInput" data-i18n="field_unit">Unit</label><input type="text" id="goalUnitInput" maxlength="30" data-i18n-ph="ph_unit_example" placeholder="tasks, hours, etc." value="tasks"></div>
+      <div class="form-group"><label for="goalCurrentInput" data-i18n="field_current_progress">Current Progress</label><input type="number" id="goalCurrentInput" min="0" value="0"></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeGoalModal()">Cancel</button><button class="btn btn-primary" onclick="saveGoal()">Save</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeGoalModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveGoal()" data-i18n="btn_save">Save</button></div>
   </div>
 </div>
 <!-- HABIT MODAL -->
 <div class="modal-overlay" id="habitModal">
   <div class="modal" style="max-width:400px">
-    <div class="modal-header"><h2 id="habitModalTitle">New Habit</h2><button class="icon-btn" onclick="closeHabitModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="habitModalTitle" data-i18n="modal_new_habit">New Habit</h2><button class="icon-btn" onclick="closeHabitModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
-      <div class="form-group"><label for="habitNameInput">Habit Name</label><input type="text" id="habitNameInput" maxlength="100" placeholder="e.g. Read 30 minutes"></div>
+      <div class="form-group"><label for="habitNameInput" data-i18n="field_habit_name">Habit Name</label><input type="text" id="habitNameInput" maxlength="100" data-i18n-ph="ph_habit_example" placeholder="e.g. Read 30 minutes"></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeHabitModal()">Cancel</button><button class="btn btn-primary" onclick="saveHabit()">Save</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeHabitModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveHabit()" data-i18n="btn_save">Save</button></div>
   </div>
 </div>
 <!-- CHALLENGE MODAL -->
 <div class="modal-overlay" id="challengeModal">
   <div class="modal" style="max-width:420px">
-    <div class="modal-header"><h2>New Challenge</h2><button class="icon-btn" onclick="closeChallengeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 data-i18n="modal_new_challenge">New Challenge</h2><button class="icon-btn" onclick="closeChallengeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
-      <div class="form-group"><label for="challengeTitleInput">Title (optional)</label><input type="text" id="challengeTitleInput" maxlength="100" placeholder="Auto-generated if left blank"></div>
+      <div class="form-group"><label for="challengeTitleInput" data-i18n="field_title_optional">Title (optional)</label><input type="text" id="challengeTitleInput" maxlength="100" data-i18n-ph="ph_auto_generated" placeholder="Auto-generated if left blank"></div>
       <div class="form-row">
-        <div class="form-group"><label for="challengeMetricInput">Track</label><select id="challengeMetricInput" onchange="updateChallengeMetricUI()"><option value="tasks">Tasks Completed</option><option value="hours">Hours Logged</option><option value="habits">Habit Check-ins</option><option value="streak">Daily Completion Streak</option></select></div>
-        <div class="form-group"><label for="challengeTargetInput">Target</label><input type="number" id="challengeTargetInput" min="1" value="10"></div>
+        <div class="form-group"><label for="challengeMetricInput" data-i18n="field_track">Track</label><select id="challengeMetricInput" onchange="updateChallengeMetricUI()"><option value="tasks" data-i18n-opt="opt_tasks_completed">Tasks Completed</option><option value="hours" data-i18n-opt="opt_hours_logged">Hours Logged</option><option value="habits" data-i18n-opt="opt_habit_checkins">Habit Check-ins</option><option value="streak" data-i18n-opt="opt_daily_streak">Daily Completion Streak</option></select></div>
+        <div class="form-group"><label for="challengeTargetInput" data-i18n="field_target">Target</label><input type="number" id="challengeTargetInput" min="1" value="10"></div>
       </div>
-      <div class="form-group" id="challengeDaysGroup"><label for="challengeDaysInput">Over how many days</label><input type="number" id="challengeDaysInput" min="1" max="90" value="7"></div>
+      <div class="form-group" id="challengeDaysGroup"><label for="challengeDaysInput" data-i18n="field_over_days">Over how many days</label><input type="number" id="challengeDaysInput" min="1" max="90" value="7"></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeChallengeModal()">Cancel</button><button class="btn btn-primary" onclick="saveChallenge()">Start Challenge</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeChallengeModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveChallenge()" data-i18n="btn_start_challenge">Start Challenge</button></div>
   </div>
 </div>
 <!-- NOTE EDITOR MODAL -->
 <div class="modal-overlay" id="eventModal">
   <div class="modal" style="max-width:480px">
-    <div class="modal-header"><h2 id="eventModalTitle">New Event</h2><button class="icon-btn" onclick="closeEventModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="eventModalTitle" data-i18n="modal_new_event">New Event</h2><button class="icon-btn" onclick="closeEventModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
-      <div class="form-group"><label for="eventTitleInput">Title</label><input type="text" id="eventTitleInput" maxlength="150" placeholder="Meeting with team..."></div>
+      <div class="form-group"><label for="eventTitleInput" data-i18n="field_title">Title</label><input type="text" id="eventTitleInput" maxlength="150" data-i18n-ph="ph_event_title" placeholder="Meeting with team..."></div>
       <div class="form-row">
-        <div class="form-group"><label for="eventDateInput">Date</label><input type="date" id="eventDateInput"></div>
-        <div class="form-group"><label for="eventTimeInput">Time</label><input type="time" id="eventTimeInput"></div>
+        <div class="form-group"><label for="eventDateInput" data-i18n="field_date">Date</label><input type="date" id="eventDateInput"></div>
+        <div class="form-group"><label for="eventTimeInput" data-i18n="field_time">Time</label><input type="time" id="eventTimeInput"></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label for="eventEndTimeInput">End Time</label><input type="time" id="eventEndTimeInput"></div>
-        <div class="form-group"><label for="eventTypeInput">Type</label><select id="eventTypeInput"><option value="meeting">Meeting</option><option value="event">Event</option><option value="reminder">Reminder</option><option value="deadline">Deadline</option></select></div>
+        <div class="form-group"><label for="eventEndTimeInput" data-i18n="field_end_time">End Time</label><input type="time" id="eventEndTimeInput"></div>
+        <div class="form-group"><label for="eventTypeInput" data-i18n="field_type">Type</label><select id="eventTypeInput"><option value="meeting" data-i18n-opt="opt_meeting">Meeting</option><option value="event" data-i18n-opt="opt_event">Event</option><option value="reminder" data-i18n-opt="opt_reminder">Reminder</option><option value="deadline" data-i18n-opt="opt_deadline">Deadline</option></select></div>
       </div>
-      <div class="form-group"><label for="eventColorInput">Color</label><div style="display:flex;gap:8px;flex-wrap:wrap" id="eventColorPicker"><button type="button" class="ev-color-opt" data-color="#818cf8" style="background:#818cf8" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#f59e0b" style="background:#f59e0b" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#10b981" style="background:#10b981" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#ef4444" style="background:#ef4444" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#3b82f6" style="background:#3b82f6" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#ec4899" style="background:#ec4899" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#8b5cf6" style="background:#8b5cf6" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#64748b" style="background:#64748b" onclick="pickEventColor(this)"></button></div></div>
-      <div class="form-group"><label for="eventDescInput">Description (optional)</label><textarea id="eventDescInput" rows="3" placeholder="Add details..."></textarea></div>
+      <div class="form-group"><label for="eventColorInput" data-i18n="field_color">Color</label><div style="display:flex;gap:8px;flex-wrap:wrap" id="eventColorPicker"><button type="button" class="ev-color-opt" data-color="#818cf8" style="background:#818cf8" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#f59e0b" style="background:#f59e0b" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#10b981" style="background:#10b981" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#ef4444" style="background:#ef4444" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#3b82f6" style="background:#3b82f6" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#ec4899" style="background:#ec4899" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#8b5cf6" style="background:#8b5cf6" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#64748b" style="background:#64748b" onclick="pickEventColor(this)"></button></div></div>
+      <div class="form-group"><label for="eventDescInput" data-i18n="field_description_optional">Description (optional)</label><textarea id="eventDescInput" rows="3" data-i18n-ph="ph_add_details" placeholder="Add details..."></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" id="eventDeleteBtn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteEvent()">Delete</button><div style="flex:1"></div><button class="btn btn-outline" onclick="closeEventModal()">Cancel</button><button class="btn btn-primary" onclick="saveEvent()">Save</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" id="eventDeleteBtn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteEvent()" data-i18n="btn_delete">Delete</button><div style="flex:1"></div><button class="btn btn-outline" onclick="closeEventModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveEvent()" data-i18n="btn_save">Save</button></div>
   </div>
 </div>
 <div class="modal-overlay" id="noteEditorModal">
   <div class="modal" style="max-width:640px">
-    <div class="modal-header"><h2 id="noteEditorTitle">New Note</h2><button class="icon-btn" onclick="closeNoteEditor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="noteEditorTitle" data-i18n="modal_new_note">New Note</h2><button class="icon-btn" onclick="closeNoteEditor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
-      <div class="form-group"><label for="noteTitleInput">Title</label><input type="text" id="noteTitleInput" maxlength="150" placeholder="Note title"></div>
+      <div class="form-group"><label for="noteTitleInput" data-i18n="field_title">Title</label><input type="text" id="noteTitleInput" maxlength="150" data-i18n-ph="ph_note_title" placeholder="Note title"></div>
       <div class="form-row">
-        <div class="form-group"><label for="noteFolderInput">Folder</label><input type="text" id="noteFolderInput" maxlength="50" placeholder="General" list="folderSugg"><datalist id="folderSugg"></datalist></div>
-        <div class="form-group"><label for="notePinInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="notePinInput" style="width:auto"> Pin Note</label></div>
+        <div class="form-group"><label for="noteFolderInput" data-i18n="field_folder">Folder</label><input type="text" id="noteFolderInput" maxlength="50" data-i18n-ph="ph_folder_general" placeholder="General" list="folderSugg"><datalist id="folderSugg"></datalist></div>
+        <div class="form-group"><label for="notePinInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="notePinInput" style="width:auto"> <span data-i18n="field_pin_note">Pin Note</span></label></div>
       </div>
-      <div class="form-group"><label for="noteContentInput">Content (Markdown)</label><textarea id="noteContentInput" rows="10" placeholder="Write your note..." style="font-family:monospace;font-size:.85rem" oninput="updateNotePreview()"></textarea></div>
-      <div class="form-group"><div style="font-weight:600;font-size:.85rem;margin-bottom:4px">Preview</div><div id="notePreview" style="border:1px solid var(--border);border-radius:8px;padding:10px;min-height:60px;font-size:.85rem;background:var(--surface2)"><p style="color:var(--text3)">Preview will appear here...</p></div></div>
+      <div class="form-group"><label for="noteContentInput" data-i18n="field_content_md">Content (Markdown)</label><textarea id="noteContentInput" rows="10" data-i18n-ph="ph_write_note" placeholder="Write your note..." style="font-family:monospace;font-size:.85rem" oninput="updateNotePreview()"></textarea></div>
+      <div class="form-group"><div style="font-weight:600;font-size:.85rem;margin-bottom:4px" data-i18n="field_preview">Preview</div><div id="notePreview" style="border:1px solid var(--border);border-radius:8px;padding:10px;min-height:60px;font-size:.85rem;background:var(--surface2)"><p style="color:var(--text3)" data-i18n="preview_placeholder">Preview will appear here...</p></div></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeNoteEditor()">Cancel</button><button class="btn btn-primary" onclick="saveNote()">Save</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeNoteEditor()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveNote()" data-i18n="btn_save">Save</button></div>
   </div>
 </div>
 <!-- IMPORT PREVIEW MODAL -->
 <div class="modal-overlay" id="importPreviewModal">
   <div class="modal" style="max-width:460px">
-    <div class="modal-header"><h2>Import Preview</h2><button class="icon-btn" onclick="closeImportPreview()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 data-i18n="modal_import_preview">Import Preview</h2><button class="icon-btn" onclick="closeImportPreview()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
-      <div id="importPreviewSummary" class="sync-panel">No file selected</div>
-      <p class="setting-desc" style="margin-top:10px">Import replaces the current account's matching data sections after validation.</p>
+      <div id="importPreviewSummary" class="sync-panel" data-i18n="import_no_file">No file selected</div>
+      <p class="setting-desc" style="margin-top:10px" data-i18n="import_note">Import replaces the current account's matching data sections after validation.</p>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeImportPreview()">Cancel</button><button class="btn btn-primary" onclick="confirmImportPreview()">Import</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeImportPreview()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="confirmImportPreview()" data-i18n="btn_import">Import</button></div>
   </div>
 </div>
 <!-- QUICK ADD -->
 <div class="quick-add-overlay" id="quickAddOverlay">
   <div class="quick-add-box">
-    <input type="text" id="quickAddInput" placeholder="Quick add task... (Enter to create)" onkeydown="handleQuickAdd(event)">
-    <div class="quick-add-hint">Enter = create &bull; Esc = close &bull; #tag !high @category ~project</div>
+    <input type="text" id="quickAddInput" data-i18n-ph="ph_quick_add" placeholder="Quick add task... (Enter to create)" onkeydown="handleQuickAdd(event)">
+    <div class="quick-add-hint" data-i18n="quick_add_hint">Enter = create &bull; Esc = close &bull; #tag !high @category ~project</div>
   </div>
 </div>
 <!-- POMODORO -->
 <div class="focus-overlay" id="focusOverlay">
   <button class="icon-btn" onclick="closePomodoro()" style="position:absolute;top:20px;right:20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-  <div id="pomoModeLabel" class="pomo-mode pomo-work">WORK</div>
-  <div class="focus-task-title" id="focusTaskTitle">Select a task to focus on</div>
+  <div id="pomoModeLabel" class="pomo-mode pomo-work" data-i18n="pomo_work">WORK</div>
+  <div class="focus-task-title" id="focusTaskTitle" data-i18n="pomo_select_task">Select a task to focus on</div>
   <div class="focus-timer" id="focusTimer">25:00</div>
   <div class="pomo-sessions" id="pomoSessions"></div>
   <div class="focus-controls">
-    <button class="btn btn-primary" id="focusStartBtn" onclick="togglePomoTimer()">Start</button>
-    <button class="btn btn-outline" onclick="resetPomoTimer()">Reset</button>
-    <button class="btn btn-success" onclick="savePomoTime()">Save Time</button>
+    <button class="btn btn-primary" id="focusStartBtn" onclick="togglePomoTimer()" data-i18n="btn_start">Start</button>
+    <button class="btn btn-outline" onclick="resetPomoTimer()" data-i18n="btn_reset">Reset</button>
+    <button class="btn btn-success" onclick="savePomoTime()" data-i18n="btn_save_time">Save Time</button>
   </div>
   <select id="focusTaskSelect" onchange="selectFocusTask()" style="margin-top:20px;max-width:400px;width:100%"></select>
 </div>
@@ -512,10 +512,10 @@
 <div class="onboard-overlay" id="onboardOverlay">
   <div class="onboard-card">
     <div class="onboard-icon" id="onboardIcon">&#128640;</div>
-    <h2 id="onboardTitle">Welcome to TaskFlow Pro!</h2>
-    <p id="onboardDesc">Your all-in-one professional task platform.</p>
+    <h2 id="onboardTitle" data-i18n="onboard_welcome">Welcome to TaskFlow Pro!</h2>
+    <p id="onboardDesc" data-i18n="onboard_desc">Your all-in-one professional task platform.</p>
     <div class="onboard-dots" id="onboardProgress"></div>
-    <div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-outline" onclick="skipOnboarding()">Skip</button><button class="btn btn-primary" id="onboardNextBtn" onclick="nextOnboardStep()">Next</button></div>
+    <div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-outline" onclick="skipOnboarding()" data-i18n="btn_skip">Skip</button><button class="btn btn-primary" id="onboardNextBtn" onclick="nextOnboardStep()" data-i18n="btn_next">Next</button></div>
   </div>
 </div>
 <div class="confetti-container" id="confettiContainer"></div>

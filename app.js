@@ -139,21 +139,108 @@ function testApiConnection(){
 
 /* ═══════ i18n ═══════ */
 const i18n = {
-  en:{dashboard:'Dashboard',my_day:'My Day',all_tasks:'All Tasks',kanban:'Kanban Board',calendar:'Calendar',timetable:'Timetable',matrix:'Eisenhower Matrix',projects:'Projects',goals:'Goals',habits:'Habits',notes:'Notes',analytics:'Analytics & Insights',time_reports:'Time Reports',life_balance:'Life Balance',progress:'Progress',archive:'Archive',pomodoro:'Pomodoro Timer',templates:'Templates',settings:'Settings',new_task:'New Task',nav_main:'Main',nav_plan:'Planning',nav_analytics:'Analytics',nav_categories:'Categories',nav_quick:'Quick',weekly_overview:'Weekly Overview',priority_dist:'Priority Distribution',upcoming:'Upcoming Deadlines',goal_progress:'Goal Progress',habit_streaks:'Habit Streaks',recent_activity:'Recent Activity',daily_notes:'Daily Notes'},
-  ar:{dashboard:'\u0644\u0648\u062D\u0629 \u0627\u0644\u062A\u062D\u0643\u0645',my_day:'\u064A\u0648\u0645\u064A',all_tasks:'\u062C\u0645\u064A\u0639 \u0627\u0644\u0645\u0647\u0627\u0645',kanban:'\u0644\u0648\u062D\u0629 \u0643\u0627\u0646\u0628\u0627\u0646',calendar:'\u0627\u0644\u062A\u0642\u0648\u064A\u0645',timetable:'\u0627\u0644\u062C\u062F\u0648\u0644 \u0627\u0644\u0632\u0645\u0646\u064A',matrix:'\u0645\u0635\u0641\u0648\u0641\u0629 \u0623\u064A\u0632\u0646\u0647\u0627\u0648\u0631',projects:'\u0627\u0644\u0645\u0634\u0627\u0631\u064A\u0639',goals:'\u0627\u0644\u0623\u0647\u062F\u0627\u0641',habits:'\u0627\u0644\u0639\u0627\u062F\u0627\u062A',notes:'\u0627\u0644\u0645\u0644\u0627\u062D\u0638\u0627\u062A',analytics:'\u0627\u0644\u062A\u062D\u0644\u064A\u0644\u0627\u062A',time_reports:'\u062A\u0642\u0627\u0631\u064A\u0631 \u0627\u0644\u0648\u0642\u062A',life_balance:'\u062A\u0648\u0627\u0632\u0646 \u0627\u0644\u062D\u064A\u0627\u0629',progress:'\u0627\u0644\u062A\u0642\u062F\u0645',archive:'\u0627\u0644\u0623\u0631\u0634\u064A\u0641',pomodoro:'\u0645\u0624\u0642\u062A \u0628\u0648\u0645\u0648\u062F\u0648\u0631\u0648',templates:'\u0627\u0644\u0642\u0648\u0627\u0644\u0628',settings:'\u0627\u0644\u0625\u0639\u062F\u0627\u062F\u0627\u062A',new_task:'\u0645\u0647\u0645\u0629 \u062C\u062F\u064A\u062F\u0629',nav_main:'\u0631\u0626\u064A\u0633\u064A',nav_plan:'\u0627\u0644\u062A\u062E\u0637\u064A\u0637',nav_analytics:'\u0627\u0644\u062A\u062D\u0644\u064A\u0644\u0627\u062A',nav_categories:'\u0627\u0644\u0641\u0626\u0627\u062A',nav_quick:'\u0633\u0631\u064A\u0639',weekly_overview:'\u0646\u0638\u0631\u0629 \u0623\u0633\u0628\u0648\u0639\u064A\u0629',priority_dist:'\u062A\u0648\u0632\u064A\u0639 \u0627\u0644\u0623\u0648\u0644\u0648\u064A\u0627\u062A',upcoming:'\u0627\u0644\u0645\u0648\u0627\u0639\u064A\u062F \u0627\u0644\u0642\u0627\u062F\u0645\u0629',goal_progress:'\u062A\u0642\u062F\u0645 \u0627\u0644\u0623\u0647\u062F\u0627\u0641',habit_streaks:'\u0633\u0644\u0627\u0633\u0644 \u0627\u0644\u0639\u0627\u062F\u0627\u062A',recent_activity:'\u0627\u0644\u0646\u0634\u0627\u0637 \u0627\u0644\u0623\u062E\u064A\u0631',daily_notes:'\u0645\u0644\u0627\u062D\u0638\u0627\u062A \u0627\u0644\u064A\u0648\u0645'}
+  en: {
+    dashboard:'Dashboard', my_day:'My Day', all_tasks:'All Tasks', kanban:'Kanban Board', calendar:'Calendar', timetable:'Timetable', matrix:'Eisenhower Matrix', projects:'Projects', goals:'Goals', habits:'Habits', notes:'Notes', analytics:'Analytics & Insights', time_reports:'Time Reports', life_balance:'Life Balance', progress:'Progress', archive:'Archive', pomodoro:'Pomodoro Timer', templates:'Templates', settings:'Settings', new_task:'New Task', nav_main:'Main', nav_plan:'Planning', nav_analytics:'Analytics', nav_categories:'Categories', nav_quick:'Quick',
+    weekly_overview:'Weekly Overview', priority_dist:'Priority Distribution', upcoming:'Upcoming Deadlines', goal_progress:'Goal Progress', habit_streaks:'Habit Streaks', recent_activity:'Recent Activity', daily_notes:'Daily Notes', heatmap_title:'Productivity Heatmap', heatmap_subtitle:'Last 16 weeks', done_label:'done',
+    greet_morning:'Good morning', greet_afternoon:'Good afternoon', greet_evening:'Good evening',
+    filter_all_dates:'All Dates', filter_today:'Today', filter_this_week:'This Week', filter_this_month:'This Month', filter_all_projects:'All Projects', filter_all_owners:'All Owners', filter_all:'All',
+    login_tagline:'Team Task Monitoring System', ph_username:'Username', ph_password:'Password (min 6 characters)', sign_in:'Sign In', create_account:'Create Account', new_here:'New here?', have_account:'Already have an account?', switch_to_create:'Create an account', switch_to_signin:'Sign in', login_footer:'Powered by TaskFlow Pro - Team Edition', please_wait:'Please wait...',
+    member:'Member', admin:'Admin', logged_in_as:'Logged in as', logout:'Logout',
+    title_sync_status:'Sync status', title_toggle_theme:'Toggle theme', title_overdue_tasks:'Overdue tasks', title_language:'Language / RTL', title_install_app:'Install App', ph_search_tasks:'Search tasks...', ph_daily_notes:'Write your notes for today...',
+    filter_all_status:'All Status', status_todo:'To Do', status_inprogress:'In Progress', status_done:'Done', filter_all_priorities:'All Priorities', priority_high:'High', priority_medium:'Medium', priority_low:'Low', filter_all_categories:'All Categories',
+    sort_newest:'Newest', sort_oldest:'Oldest', sort_due_soon:'Due Soon', sort_priority:'Priority', sort_smart_score:'Smart Score', sort_az:'A-Z', title_saved_filters:'Saved filters',
+    bulk_mark_done:'Mark Done', bulk_mark_todo:'Mark To Do', action_archive:'Archive', action_delete:'Delete', action_cancel:'Cancel',
+    kanban_subtitle:'Drag and drop tasks between columns to update status',
+    title_prev_month:'Previous month', title_next_month:'Next month', today_label:'Today', new_event:'New Event',
+    timetable_subtitle:'Tasks are auto-scheduled into free hours', title_prev_day:'Previous day', title_next_day:'Next day', label_from:'From', label_to:'To', tt_not_scheduled:'Not Scheduled Today',
+    eisenhower_subtitle:'Prioritize tasks by urgency and importance', eh_do_first:'Do First', eh_schedule:'Schedule', eh_delegate:'Delegate', eh_eliminate:'Eliminate',
+    new_project:'+ New Project', new_goal:'+ New Goal', new_habit:'+ New Habit', new_note:'+ New Note', goal_weekly:'Weekly', goal_monthly:'Monthly', ph_search_notes:'Search notes...',
+    gantt_timeline:'Gantt Timeline',
+    lb_subtitle:'Log how you actually spend your day', lb_log_hours:'Log Today\'s Hours', lb_category_breakdown:'Category Breakdown', lb_weekly_check:'Weekly Work-Hours Check', lb_show_sources:'Show Methodology & Sources', lb_hide_sources:'Hide Methodology & Sources',
+    progress_subtitle:'Auto-calculated from your activity', new_challenge:'+ New Challenge', progress_activity_chart:'Activity Score', progress_tasks_chart:'Tasks Completed', progress_habit_consistency:'Habit Consistency', your_challenges:'Your Challenges', beat_your_record:'Beat Your Record', beat_record_subtitle:'Suggested challenges based on your record.',
+    clear_archive:'Clear Archive',
+    modal_new_task:'New Task', modal_edit_task:'Edit Task', btn_save_changes:'Save Changes', field_title:'Title *', ph_task_title:'What needs to be done?', field_description:'Description', ph_add_details:'Add details...', field_priority:'Priority', field_category:'Category', ph_category_example:'e.g. Work', field_project:'Project', option_no_project:'No Project', field_owner:'Owner', option_unassigned:'Unassigned',
+    field_quadrant:'Quadrant', option_auto:'Auto', option_urgent_important:'Urgent & Important', option_important:'Important', option_urgent:'Urgent', option_neither:'Neither', field_recurring:'Recurring', option_none:'None', option_daily:'Daily', option_weekly:'Weekly', option_monthly:'Monthly', no_recurrence:'No recurrence',
+    field_due_date:'Due Date', field_due_time:'Due Time', field_status:'Status', field_progress:'Progress', field_est_hours:'Est. Hours', field_logged_hours:'Logged Hours', field_link:'Link / URL', field_note:'Note', ph_notes_dots:'Notes...', field_tags:'Tags (comma separated)', ph_tags_example:'urgent, frontend',
+    field_reminder:'Reminder', field_milestone:'Milestone', field_dependencies:'Dependencies', field_subtasks:'Subtasks', ph_add_subtask:'Add subtask...', field_comments:'Comments', ph_add_comment:'Add a comment...', btn_post:'Post', btn_save_template:'Template', title_save_template:'Save as template', btn_cancel:'Cancel', btn_create_task:'Create Task', btn_update_task:'Update Task',
+    confirm_delete_title:'Delete?', confirm_delete_msg:'This cannot be undone.', btn_delete:'Delete',
+    setting_api_url:'Account Database URL', setting_not_configured:'Not configured', btn_test:'Test', btn_edit:'Edit', setting_sync_status:'Sync Status', setting_up_to_date:'Up to date', btn_sync_now:'Sync Now',
+    setting_apps_script_url:'Apps Script URL', setting_sync_token:'Sync Token', setting_sync_token_desc:'Required for Google Sheets sync', setting_gsheets_sync:'Google Sheets Sync', setting_not_synced:'Not synced yet', btn_pull:'Pull', btn_push:'Push',
+    setting_sync_all:'Sync All to Google Sheets', setting_sync_all_desc:'Admin token required', btn_sync_all:'Sync All',
+    setting_pomo_work:'Pomodoro Work (min)', setting_pomo_break:'Pomodoro Break (min)', setting_default_prefix:'Default', setting_language:'Language / RTL', current_lang_label:'English', btn_toggle:'Toggle',
+    setting_export:'Export Tasks', setting_export_desc:'CSV, JSON, or Excel', setting_import:'Import Tasks', setting_import_desc:'Upload JSON backup', btn_import:'Import',
+    setting_notifications:'Enable Notifications', setting_notifications_desc:'Browser reminders', btn_enable:'Enable', setting_clear_data:'Clear All Data', setting_clear_data_desc:'Permanently erase', btn_clear:'Clear',
+    modal_templates_title:'Task Templates', no_templates:'No templates yet.', modal_saved_filters:'Saved Filters', btn_save_current_filter:'Save Current Filter',
+    modal_new_project:'New Project', field_name:'Name', ph_project_name:'Project name', ph_description_dots:'Description...', field_color:'Color', btn_save:'Save',
+    modal_new_goal:'New Goal', field_goal:'Goal', ph_goal_example:'e.g. Complete 10 tasks', field_type:'Type', field_target:'Target', field_unit:'Unit', ph_unit_example:'tasks, hours, etc.', field_current_progress:'Current Progress',
+    modal_new_habit:'New Habit', field_habit_name:'Habit Name', ph_habit_example:'e.g. Read 30 minutes',
+    modal_new_challenge:'New Challenge', field_title_optional:'Title (optional)', ph_auto_generated:'Auto-generated if left blank', field_track:'Track', opt_tasks_completed:'Tasks Completed', opt_hours_logged:'Hours Logged', opt_habit_checkins:'Habit Check-ins', opt_daily_streak:'Daily Completion Streak', field_over_days:'Over how many days', btn_start_challenge:'Start Challenge',
+    modal_new_event:'New Event', ph_event_title:'Meeting with team...', field_date:'Date', field_time:'Time', field_end_time:'End Time', field_type:'Type', opt_meeting:'Meeting', opt_event:'Event', opt_reminder:'Reminder', opt_deadline:'Deadline', field_description_optional:'Description (optional)',
+    modal_new_note:'New Note', ph_note_title:'Note title', field_folder:'Folder', ph_folder_general:'General', field_pin_note:'Pin Note', field_content_md:'Content (Markdown)', ph_write_note:'Write your note...', field_preview:'Preview', preview_placeholder:'Preview will appear here...',
+    modal_import_preview:'Import Preview', import_no_file:'No file selected', import_note:'Import replaces matching data after validation.',
+    ph_quick_add:'Quick add task... (Enter to create)', quick_add_hint:'Enter = create, Esc = close',
+    pomo_work:'WORK', pomo_break:'BREAK', pomo_select_task:'Select a task to focus on', btn_start:'Start', btn_reset:'Reset', btn_save_time:'Save Time',
+    onboard_welcome:'Welcome to TaskFlow Pro!', onboard_desc:'Your all-in-one professional task platform.', btn_skip:'Skip', btn_next:'Next'
+  },
+  ar: {
+    dashboard:'لوحة التحكم', my_day:'يومي', all_tasks:'كل المهام', kanban:'لوحة كانبان', calendar:'التقويم', timetable:'الجدول الزمني', matrix:'مصفوفة أيزنهاور', projects:'المشاريع', goals:'الأهداف', habits:'العادات', notes:'الملاحظات', analytics:'التحليلات والرؤى', time_reports:'تقارير الوقت', life_balance:'توازن الحياة', progress:'التقدم', archive:'الأرشيف', pomodoro:'مؤقت بومودورو', templates:'القوالب', settings:'الإعدادات', new_task:'مهمة جديدة', nav_main:'رئيسي', nav_plan:'التخطيط', nav_analytics:'التحليلات', nav_categories:'الفئات', nav_quick:'سريع',
+    weekly_overview:'نظرة أسبوعية', priority_dist:'توزيع الأولويات', upcoming:'المواعيد القادمة', goal_progress:'تقدم الأهداف', habit_streaks:'سلاسل العادات', recent_activity:'النشاط الأخير', daily_notes:'ملاحظات اليوم', heatmap_title:'خريطة الإنتاجية الحرارية', heatmap_subtitle:'آخر 16 أسبوعًا', done_label:'منجز',
+    greet_morning:'صباح الخير', greet_afternoon:'طاب يومك', greet_evening:'مساء الخير',
+    filter_all_dates:'كل التواريخ', filter_today:'اليوم', filter_this_week:'هذا الأسبوع', filter_this_month:'هذا الشهر', filter_all_projects:'كل المشاريع', filter_all_owners:'كل المكلفين', filter_all:'الكل',
+    login_tagline:'نظام مراقبة مهام الفريق', ph_username:'اسم المستخدم', ph_password:'كلمة المرور (6 أحرف على الأقل)', sign_in:'تسجيل الدخول', create_account:'إنشاء حساب', new_here:'مستخدم جديد؟', have_account:'لديك حساب بالفعل؟', switch_to_create:'إنشاء حساب', switch_to_signin:'تسجيل الدخول', login_footer:'بدعم من TaskFlow Pro - إصدار الفريق', please_wait:'يرجى الانتظار...',
+    member:'عضو', admin:'مسؤول', logged_in_as:'سجلت الدخول باسم', logout:'تسجيل الخروج',
+    title_sync_status:'حالة المزامنة', title_toggle_theme:'تبديل المظهر', title_overdue_tasks:'المهام المتأخرة', title_language:'اللغة / الاتجاه', title_install_app:'تثبيت التطبيق', ph_search_tasks:'ابحث في المهام...', ph_daily_notes:'اكتب ملاحظاتك لهذا اليوم...',
+    filter_all_status:'كل الحالات', status_todo:'قيد الانتظار', status_inprogress:'قيد التنفيذ', status_done:'منجزة', filter_all_priorities:'كل الأولويات', priority_high:'عالية', priority_medium:'متوسطة', priority_low:'منخفضة', filter_all_categories:'كل الفئات',
+    sort_newest:'الأحدث', sort_oldest:'الأقدم', sort_due_soon:'يستحق قريبًا', sort_priority:'الأولوية', sort_smart_score:'النقاط الذكية', sort_az:'أ-ي', title_saved_filters:'الفلاتر المحفوظة',
+    bulk_mark_done:'وضع علامة منجز', bulk_mark_todo:'وضع علامة قيد الانتظار', action_archive:'أرشفة', action_delete:'حذف', action_cancel:'إلغاء',
+    kanban_subtitle:'اسحب المهام وأفلتها بين الأعمدة لتحديث حالتها',
+    title_prev_month:'الشهر السابق', title_next_month:'الشهر التالي', today_label:'اليوم', new_event:'حدث جديد',
+    timetable_subtitle:'تتم جدولة المهام تلقائيًا في الأوقات الفارغة من يومك', title_prev_day:'اليوم السابق', title_next_day:'اليوم التالي', label_from:'من', label_to:'إلى', tt_not_scheduled:'غير مجدول اليوم',
+    eisenhower_subtitle:'رتب أولويات المهام حسب الإلحاح والأهمية', eh_do_first:'افعلها أولًا', eh_schedule:'جدولها', eh_delegate:'فوضها', eh_eliminate:'تخلص منها',
+    new_project:'+ مشروع جديد', new_goal:'+ هدف جديد', new_habit:'+ عادة جديدة', new_note:'+ ملاحظة جديدة', goal_weekly:'أسبوعي', goal_monthly:'شهري', ph_search_notes:'ابحث في الملاحظات...',
+    gantt_timeline:'مخطط جانت الزمني',
+    lb_subtitle:'سجل كيف تقضي يومك فعليًا', lb_log_hours:'سجل ساعات اليوم', lb_category_breakdown:'تفصيل الفئات', lb_weekly_check:'فحص ساعات العمل الأسبوعية', lb_show_sources:'إظهار المنهجية والمصادر', lb_hide_sources:'إخفاء المنهجية والمصادر',
+    progress_subtitle:'يحتسب تلقائيًا من نشاطك', new_challenge:'+ تحدٍ جديد', progress_activity_chart:'مؤشر النشاط', progress_tasks_chart:'المهام المنجزة', progress_habit_consistency:'انتظام العادات', your_challenges:'تحدياتك', beat_your_record:'تفوق على رقمك القياسي', beat_record_subtitle:'تحديات مقترحة بناءً على رقمك القياسي.',
+    clear_archive:'إفراغ الأرشيف',
+    modal_new_task:'مهمة جديدة', modal_edit_task:'تعديل المهمة', btn_save_changes:'حفظ التغييرات', field_title:'العنوان *', ph_task_title:'ما الذي يجب إنجازه؟', field_description:'الوصف', ph_add_details:'أضف التفاصيل...', field_priority:'الأولوية', field_category:'الفئة', ph_category_example:'مثال: العمل', field_project:'المشروع', option_no_project:'بدون مشروع', field_owner:'المسؤول', option_unassigned:'غير مسند',
+    field_quadrant:'الربع', option_auto:'تلقائي', option_urgent_important:'عاجل ومهم', option_important:'مهم', option_urgent:'عاجل', option_neither:'لا هذا ولا ذاك', field_recurring:'التكرار', option_none:'بدون', option_daily:'يوميًا', option_weekly:'أسبوعيًا', option_monthly:'شهريًا', no_recurrence:'بدون تكرار',
+    field_due_date:'تاريخ الاستحقاق', field_due_time:'وقت الاستحقاق', field_status:'الحالة', field_progress:'نسبة الإنجاز', field_est_hours:'الساعات المقدرة', field_logged_hours:'الساعات المسجلة', field_link:'الرابط', field_note:'ملاحظة', ph_notes_dots:'ملاحظات...', field_tags:'الوسوم (مفصولة بفواصل)', ph_tags_example:'عاجل، واجهة',
+    field_reminder:'التذكير', field_milestone:'معلم رئيسي', field_dependencies:'الاعتماديات', field_subtasks:'المهام الفرعية', ph_add_subtask:'أضف مهمة فرعية...', field_comments:'التعليقات', ph_add_comment:'أضف تعليقًا...', btn_post:'نشر', btn_save_template:'قالب', title_save_template:'حفظ كقالب', btn_cancel:'إلغاء', btn_create_task:'إنشاء المهمة', btn_update_task:'تحديث المهمة',
+    confirm_delete_title:'حذف؟', confirm_delete_msg:'لا يمكن التراجع عن هذا الإجراء.', btn_delete:'حذف',
+    setting_api_url:'رابط قاعدة بيانات الحساب', setting_not_configured:'غير مهيأ', btn_test:'اختبار', btn_edit:'تعديل', setting_sync_status:'حالة المزامنة', setting_up_to_date:'محدث', btn_sync_now:'مزامنة الآن',
+    setting_apps_script_url:'رابط Apps Script', setting_sync_token:'رمز المزامنة', setting_sync_token_desc:'مطلوب لمزامنة Google Sheets', setting_gsheets_sync:'مزامنة Google Sheets', setting_not_synced:'لم تتم المزامنة بعد', btn_pull:'سحب', btn_push:'دفع',
+    setting_sync_all:'مزامنة الكل مع Google Sheets', setting_sync_all_desc:'يتطلب رمز المسؤول', btn_sync_all:'مزامنة الكل',
+    setting_pomo_work:'مدة العمل بالدقائق', setting_pomo_break:'مدة الراحة بالدقائق', setting_default_prefix:'الافتراضي', setting_language:'اللغة / الاتجاه', current_lang_label:'العربية', btn_toggle:'تبديل',
+    setting_export:'تصدير المهام', setting_export_desc:'CSV أو JSON أو Excel', setting_import:'استيراد المهام', setting_import_desc:'ارفع نسخة احتياطية', btn_import:'استيراد',
+    setting_notifications:'تفعيل الإشعارات', setting_notifications_desc:'تذكيرات المتصفح', btn_enable:'تفعيل', setting_clear_data:'مسح كل البيانات', setting_clear_data_desc:'حذف نهائي', btn_clear:'مسح',
+    modal_templates_title:'قوالب المهام', no_templates:'لا توجد قوالب بعد.', modal_saved_filters:'الفلاتر المحفوظة', btn_save_current_filter:'حفظ الفلتر الحالي',
+    modal_new_project:'مشروع جديد', field_name:'الاسم', ph_project_name:'اسم المشروع', ph_description_dots:'الوصف...', field_color:'اللون', btn_save:'حفظ',
+    modal_new_goal:'هدف جديد', field_goal:'الهدف', ph_goal_example:'مثال: إنجاز 10 مهام', field_type:'النوع', field_target:'الهدف الرقمي', field_unit:'الوحدة', ph_unit_example:'مهام، ساعات، إلخ', field_current_progress:'التقدم الحالي',
+    modal_new_habit:'عادة جديدة', field_habit_name:'اسم العادة', ph_habit_example:'مثال: القراءة 30 دقيقة',
+    modal_new_challenge:'تحدٍ جديد', field_title_optional:'العنوان (اختياري)', ph_auto_generated:'يُنشأ تلقائيًا إذا ترك فارغًا', field_track:'تتبع', opt_tasks_completed:'المهام المنجزة', opt_hours_logged:'الساعات المسجلة', opt_habit_checkins:'تسجيلات العادات', opt_daily_streak:'سلسلة الإنجاز اليومي', field_over_days:'خلال كم يومًا', btn_start_challenge:'ابدأ التحدي',
+    modal_new_event:'حدث جديد', ph_event_title:'اجتماع مع الفريق...', field_date:'التاريخ', field_time:'الوقت', field_end_time:'وقت الانتهاء', field_type:'النوع', opt_meeting:'اجتماع', opt_event:'حدث', opt_reminder:'تذكير', opt_deadline:'موعد نهائي', field_description_optional:'الوصف (اختياري)',
+    modal_new_note:'ملاحظة جديدة', ph_note_title:'عنوان الملاحظة', field_folder:'المجلد', ph_folder_general:'عام', field_pin_note:'تثبيت الملاحظة', field_content_md:'المحتوى (Markdown)', ph_write_note:'اكتب ملاحظتك...', field_preview:'معاينة', preview_placeholder:'ستظهر المعاينة هنا...',
+    modal_import_preview:'معاينة الاستيراد', import_no_file:'لم يتم اختيار ملف', import_note:'يستبدل الاستيراد البيانات المطابقة بعد التحقق.',
+    ph_quick_add:'إضافة سريعة للمهمة... (Enter للإنشاء)', quick_add_hint:'Enter = إنشاء, Esc = إغلاق',
+    pomo_work:'عمل', pomo_break:'راحة', pomo_select_task:'اختر مهمة للتركيز عليها', btn_start:'ابدأ', btn_reset:'إعادة تعيين', btn_save_time:'حفظ الوقت',
+    onboard_welcome:'مرحبًا بك في TaskFlow Pro!', onboard_desc:'منصتك الاحترافية الشاملة لإدارة المهام.', btn_skip:'تخطي', btn_next:'التالي'
+  }
 };
 let lang = localStorage.getItem('taskflow_lang') || 'en';
-function t(key) { return (i18n[lang] && i18n[lang][key]) || i18n.en[key] || key; }
+function tr(key) { return (i18n[lang] && i18n[lang][key]) || i18n.en[key] || key; }
 function applyLang() {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const k = el.dataset.i18n;
-    if (i18n[lang] && i18n[lang][k]) el.textContent = i18n[lang][k];
-    else if (i18n.en[k]) el.textContent = i18n.en[k];
-  });
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = tr(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = tr(el.dataset.i18nPh); });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => { el.title = tr(el.dataset.i18nTitle); });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = tr(el.dataset.i18nHtml); });
+  document.querySelectorAll('option[data-i18n-opt]').forEach(el => { el.textContent = tr(el.dataset.i18nOpt); });
   const lbl = document.getElementById('currentLangLabel');
-  if (lbl) lbl.textContent = lang === 'ar' ? '\u0627\u0644\u0639\u0631\u0628\u064A\u0629' : 'English';
+  if (lbl) lbl.textContent = tr('current_lang_label');
+  const roleEl = document.getElementById('userRole');
+  if (roleEl && currentUser) roleEl.textContent = isAdmin() ? tr('admin') : tr('member');
+  setGreeting();
 }
 function toggleLang() {
   lang = lang === 'en' ? 'ar' : 'en';
@@ -168,9 +255,9 @@ function isAdmin() { return currentUser === ADMIN_EMAIL; }
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,32}$/;
 function toggleAuthMode(){
   authMode = authMode==='login' ? 'register' : 'login';
-  document.getElementById('loginSubmitBtn').textContent = authMode==='login' ? 'Sign In' : 'Create Account';
-  document.getElementById('loginSwitchText').textContent = authMode==='login' ? 'New here?' : 'Already have an account?';
-  document.getElementById('loginSwitchLink').textContent = authMode==='login' ? 'Create an account' : 'Sign in';
+  document.getElementById('loginSubmitBtn').textContent = authMode==='login' ? tr('sign_in') : tr('create_account');
+  document.getElementById('loginSwitchText').textContent = authMode==='login' ? tr('new_here') : tr('have_account');
+  document.getElementById('loginSwitchLink').textContent = authMode==='login' ? tr('switch_to_create') : tr('switch_to_signin');
   document.getElementById('loginError').textContent='';
 }
 async function doLogin() {
@@ -179,10 +266,10 @@ async function doLogin() {
   const errEl = document.getElementById('loginError');
   errEl.innerHTML='';
   if (!USERNAME_PATTERN.test(username)) { errEl.textContent = 'Username must be 3-32 characters: letters, numbers, and underscores only'; return; }
-  if (!password || password.length<12) { errEl.textContent = 'Password must be at least 12 characters'; return; }
+  if (!password || password.length<6) { errEl.textContent = 'Password must be at least 6 characters'; return; }
   if (!apiConfigured()) { errEl.textContent = 'No account database configured. Set an Account Database URL in Settings first.'; return; }
   const btn=document.getElementById('loginSubmitBtn');
-  btn.disabled=true; btn.textContent='Please wait...';
+  btn.disabled=true; btn.textContent=tr('please_wait');
   try{
     const result = authMode==='register' ? await apiRegister(username,password) : await apiLogin(username,password);
     saveAuthSession(username, result);
@@ -196,7 +283,7 @@ async function doLogin() {
       errEl.textContent = err.message || 'Sign in failed.';
     }
   } finally {
-    btn.disabled=false; btn.textContent = authMode==='login' ? 'Sign In' : 'Create Account';
+    btn.disabled=false; btn.textContent = authMode==='login' ? tr('sign_in') : tr('create_account');
   }
 }
 function continueOffline(username){ finishLogin(username, true); }
@@ -226,7 +313,7 @@ function enterApp() {
   document.getElementById('userName').textContent = name;
   document.getElementById('greetUser').textContent = name;
   document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
-  document.getElementById('userRole').textContent = isAdmin() ? 'Admin' : 'Member';
+  document.getElementById('userRole').textContent = isAdmin() ? tr('admin') : tr('member');
   document.getElementById('settingsEmail').textContent = currentUser;
   document.getElementById('adminSyncSetting').style.display = isAdmin() ? 'flex' : 'none';
   refreshSettingsStatus();
@@ -394,8 +481,9 @@ function showPage(name) {
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 function setGreeting() {
   const h = new Date().getHours();
-  let greet = 'evening'; if (h < 12) { greet = 'morning'; } else if (h < 17) { greet = 'afternoon'; }
-  document.getElementById('greeting').textContent = greet;
+  let key = 'greet_evening'; if (h < 12) { key = 'greet_morning'; } else if (h < 17) { key = 'greet_afternoon'; }
+  const el = document.getElementById('greeting');
+  if (el) el.textContent = tr(key) + (lang === 'ar' ? '،' : ',');
 }
 
 /* ═══════ TOAST ═══════ */
@@ -532,8 +620,8 @@ function openModal(id) {
   if (id) {
     const t = loadTasks().find(x=>x.id===id);
     if (!t) return;
-    document.getElementById('modalTitle').textContent = 'Edit Task #' + (t.numId || '');
-    document.getElementById('saveTaskBtn').textContent = 'Save Changes';
+    document.getElementById('modalTitle').textContent = tr('modal_edit_task') + ' #' + (t.numId || '');
+    document.getElementById('saveTaskBtn').textContent = tr('btn_save_changes');
     document.getElementById('taskTitleInput').value = t.title;
     document.getElementById('taskDescInput').value = t.description||'';
     document.getElementById('taskPriorityInput').value = t.priority;
@@ -561,8 +649,8 @@ function openModal(id) {
     document.getElementById('commentsSection').style.display = 'block';
     renderComments(t.comments||[]);
   } else {
-    document.getElementById('modalTitle').textContent = 'New Task';
-    document.getElementById('saveTaskBtn').textContent = 'Create Task';
+    document.getElementById('modalTitle').textContent = tr('modal_new_task');
+    document.getElementById('saveTaskBtn').textContent = tr('btn_create_task');
     ['taskTitleInput','taskDescInput','taskCategoryInput','taskDueInput','taskDueTimeInput','taskLinkInput','taskNoteInput','taskTagsInput','taskReminderInput'].forEach(fid=>document.getElementById(fid).value='');
     document.getElementById('taskPriorityInput').value = 'medium';
     document.getElementById('taskProjectInput').value = '';
@@ -1600,7 +1688,7 @@ function toggleLbSources(){
   const el=document.getElementById('lbSources');
   const show=el.style.display==='none';
   el.style.display=show?'block':'none';
-  document.getElementById('lbSourcesToggle').textContent=show?'Hide Methodology & Sources':'Show Methodology & Sources';
+  document.getElementById('lbSourcesToggle').textContent=show?tr('lb_hide_sources'):tr('lb_show_sources');
   if(show&&!el.dataset.filled){
     el.dataset.filled='1';
     el.innerHTML=
@@ -2420,6 +2508,7 @@ function showOverdueTasks(){
 
 /* ═══════ INIT ═══════ */
 initAccessibility();
+applyLang();
 checkAutoLogin();
 
 /* ═══════ SERVICE WORKER & PWA ═══════ */
