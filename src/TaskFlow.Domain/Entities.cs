@@ -2,7 +2,7 @@ namespace TaskFlow.Domain;
 
 public enum OrganizationRole { Owner, Admin, Manager, Member, Viewer }
 public enum TaskState { Todo, InProgress, Done }
-public sealed class User { public Guid Id { get; set; } = Guid.NewGuid(); public string Email { get; set; } = null!; public string PasswordHash { get; set; } = null!; public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow; public bool IsDisabled { get; set; } }
+public sealed class User { public Guid Id { get; set; } = Guid.NewGuid(); public string Username { get; set; } = null!; public string PasswordHash { get; set; } = null!; public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow; public bool IsDisabled { get; set; } }
 public sealed class Organization { public Guid Id { get; set; } = Guid.NewGuid(); public string Name { get; set; } = null!; public string TimeZone { get; set; } = "UTC"; public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow; }
 public sealed class OrganizationMember { public Guid OrganizationId { get; set; } public Guid UserId { get; set; } public OrganizationRole Role { get; set; } public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow; }
 public sealed class Project { public Guid Id { get; set; } = Guid.NewGuid(); public Guid OrganizationId { get; set; } public string Name { get; set; } = null!; public string? Description { get; set; } public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow; }

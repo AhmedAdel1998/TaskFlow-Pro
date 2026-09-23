@@ -14,7 +14,7 @@ public sealed class TaskFlowDbContext(DbContextOptions<TaskFlowDbContext> option
   configurationBuilder.Properties<DateTimeOffset?>().HaveConversion<NullableDateTimeOffsetToUnixMsConverter>();
  }
  protected override void OnModelCreating(ModelBuilder b) {
-  b.Entity<User>(e=>{e.HasIndex(x=>x.Email).IsUnique();e.Property(x=>x.Email).HasMaxLength(320);});
+  b.Entity<User>(e=>{e.HasIndex(x=>x.Username).IsUnique();e.Property(x=>x.Username).HasMaxLength(32);});
   b.Entity<OrganizationMember>().HasKey(x=>new{x.OrganizationId,x.UserId});
   b.Entity<Project>(e=>{e.HasIndex(x=>new{x.OrganizationId,x.Name});e.Property(x=>x.Name).HasMaxLength(200);});
   b.Entity<TaskItem>(e=>{e.HasIndex(x=>new{x.OrganizationId,x.UpdatedAt});e.HasIndex(x=>new{x.OrganizationId,x.ProjectId});e.Property(x=>x.Version).IsConcurrencyToken();e.Property(x=>x.Title).HasMaxLength(200);});

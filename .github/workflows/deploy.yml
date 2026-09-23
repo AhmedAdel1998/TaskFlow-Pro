@@ -18,12 +18,17 @@ jobs:
   frontend-test:
     # smoke.js drives a real installed Chrome/Edge (not Playwright's own browser download),
     # so this needs a runner that ships one preinstalled — windows-latest includes Edge.
+    # It also spins up a throwaway local instance of the API (real login now needs one), so
+    # the .NET SDK is required here too.
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
       - run: npm ci
       - run: npm test
 

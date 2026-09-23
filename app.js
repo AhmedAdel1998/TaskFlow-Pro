@@ -2,7 +2,7 @@
 const ADMIN_EMAIL = 'osama.kamal@gmail.com';
 const DEFAULT_SCRIPT_URL = '';
 let APPS_SCRIPT_URL = localStorage.getItem('taskflow_script_url') || DEFAULT_SCRIPT_URL;
-const DEFAULT_API_URL = '';
+const DEFAULT_API_URL = 'https://api-production-1da6.up.railway.app';
 let API_BASE_URL = localStorage.getItem('taskflow_api_url') ?? DEFAULT_API_URL;
 let authMode = 'login';
 
@@ -45,8 +45,8 @@ async function ensureFreshToken(){
   saveAuthSession(currentUser,r);
   return r.accessToken;
 }
-function apiRegister(email,password){ return apiRaw('/api/auth/register','POST',{email,password,organizationName:email.split('@')[0]+"'s Workspace"},false); }
-function apiLogin(email,password){ return apiRaw('/api/auth/login','POST',{email,password},false); }
+function apiRegister(username,password){ return apiRaw('/api/auth/register','POST',{username,password,organizationName:username+"'s Workspace"},false); }
+function apiLogin(username,password){ return apiRaw('/api/auth/login','POST',{username,password},false); }
 function pendingSyncKey(){ return 'taskflow_pending_sync'; }
 function getPendingSync(){ try{ return JSON.parse(localStorage.getItem(pendingSyncKey()))||{}; }catch{ return {}; } }
 function setPendingSync(map){ localStorage.setItem(pendingSyncKey(), JSON.stringify(map)); }
@@ -111,25 +111,7 @@ function editApiUrl(){
   if(API_BASE_URL) localStorage.setItem('taskflow_api_url',API_BASE_URL);
   else localStorage.removeItem('taskflow_api_url');
   refreshSettingsStatus();
-  initLoginScreen();
-  if(API_BASE_URL&&!getAuthSession(currentUser)) connectAccountToDatabase();
-}
-async function connectAccountToDatabase(){
-  const password=prompt('Set a password (min 12 characters) to back up "'+currentUser+'" to this database.\nAlready created it there before? Enter that same password to sign in instead.');
-  if(password===null) return;
-  if(password.length<12){ toast('Password must be at least 12 characters','error'); return; }
-  toast('Connecting to account database...');
-  try{
-    let result;
-    try{ result=await apiLogin(currentUser,password); }
-    catch(e){ if(e.status===401) result=await apiRegister(currentUser,password); else throw e; }
-    saveAuthSession(currentUser,result);
-    await pushAllLocalDataToServer();
-    await hydrateFromServer();
-    refreshAll(); refreshSettingsStatus();
-    toast('Account connected — your data is now backed up');
-    startSyncHeartbeat();
-  }catch(e){ toast('Could not connect: '+(e.message||'error'),'error'); }
+  toast('Account database URL updated — log out and back in to switch accounts to it');
 }
 let syncHeartbeat=null;
 function startSyncHeartbeat(){
@@ -183,12 +165,7 @@ function toggleLang() {
 let currentUser = null;
 function userKey(base) { return base + '_' + (currentUser || 'anon'); }
 function isAdmin() { return currentUser === ADMIN_EMAIL; }
-function initLoginScreen(){
-  const configured=apiConfigured();
-  document.getElementById('loginPassword').style.display=configured?'block':'none';
-  const switchRow=document.getElementById('loginSwitchLink');
-  if(switchRow) switchRow.closest('div').style.display=configured?'block':'none';
-}
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,32}$/;
 function toggleAuthMode(){
   authMode = authMode==='login' ? 'register' : 'login';
   document.getElementById('loginSubmitBtn').textContent = authMode==='login' ? 'Sign In' : 'Create Account';
@@ -197,23 +174,23 @@ function toggleAuthMode(){
   document.getElementById('loginError').textContent='';
 }
 async function doLogin() {
-  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const username = document.getElementById('loginUsername').value.trim().toLowerCase();
   const password = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginError');
   errEl.innerHTML='';
-  if (!email || !email.includes('@') || !email.includes('.')) { errEl.textContent = 'Please enter a valid email address'; return; }
-  if (!apiConfigured()) { finishLogin(email, true); return; }
+  if (!USERNAME_PATTERN.test(username)) { errEl.textContent = 'Username must be 3-32 characters: letters, numbers, and underscores only'; return; }
   if (!password || password.length<12) { errEl.textContent = 'Password must be at least 12 characters'; return; }
+  if (!apiConfigured()) { errEl.textContent = 'No account database configured. Set an Account Database URL in Settings first.'; return; }
   const btn=document.getElementById('loginSubmitBtn');
   btn.disabled=true; btn.textContent='Please wait...';
   try{
-    const result = authMode==='register' ? await apiRegister(email,password) : await apiLogin(email,password);
-    saveAuthSession(email, result);
-    finishLogin(email);
+    const result = authMode==='register' ? await apiRegister(username,password) : await apiLogin(username,password);
+    saveAuthSession(username, result);
+    finishLogin(username);
   }catch(err){
     if(err.isNetworkError){
-      const cached=getAuthSession(email);
-      if(cached){ errEl.innerHTML='Can\'t reach the account database &mdash; <a href="#" onclick="continueOffline(\''+email+'\');return false;" style="color:var(--primary);font-weight:600">continue offline</a> with your last synced data.'; }
+      const cached=getAuthSession(username);
+      if(cached){ errEl.innerHTML='Can\'t reach the account database &mdash; <a href="#" onclick="continueOffline(\''+username+'\');return false;" style="color:var(--primary);font-weight:600">continue offline</a> with your last synced data.'; }
       else { errEl.textContent='Can\'t reach the account database. Check the Account Database URL in Settings, or make sure the API is running.'; }
     } else {
       errEl.textContent = err.message || 'Sign in failed.';
@@ -222,12 +199,12 @@ async function doLogin() {
     btn.disabled=false; btn.textContent = authMode==='login' ? 'Sign In' : 'Create Account';
   }
 }
-function continueOffline(email){ finishLogin(email, true); }
-function finishLogin(email, offline){
-  currentUser = email;
-  localStorage.setItem('taskflow_current_user', email);
+function continueOffline(username){ finishLogin(username, true); }
+function finishLogin(username, offline){
+  currentUser = username;
+  localStorage.setItem('taskflow_current_user', username);
   const users = JSON.parse(localStorage.getItem('taskflow_users') || '[]');
-  if (!users.includes(email)) { users.push(email); localStorage.setItem('taskflow_users', JSON.stringify(users)); }
+  if (!users.includes(username)) { users.push(username); localStorage.setItem('taskflow_users', JSON.stringify(users)); }
   enterApp();
   if(!offline){
     hydrateFromServer().then(refreshAll).catch(()=>{});
@@ -238,14 +215,14 @@ function doLogout() {
   currentUser = null;
   document.getElementById('appContainer').style.display = 'none';
   document.getElementById('loginScreen').classList.remove('hidden');
-  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginUsername').value = '';
   document.getElementById('loginPassword').value = '';
   closeSettings();
 }
 function enterApp() {
   document.getElementById('loginScreen').classList.add('hidden');
   document.getElementById('appContainer').style.display = 'flex';
-  const name = currentUser.split('@')[0].replaceAll(/[._]/g,' ').replaceAll(/\b\w/g,c=>c.toUpperCase());
+  const name = currentUser.replaceAll(/[._]/g,' ').replaceAll(/\b\w/g,c=>c.toUpperCase());
   document.getElementById('userName').textContent = name;
   document.getElementById('greetUser').textContent = name;
   document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
@@ -2443,7 +2420,6 @@ function showOverdueTasks(){
 
 /* ═══════ INIT ═══════ */
 initAccessibility();
-initLoginScreen();
 checkAutoLogin();
 
 /* ═══════ SERVICE WORKER & PWA ═══════ */

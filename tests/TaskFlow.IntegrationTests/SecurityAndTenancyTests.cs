@@ -12,12 +12,12 @@ public class SecurityAndTenancyTests : IClassFixture<ApiFactory>
     public SecurityAndTenancyTests(ApiFactory factory) => _factory = factory;
 
     static int _counter;
-    static string NextEmail() => $"user{Interlocked.Increment(ref _counter)}@example.com";
+    static string NextUsername() => $"user{Interlocked.Increment(ref _counter)}";
 
     async Task<(HttpClient client, AuthResult auth)> RegisterAsync(HttpClient client, string org)
     {
         var res = await client.PostAsJsonAsync("/api/auth/register",
-            new RegisterCommand(NextEmail(), "correct-horse-battery-staple", org));
+            new RegisterCommand(NextUsername(), "correct-horse-battery-staple", org));
         res.EnsureSuccessStatusCode();
         var auth = (await res.Content.ReadFromJsonAsync<AuthResult>())!;
         client.DefaultRequestHeaders.Authorization = new("Bearer", auth.AccessToken);
@@ -88,29 +88,38 @@ public class SecurityAndTenancyTests : IClassFixture<ApiFactory>
     }
 
     [Fact]
-    public async Task Duplicate_registration_email_is_rejected()
+    public async Task Duplicate_registration_username_is_rejected()
     {
-        var email = NextEmail();
+        var username = NextUsername();
         var client = _factory.CreateClient();
         var first = await client.PostAsJsonAsync("/api/auth/register",
-            new RegisterCommand(email, "correct-horse-battery-staple", "Org E"));
+            new RegisterCommand(username, "correct-horse-battery-staple", "Org E"));
         first.EnsureSuccessStatusCode();
 
         var second = await client.PostAsJsonAsync("/api/auth/register",
-            new RegisterCommand(email, "another-long-enough-password", "Org F"));
+            new RegisterCommand(username, "another-long-enough-password", "Org F"));
         Assert.Equal(HttpStatusCode.BadRequest, second.StatusCode);
     }
 
     [Fact]
     public async Task Login_with_wrong_password_is_rejected()
     {
-        var email = NextEmail();
+        var username = NextUsername();
         var client = _factory.CreateClient();
         (await client.PostAsJsonAsync("/api/auth/register",
-            new RegisterCommand(email, "correct-horse-battery-staple", "Org G"))).EnsureSuccessStatusCode();
+            new RegisterCommand(username, "correct-horse-battery-staple", "Org G"))).EnsureSuccessStatusCode();
 
-        var res = await client.PostAsJsonAsync("/api/auth/login", new LoginCommand(email, "wrong-password-entirely"));
+        var res = await client.PostAsJsonAsync("/api/auth/login", new LoginCommand(username, "wrong-password-entirely"));
         Assert.Equal(HttpStatusCode.Unauthorized, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Registration_with_invalid_username_is_rejected()
+    {
+        var client = _factory.CreateClient();
+        var res = await client.PostAsJsonAsync("/api/auth/register",
+            new RegisterCommand("not an email@example.com", "correct-horse-battery-staple", "Org Z"));
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
     }
 
     [Fact]

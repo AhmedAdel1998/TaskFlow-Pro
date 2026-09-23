@@ -1,7 +1,7 @@
 using TaskFlow.Domain;
 namespace TaskFlow.Application;
-public record RegisterCommand(string Email, string Password, string OrganizationName);
-public record LoginCommand(string Email, string Password);
+public record RegisterCommand(string Username, string Password, string OrganizationName);
+public record LoginCommand(string Username, string Password);
 public record AuthResult(string AccessToken, string RefreshToken, DateTimeOffset ExpiresAt, Guid OrganizationId);
 public record CreateTaskCommand(string Title, string? Description, Guid? ProjectId, Guid? AssigneeId, string Priority, DateTimeOffset? DueAt);
 public record UpdateTaskCommand(string Title, string? Description, TaskState Status, string Priority, DateTimeOffset? DueAt, uint Version);

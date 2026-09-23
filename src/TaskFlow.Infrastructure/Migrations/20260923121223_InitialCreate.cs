@@ -172,7 +172,7 @@ namespace TaskFlow.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 320, nullable: false),
+                    Username = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
                     PasswordHash = table.Column<string>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<long>(type: "INTEGER", nullable: false),
                     IsDisabled = table.Column<bool>(type: "INTEGER", nullable: false)
@@ -231,9 +231,9 @@ namespace TaskFlow.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Users_Email",
+                name: "IX_Users_Username",
                 table: "Users",
-                column: "Email",
+                column: "Username",
                 unique: true);
         }
 

@@ -1,5 +1,9 @@
 const path = require('path');
+const fs = require('fs');
+const os = require('os');
+const { spawn } = require('child_process');
 const { chromium } = require('playwright-core');
+const http = require('http');
 
 const root = path.resolve(__dirname, '..');
 const appUrl = 'file:///' + path.join(root, 'index.html').replace(/\\/g, '/').replace(/ /g, '%20');
@@ -7,6 +11,8 @@ const chromePaths = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
 ];
+const TEST_API_PORT = 51789;
+const TEST_API_URL = `http://127.0.0.1:${TEST_API_PORT}`;
 
 async function step(name, fn, failures) {
   try {
@@ -18,13 +24,75 @@ async function step(name, fn, failures) {
   }
 }
 
+function waitForHealth(url, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  return new Promise((resolve, reject) => {
+    (function poll() {
+      http.get(url + '/health/live', res => {
+        if (res.statusCode === 200) return resolve();
+        res.resume();
+        retry();
+      }).on('error', retry);
+      function retry() {
+        if (Date.now() > deadline) return reject(new Error('API did not become healthy in time'));
+        setTimeout(poll, 500);
+      }
+    })();
+  });
+}
+
+/* Login is now real (username+password against the account database), so smoke tests need a live
+   API — never the production one. This spins up a throwaway local instance on a temp SQLite file.
+   Runs the pre-built DLL directly (not `dotnet run`, which wraps MSBuild and leaves orphan
+   processes behind that a plain proc.kill() can't reach) so the process tree stays killable. */
+function buildTestApi() {
+  const { execFileSync } = require('child_process');
+  execFileSync('dotnet', ['build', path.join(root, 'src/TaskFlow.Api'), '-c', 'Debug'], { cwd: root, stdio: 'ignore' });
+  return path.join(root, 'src/TaskFlow.Api/bin/Debug/net9.0/TaskFlow.Api.dll');
+}
+function startTestApi(dllPath) {
+  const dbPath = path.join(os.tmpdir(), `taskflow-smoke-${Date.now()}.db`);
+  const jwtKey = require('crypto').randomBytes(48).toString('base64');
+  const proc = spawn('dotnet', [dllPath], {
+    cwd: path.dirname(dllPath),
+    env: {
+      ...process.env,
+      ASPNETCORE_URLS: TEST_API_URL,
+      ASPNETCORE_ENVIRONMENT: 'Development',
+      ConnectionStrings__TaskFlow: `Data Source=${dbPath};Default Timeout=5`,
+      Jwt__Key: jwtKey
+    },
+    stdio: 'ignore'
+  });
+  return { proc, dbPath };
+}
+
 (async () => {
   const executablePath = chromePaths.find(p => require('fs').existsSync(p));
   if (!executablePath) throw new Error('Chrome or Edge executable was not found.');
 
+  const dllPath = buildTestApi();
+  const { proc: apiProc, dbPath } = startTestApi(dllPath);
+  let exitCode = 0;
+  try {
+    await waitForHealth(TEST_API_URL, 60000);
+    exitCode = await runSmokeTests(executablePath);
+  } finally {
+    if (process.platform === 'win32') {
+      try { require('child_process').execFileSync('taskkill', ['/PID', String(apiProc.pid), '/T', '/F'], { stdio: 'ignore' }); } catch {}
+    } else {
+      apiProc.kill();
+    }
+    for (const f of [dbPath, dbPath + '-shm', dbPath + '-wal']) { try { fs.unlinkSync(f); } catch {} }
+  }
+  process.exit(exitCode);
+})();
+
+async function runSmokeTests(executablePath) {
   const browser = await chromium.launch({ executablePath, headless: true, args: ['--no-sandbox'] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
   page.setDefaultTimeout(4000);
+  await page.addInitScript((apiUrl) => { localStorage.setItem('taskflow_api_url', apiUrl); }, TEST_API_URL);
 
   const runtimeErrors = [];
   const failures = [];
@@ -35,12 +103,15 @@ async function step(name, fn, failures) {
 
   await step('load app', async () => {
     await page.goto(appUrl, { waitUntil: 'domcontentloaded', timeout: 10000 });
-    await page.waitForSelector('#loginEmail');
+    await page.waitForSelector('#loginUsername');
   }, failures);
 
-  await step('login', async () => {
-    await page.fill('#loginEmail', `audit-${Date.now()}@example.com`);
-    await page.click('button:has-text("Sign In")');
+  await step('register and login', async () => {
+    const username = `audit${Date.now()}`.slice(0, 32);
+    await page.fill('#loginUsername', username);
+    await page.fill('#loginPassword', 'correct-horse-battery-staple');
+    await page.click('#loginSwitchLink'); // switch to "Create an account"
+    await page.click('button:has-text("Create Account")');
     await page.waitForSelector('#appContainer', { state: 'visible' });
     const skip = page.locator('button:has-text("Skip")');
     if (await skip.isVisible().catch(() => false)) await skip.click();
@@ -153,6 +224,7 @@ async function step(name, fn, failures) {
   const unexpectedRuntimeErrors = runtimeErrors.filter(err => !err.includes('Content Security Policy'));
   if (failures.length || unexpectedRuntimeErrors.length) {
     console.error(JSON.stringify({ failures, runtimeErrors: unexpectedRuntimeErrors }, null, 2));
-    process.exit(1);
+    return 1;
   }
-})();
+  return 0;
+}

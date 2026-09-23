@@ -24,8 +24,8 @@
     <h1>TaskFlow Pro</h1>
     <p>Team Task Monitoring System</p>
     <div class="login-error" id="loginError"></div>
-    <input type="email" id="loginEmail" placeholder="Enter your email" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
-    <input type="password" id="loginPassword" placeholder="Password (min 12 characters)" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <input type="text" id="loginUsername" aria-label="Username" placeholder="Username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    <input type="password" id="loginPassword" aria-label="Password" placeholder="Password (min 12 characters)" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="btn btn-primary" onclick="doLogin()" id="loginSubmitBtn">Sign In</button>
     <div style="font-size:.82rem;color:var(--text2);margin-top:10px"><span id="loginSwitchText">New here?</span> <a href="#" onclick="toggleAuthMode();return false;" id="loginSwitchLink" style="color:var(--primary);font-weight:600">Create an account</a></div>
     <div class="login-team">Powered by TaskFlow Pro &bull; Team Edition</div>
@@ -359,7 +359,7 @@
     <div class="modal-body"><div class="settings-grid">
       <div class="setting-item"><div><div class="setting-label">Logged in as</div><div class="setting-desc" id="settingsEmail">user@example.com</div></div><button class="btn btn-sm btn-outline" onclick="doLogout()">Logout</button></div>
       <div class="setting-item"><div><div class="setting-label">Account Database URL</div><div class="setting-desc" id="apiUrlStatus">Not configured</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="testApiConnection()">Test</button><button class="btn btn-sm btn-outline" onclick="editApiUrl()">Edit</button></div></div>
-      <div class="setting-item" id="syncNowSetting" style="display:none"><div><div class="setting-label">Sync Status</div><div class="setting-desc" id="syncPendingStatus">Up to date</div></div><button class="btn btn-sm btn-primary" onclick="flushSyncQueue()">Sync Now</button></div>
+      <div class="setting-item" id="syncNowSetting" style="display:none"><div><div class="setting-label">Sync Status</div><div class="setting-desc" id="syncPendingStatus">Up to date</div></div><button class="btn btn-sm btn-primary" onclick="pushAllLocalDataToServer()">Sync Now</button></div>
       <div class="setting-item"><div><div class="setting-label">Apps Script URL</div><div class="setting-desc" id="scriptUrlStatus">Not configured</div></div><button class="btn btn-sm btn-outline" onclick="editSheetUrl()">Edit</button></div>
       <div class="setting-item"><div><div class="setting-label">Sync Token</div><div class="setting-desc" id="syncTokenStatus">Required for Google Sheets sync</div></div><button class="btn btn-sm btn-outline" onclick="editSyncToken()">Edit</button></div>
       <div class="setting-item"><div><div class="setting-label">Google Sheets Sync</div><div class="setting-desc" id="syncStateLabel">Not synced yet</div></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-sm btn-outline" onclick="testSyncConnection()">Test</button><button class="btn btn-sm btn-outline" onclick="syncPullAll()">Pull</button><button class="btn btn-sm btn-primary" onclick="syncPushAll()">Push</button></div></div>
