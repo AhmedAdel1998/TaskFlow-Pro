@@ -9,6 +9,7 @@ public sealed class NullableDateTimeOffsetToUnixMsConverter() : ValueConverter<D
 public sealed class TaskFlowDbContext(DbContextOptions<TaskFlowDbContext> options) : DbContext(options) {
  public DbSet<User> Users => Set<User>(); public DbSet<Organization> Organizations => Set<Organization>(); public DbSet<OrganizationMember> Members => Set<OrganizationMember>(); public DbSet<Project> Projects => Set<Project>(); public DbSet<TaskItem> Tasks => Set<TaskItem>(); public DbSet<RefreshSession> RefreshSessions => Set<RefreshSession>();
  public DbSet<Subtask> Subtasks => Set<Subtask>(); public DbSet<TaskComment> TaskComments => Set<TaskComment>(); public DbSet<Tag> Tags => Set<Tag>(); public DbSet<TaskTag> TaskTags => Set<TaskTag>(); public DbSet<UserDataEntry> UserData => Set<UserDataEntry>();
+ public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>(); public DbSet<SentReminder> SentReminders => Set<SentReminder>();
  protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder) {
   configurationBuilder.Properties<DateTimeOffset>().HaveConversion<DateTimeOffsetToUnixMsConverter>();
   configurationBuilder.Properties<DateTimeOffset?>().HaveConversion<NullableDateTimeOffsetToUnixMsConverter>();
@@ -24,5 +25,7 @@ public sealed class TaskFlowDbContext(DbContextOptions<TaskFlowDbContext> option
   b.Entity<Tag>(e=>{e.HasIndex(x=>new{x.OrganizationId,x.Name}).IsUnique();e.Property(x=>x.Name).HasMaxLength(60);});
   b.Entity<TaskTag>(e=>{e.HasKey(x=>new{x.TaskId,x.TagId});e.HasIndex(x=>new{x.OrganizationId,x.TagId});});
   b.Entity<UserDataEntry>(e=>{e.HasIndex(x=>new{x.UserId,x.Key}).IsUnique();e.Property(x=>x.Key).HasMaxLength(200);});
+  b.Entity<PushSubscription>(e=>{e.HasIndex(x=>new{x.UserId,x.Endpoint}).IsUnique();e.Property(x=>x.Endpoint).HasMaxLength(500);});
+  b.Entity<SentReminder>(e=>{e.HasIndex(x=>new{x.UserId,x.Kind,x.ItemKey}).IsUnique();e.Property(x=>x.Kind).HasMaxLength(20);e.Property(x=>x.ItemKey).HasMaxLength(100);});
  }
 }

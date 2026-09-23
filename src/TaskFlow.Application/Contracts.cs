@@ -24,3 +24,5 @@ public interface ITagService { Task<IReadOnlyList<TagDto>> ListAsync(Guid userId
 public record UpsertDataCommand(string Value);
 public record UserDataItem(string Key, string Value, DateTimeOffset UpdatedAt);
 public interface IUserDataService { Task<IReadOnlyList<UserDataItem>> ListAsync(Guid userId, CancellationToken ct); Task<UserDataItem> UpsertAsync(Guid userId, string key, UpsertDataCommand command, CancellationToken ct); Task DeleteAsync(Guid userId, string key, CancellationToken ct); }
+public record PushSubscribeCommand(string Endpoint, string P256dh, string Auth, int TzOffsetMinutes);
+public interface IPushSubscriptionService { Task SubscribeAsync(Guid userId, PushSubscribeCommand command, CancellationToken ct); Task UnsubscribeAsync(Guid userId, string endpoint, CancellationToken ct); }

@@ -169,7 +169,8 @@ const i18n = {
     setting_sync_all:'Sync All to Google Sheets', setting_sync_all_desc:'Admin token required', btn_sync_all:'Sync All',
     setting_pomo_work:'Pomodoro Work (min)', setting_pomo_break:'Pomodoro Break (min)', setting_default_prefix:'Default', setting_language:'Language / RTL', current_lang_label:'English', btn_toggle:'Toggle',
     setting_export:'Export Tasks', setting_export_desc:'CSV, JSON, or Excel', setting_import:'Import Tasks', setting_import_desc:'Upload JSON backup', btn_import:'Import',
-    setting_notifications:'Enable Notifications', setting_notifications_desc:'Browser reminders', btn_enable:'Enable', setting_clear_data:'Clear All Data', setting_clear_data_desc:'Permanently erase', btn_clear:'Clear',
+    setting_notifications:'Enable Notifications', setting_notifications_desc:'Reminders even when the app is closed', btn_enable:'Enable', setting_clear_data:'Clear All Data', setting_clear_data_desc:'Permanently erase', btn_clear:'Clear',
+    notif_enabled:'Notifications enabled — you’ll get reminders even when the app is closed', notif_blocked:'Notifications blocked — enable them in your browser/phone settings',
     modal_templates_title:'Task Templates', no_templates:'No templates yet.', modal_saved_filters:'Saved Filters', btn_save_current_filter:'Save Current Filter',
     modal_new_project:'New Project', field_name:'Name', ph_project_name:'Project name', ph_description_dots:'Description...', field_color:'Color', btn_save:'Save',
     modal_new_goal:'New Goal', field_goal:'Goal', ph_goal_example:'e.g. Complete 10 tasks', field_type:'Type', field_target:'Target', field_unit:'Unit', ph_unit_example:'tasks, hours, etc.', field_current_progress:'Current Progress',
@@ -223,7 +224,8 @@ const i18n = {
     setting_sync_all:'مزامنة الكل مع Google Sheets', setting_sync_all_desc:'يتطلب رمز المسؤول', btn_sync_all:'مزامنة الكل',
     setting_pomo_work:'مدة العمل بالدقائق', setting_pomo_break:'مدة الراحة بالدقائق', setting_default_prefix:'الافتراضي', setting_language:'اللغة / الاتجاه', current_lang_label:'العربية', btn_toggle:'تبديل',
     setting_export:'تصدير المهام', setting_export_desc:'CSV أو JSON أو Excel', setting_import:'استيراد المهام', setting_import_desc:'ارفع نسخة احتياطية', btn_import:'استيراد',
-    setting_notifications:'تفعيل الإشعارات', setting_notifications_desc:'تذكيرات المتصفح', btn_enable:'تفعيل', setting_clear_data:'مسح كل البيانات', setting_clear_data_desc:'حذف نهائي', btn_clear:'مسح',
+    setting_notifications:'تفعيل الإشعارات', setting_notifications_desc:'تذكيرات حتى عند إغلاق التطبيق', btn_enable:'تفعيل', setting_clear_data:'مسح كل البيانات', setting_clear_data_desc:'حذف نهائي', btn_clear:'مسح',
+    notif_enabled:'تم تفعيل الإشعارات — ستصلك التذكيرات حتى عند إغلاق التطبيق', notif_blocked:'تم حظر الإشعارات — فعّلها من إعدادات المتصفح أو الهاتف',
     modal_templates_title:'قوالب المهام', no_templates:'لا توجد قوالب بعد.', modal_saved_filters:'الفلاتر المحفوظة', btn_save_current_filter:'حفظ الفلتر الحالي',
     modal_new_project:'مشروع جديد', field_name:'الاسم', ph_project_name:'اسم المشروع', ph_description_dots:'الوصف...', field_color:'اللون', btn_save:'حفظ',
     modal_new_goal:'هدف جديد', field_goal:'الهدف', ph_goal_example:'مثال: إنجاز 10 مهام', field_type:'النوع', field_target:'الهدف الرقمي', field_unit:'الوحدة', ph_unit_example:'مهام، ساعات، إلخ', field_current_progress:'التقدم الحالي',
@@ -345,6 +347,7 @@ function enterApp() {
   checkOnboarding(); processRecurring(); startReminderCheck();
   if(apiConfigured()&&getAuthSession(currentUser)) startSyncHeartbeat();
   else updateSyncStatusUI();
+  if('Notification' in globalThis && Notification.permission==='granted') subscribeToPush();
 }
 function checkAutoLogin() {
   const saved = localStorage.getItem('taskflow_current_user');
@@ -2313,7 +2316,37 @@ function showNotification(title,body){
   else toast(title);
 }
 function requestNotifPermission(){
-  if('Notification' in globalThis&&Notification.permission!=='granted'){Notification.requestPermission().then(p=>{toast(p==='granted'?'Notifications enabled':'Notifications blocked');});}
+  if('Notification' in globalThis&&Notification.permission!=='granted'){
+    Notification.requestPermission().then(p=>{
+      toast(p==='granted'?tr('notif_enabled'):tr('notif_blocked'));
+      if(p==='granted') subscribeToPush();
+    });
+  } else if('Notification' in globalThis&&Notification.permission==='granted'){
+    subscribeToPush();
+  }
+}
+function urlBase64ToUint8Array(base64String){
+  const padding='='.repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=atob(base64);
+  const arr=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+async function subscribeToPush(){
+  if(!apiConfigured()||!currentUser||!getAuthSession(currentUser)) return;
+  if(!('serviceWorker' in navigator)||!('PushManager' in globalThis)) return;
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub){
+      const {publicKey}=await apiRaw('/api/push/vapid-public-key','GET',undefined,false);
+      if(!publicKey) return;
+      sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(publicKey)});
+    }
+    const json=sub.toJSON();
+    await apiRaw('/api/push/subscribe','POST',{endpoint:json.endpoint,p256dh:json.keys.p256dh,auth:json.keys.auth,tzOffsetMinutes:new Date().getTimezoneOffset()});
+  }catch{ /* best-effort: push is a nice-to-have, never block the rest of the app */ }
 }
 
 /* ═══════ CATEGORY NAV & PROJECT FILTER ═══════ */

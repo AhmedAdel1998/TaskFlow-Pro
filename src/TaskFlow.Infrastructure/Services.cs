@@ -32,6 +32,20 @@ public sealed class UserDataService(TaskFlowDbContext db) : IUserDataService {
   if(x is not null){db.UserData.Remove(x);await db.SaveChangesAsync(ct);}
  }
 }
+public sealed class PushSubscriptionService(TaskFlowDbContext db) : IPushSubscriptionService {
+ public async Task SubscribeAsync(Guid u,PushSubscribeCommand c,CancellationToken ct){
+  if(string.IsNullOrWhiteSpace(c.Endpoint)||c.Endpoint.Length>500)throw new ArgumentException("Invalid push subscription endpoint.");
+  if(string.IsNullOrWhiteSpace(c.P256dh)||string.IsNullOrWhiteSpace(c.Auth))throw new ArgumentException("Invalid push subscription keys.");
+  var x=await db.PushSubscriptions.SingleOrDefaultAsync(x=>x.UserId==u&&x.Endpoint==c.Endpoint,ct);
+  if(x is null){db.PushSubscriptions.Add(new(){UserId=u,Endpoint=c.Endpoint,P256dh=c.P256dh,Auth=c.Auth,TzOffsetMinutes=c.TzOffsetMinutes});}
+  else{x.P256dh=c.P256dh;x.Auth=c.Auth;x.TzOffsetMinutes=c.TzOffsetMinutes;}
+  await db.SaveChangesAsync(ct);
+ }
+ public async Task UnsubscribeAsync(Guid u,string endpoint,CancellationToken ct){
+  var x=await db.PushSubscriptions.SingleOrDefaultAsync(x=>x.UserId==u&&x.Endpoint==endpoint,ct);
+  if(x is not null){db.PushSubscriptions.Remove(x);await db.SaveChangesAsync(ct);}
+ }
+}
 public sealed class ProjectService(TaskFlowDbContext db) : IProjectService { static ProjectDto D(Project x)=>new(x.Id,x.Name,x.Description,x.CreatedAt); public async Task<IReadOnlyList<ProjectDto>> ListAsync(Guid u,Guid o,CancellationToken c){await Tenant.Require(db,u,o,c);return await db.Projects.AsNoTracking().Where(x=>x.OrganizationId==o).OrderBy(x=>x.Name).Select(x=>D(x)).ToListAsync(c);} public async Task<ProjectDto> CreateAsync(Guid u,Guid o,CreateProjectCommand c,CancellationToken ct){await Tenant.Require(db,u,o,ct);if(string.IsNullOrWhiteSpace(c.Name)||c.Name.Length>200)throw new ArgumentException("Name is required and must be 200 characters or fewer.");var x=new Project{OrganizationId=o,Name=c.Name.Trim(),Description=c.Description?.Trim()};db.Projects.Add(x);await db.SaveChangesAsync(ct);return D(x);} }
 public sealed class SubtaskService(TaskFlowDbContext db) : ISubtaskService {
  static SubtaskDto D(Subtask x)=>new(x.Id,x.TaskId,x.Title,x.IsDone,x.SortOrder);
