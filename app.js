@@ -190,7 +190,8 @@ const i18n = {
     badge_first_task:'First Steps', badge_first_task_hint:'Complete your first task', badge_ten_tasks:'Getting Things Done', badge_ten_tasks_hint:'Complete 10 tasks', badge_fifty_tasks:'Half Century', badge_fifty_tasks_hint:'Complete 50 tasks', badge_hundred_tasks:'Century Club', badge_hundred_tasks_hint:'Complete 100 tasks',
     badge_streak_3:'On a Roll', badge_streak_3_hint:'3-day completion streak', badge_streak_7:'Unstoppable', badge_streak_7_hint:'7-day completion streak', badge_streak_14:'Streak Legend', badge_streak_14_hint:'14-day best streak ever',
     badge_goal_getter:'Goal Getter', badge_goal_getter_hint:'Reach 100% on a goal', badge_habit_builder:'Habit Builder', badge_habit_builder_hint:'7-day streak on a habit', badge_challenger:'Challenger', badge_challenger_hint:'Win a challenge', badge_balanced_life:'Balanced Life', badge_balanced_life_hint:'Score 85+ in Life Balance',
-    new_badge_toast:'Achievement unlocked: {name}! \u{1F3C6}', notif_digest_title:'Today’s reminders', notif_digest_overdue:'{n} overdue', notif_digest_due:'{n} due today', notif_digest_goals:'{n} goal(s) behind pace'
+    new_badge_toast:'Achievement unlocked: {name}! \u{1F3C6}', notif_digest_title:'Today’s reminders', notif_digest_overdue:'{n} overdue', notif_digest_due:'{n} due today', notif_digest_goals:'{n} goal(s) behind pace',
+    field_remind_me:'Remind me', opt_remind_none:'Don’t remind me', opt_remind_attime:'At the time', opt_remind_10:'10 minutes before', opt_remind_30:'30 minutes before', opt_remind_60:'1 hour before', opt_remind_1440:'1 day before', event_reminder_title:'Reminder: {title}', event_reminder_body_meeting:'Meeting starting soon', event_reminder_body_deadline:'Deadline coming up', event_reminder_body_generic:'Coming up soon'
   },
   ar: {
     dashboard:'لوحة التحكم', my_day:'يومي', all_tasks:'كل المهام', kanban:'لوحة كانبان', calendar:'التقويم', timetable:'الجدول الزمني', matrix:'مصفوفة أيزنهاور', projects:'المشاريع', goals:'الأهداف', habits:'العادات', notes:'الملاحظات', analytics:'التحليلات والرؤى', time_reports:'تقارير الوقت', life_balance:'توازن الحياة', progress:'التقدم', archive:'الأرشيف', pomodoro:'مؤقت بومودورو', templates:'القوالب', settings:'الإعدادات', new_task:'مهمة جديدة', nav_main:'رئيسي', nav_plan:'التخطيط', nav_analytics:'التحليلات', nav_categories:'الفئات', nav_quick:'سريع',
@@ -243,7 +244,8 @@ const i18n = {
     badge_first_task:'الخطوة الأولى', badge_first_task_hint:'أنجز مهمتك الأولى', badge_ten_tasks:'إنجاز الأمور', badge_ten_tasks_hint:'أنجز 10 مهام', badge_fifty_tasks:'نصف قرن', badge_fifty_tasks_hint:'أنجز 50 مهمة', badge_hundred_tasks:'نادي المئة', badge_hundred_tasks_hint:'أنجز 100 مهمة',
     badge_streak_3:'في تقدم', badge_streak_3_hint:'سلسلة إنجاز 3 أيام', badge_streak_7:'لا يُوقَف', badge_streak_7_hint:'سلسلة إنجاز 7 أيام', badge_streak_14:'أسطورة السلاسل', badge_streak_14_hint:'أفضل سلسلة 14 يومًا على الإطلاق',
     badge_goal_getter:'محقق الأهداف', badge_goal_getter_hint:'حقق 100% في هدف', badge_habit_builder:'بنّاء العادات', badge_habit_builder_hint:'سلسلة 7 أيام في عادة', badge_challenger:'المتحدي', badge_challenger_hint:'اربح تحديًا', badge_balanced_life:'حياة متوازنة', badge_balanced_life_hint:'حقق 85+ في توازن الحياة',
-    new_badge_toast:'إنجاز جديد: {name}! \u{1F3C6}', notif_digest_title:'تذكيرات اليوم', notif_digest_overdue:'{n} متأخرة', notif_digest_due:'{n} تستحق اليوم', notif_digest_goals:'{n} هدف متأخر عن الوتيرة'
+    new_badge_toast:'إنجاز جديد: {name}! \u{1F3C6}', notif_digest_title:'تذكيرات اليوم', notif_digest_overdue:'{n} متأخرة', notif_digest_due:'{n} تستحق اليوم', notif_digest_goals:'{n} هدف متأخر عن الوتيرة',
+    field_remind_me:'ذكّرني', opt_remind_none:'بدون تذكير', opt_remind_attime:'في نفس الوقت', opt_remind_10:'قبل 10 دقائق', opt_remind_30:'قبل 30 دقيقة', opt_remind_60:'قبل ساعة', opt_remind_1440:'قبل يوم', event_reminder_title:'تذكير: {title}', event_reminder_body_meeting:'الاجتماع يبدأ قريبًا', event_reminder_body_deadline:'الموعد النهائي يقترب', event_reminder_body_generic:'موعد قريب'
   }
 };
 let lang = localStorage.getItem('taskflow_lang') || 'en';
@@ -1121,6 +1123,7 @@ function openEventModal(dateStr){
   document.getElementById('eventTimeInput').value='09:00';
   document.getElementById('eventEndTimeInput').value='10:00';
   document.getElementById('eventTypeInput').value='meeting';
+  document.getElementById('eventRemindInput').value='none';
   document.getElementById('eventDescInput').value='';
   document.getElementById('eventDeleteBtn').style.display='none';
   document.querySelectorAll('.ev-color-opt').forEach(b=>{b.classList.toggle('active',b.dataset.color==='#818cf8');});
@@ -1136,6 +1139,7 @@ function editEvent(id){
   document.getElementById('eventTimeInput').value=ev.time||'';
   document.getElementById('eventEndTimeInput').value=ev.endTime||'';
   document.getElementById('eventTypeInput').value=ev.type||'meeting';
+  document.getElementById('eventRemindInput').value=ev.remindBefore!=null?String(ev.remindBefore):'none';
   document.getElementById('eventDescInput').value=ev.description||'';
   document.getElementById('eventDeleteBtn').style.display='inline-flex';
   document.querySelectorAll('.ev-color-opt').forEach(b=>{b.classList.toggle('active',b.dataset.color===selectedEventColor);});
@@ -1149,7 +1153,9 @@ function saveEvent(){
   if(!title){toast('Please enter a title');return;}
   if(!date){toast('Please select a date');return;}
   const events=loadEvents();
-  const data={title,date,time:document.getElementById('eventTimeInput').value,endTime:document.getElementById('eventEndTimeInput').value,type:document.getElementById('eventTypeInput').value,color:selectedEventColor,description:document.getElementById('eventDescInput').value.trim()};
+  const remindVal=document.getElementById('eventRemindInput').value;
+  const remindBefore=remindVal==='none'?null:Number.parseInt(remindVal);
+  const data={title,date,time:document.getElementById('eventTimeInput').value,endTime:document.getElementById('eventEndTimeInput').value,type:document.getElementById('eventTypeInput').value,color:selectedEventColor,description:document.getElementById('eventDescInput').value.trim(),remindBefore,reminderFired:false};
   if(editingEventId){const idx=events.findIndex(e=>e.id===editingEventId);if(idx>=0){events[idx]={...events[idx],...data};}}else{events.push({id:genId(),...data,createdAt:Date.now()});}
   saveEvents(events);closeEventModal();renderCalendar();toast(editingEventId?'Event updated':'Event created');
 }
@@ -2268,7 +2274,23 @@ function checkReminders(){
     }
   });
   saveTasks(tasks);
+  checkEventReminders(now);
   maybeSendDailyDigest();
+}
+function checkEventReminders(now){
+  const events=loadEvents();
+  let changed=false;
+  events.forEach(ev=>{
+    if(ev.remindBefore==null||ev.reminderFired||!ev.date) return;
+    const eventTime=new Date(ev.date+'T'+(ev.time||'00:00')+':00');
+    const triggerTime=new Date(eventTime.getTime()-ev.remindBefore*60000);
+    if(triggerTime<=now&&(now-triggerTime)<300000){
+      const bodyKey=ev.type==='meeting'?'event_reminder_body_meeting':ev.type==='deadline'?'event_reminder_body_deadline':'event_reminder_body_generic';
+      showNotification(tr('event_reminder_title').replace('{title}',ev.title),tr(bodyKey));
+      ev.reminderFired=true; changed=true;
+    }
+  });
+  if(changed) saveEvents(events);
 }
 function maybeSendDailyDigest(){
   if(!currentUser) return;
