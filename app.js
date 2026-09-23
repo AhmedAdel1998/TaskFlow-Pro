@@ -183,7 +183,14 @@ const i18n = {
     onboard_welcome:'Welcome to TaskFlow Pro!', onboard_desc:'Your all-in-one professional task platform.', btn_skip:'Skip', btn_next:'Next',
     review:'Weekly Review', review_subtitle:'Goals, habits and life balance pulled together in one place, with a suggestion for what to focus on next.', review_goals_title:'Goals This Period', review_habits_title:'Habit Consistency', review_velocity_title:'Tasks Completed: This Week vs Last Week', review_lifebalance_title:'Life Balance This Week',
     field_auto_track:'Auto-track from', opt_link_none:'None (manual)', opt_link_project:'Project', opt_link_category:'Category', opt_link_habit:'Habit', field_which:'Which one', goal_auto_hint:'Progress is counted automatically from completed tasks or habit check-ins in the current week/month — no need to update it by hand.',
-    goal_on_track:'On track', goal_behind:'Behind pace', goal_auto_badge:'Auto', review_no_goals:'No goals yet — add one to see it tracked here.', review_no_habits:'No habits tracked yet.', review_this_week:'This week', review_last_week:'Last week', review_no_lb:'Log a day in Life Balance to see your weekly average here.', review_lb_avg:'7-day average score', focus_great:'Everything is tracking well this week — keep it up.', focus_goal:'Your goal "{name}" is behind pace — give it some attention this week.', focus_habit:'Your habit "{name}" has slipped — try to check it in today.', focus_lb:'Your Life Balance score has been low this week — worth a look.'
+    goal_on_track:'On track', goal_behind:'Behind pace', goal_auto_badge:'Auto', review_no_goals:'No goals yet — add one to see it tracked here.', review_no_habits:'No habits tracked yet.', review_this_week:'This week', review_last_week:'Last week', review_no_lb:'Log a day in Life Balance to see your weekly average here.', review_lb_avg:'7-day average score', focus_great:'Everything is tracking well this week — keep it up.', focus_goal:'Your goal "{name}" is behind pace — give it some attention this week.', focus_habit:'Your habit "{name}" has slipped — try to check it in today.', focus_lb:'Your Life Balance score has been low this week — worth a look.',
+    todays_focus_title:'Today’s Focus', todays_focus_all_clear:'Nothing urgent today — nice work.', focus_tag_overdue:'Overdue', focus_tag_due_today:'Due today', focus_tag_goal:'Goal', focus_tag_habit:'Habit',
+    focus_do_task_for_goal:'"{task}" — moves goal "{goal}" forward', focus_checkin_habit:'Check off "{habit}" — keeps goal "{goal}" on track', focus_update_goal:'Update "{goal}" — it’s behind pace',
+    achievements_title:'Achievements', achievements_subtitle:'Milestones earned from your own real activity — nothing to buy, nothing to fake.',
+    badge_first_task:'First Steps', badge_first_task_hint:'Complete your first task', badge_ten_tasks:'Getting Things Done', badge_ten_tasks_hint:'Complete 10 tasks', badge_fifty_tasks:'Half Century', badge_fifty_tasks_hint:'Complete 50 tasks', badge_hundred_tasks:'Century Club', badge_hundred_tasks_hint:'Complete 100 tasks',
+    badge_streak_3:'On a Roll', badge_streak_3_hint:'3-day completion streak', badge_streak_7:'Unstoppable', badge_streak_7_hint:'7-day completion streak', badge_streak_14:'Streak Legend', badge_streak_14_hint:'14-day best streak ever',
+    badge_goal_getter:'Goal Getter', badge_goal_getter_hint:'Reach 100% on a goal', badge_habit_builder:'Habit Builder', badge_habit_builder_hint:'7-day streak on a habit', badge_challenger:'Challenger', badge_challenger_hint:'Win a challenge', badge_balanced_life:'Balanced Life', badge_balanced_life_hint:'Score 85+ in Life Balance',
+    new_badge_toast:'Achievement unlocked: {name}! \u{1F3C6}', notif_digest_title:'Today’s reminders', notif_digest_overdue:'{n} overdue', notif_digest_due:'{n} due today', notif_digest_goals:'{n} goal(s) behind pace'
   },
   ar: {
     dashboard:'لوحة التحكم', my_day:'يومي', all_tasks:'كل المهام', kanban:'لوحة كانبان', calendar:'التقويم', timetable:'الجدول الزمني', matrix:'مصفوفة أيزنهاور', projects:'المشاريع', goals:'الأهداف', habits:'العادات', notes:'الملاحظات', analytics:'التحليلات والرؤى', time_reports:'تقارير الوقت', life_balance:'توازن الحياة', progress:'التقدم', archive:'الأرشيف', pomodoro:'مؤقت بومودورو', templates:'القوالب', settings:'الإعدادات', new_task:'مهمة جديدة', nav_main:'رئيسي', nav_plan:'التخطيط', nav_analytics:'التحليلات', nav_categories:'الفئات', nav_quick:'سريع',
@@ -229,7 +236,14 @@ const i18n = {
     onboard_welcome:'مرحبًا بك في TaskFlow Pro!', onboard_desc:'منصتك الاحترافية الشاملة لإدارة المهام.', btn_skip:'تخطي', btn_next:'التالي',
     review:'المراجعة الأسبوعية', review_subtitle:'الأهداف والعادات وتوازن الحياة في مكان واحد، مع اقتراح لما يستحق تركيزك القادم.', review_goals_title:'الأهداف لهذه الفترة', review_habits_title:'انتظام العادات', review_velocity_title:'المهام المنجزة: هذا الأسبوع مقابل الأسبوع الماضي', review_lifebalance_title:'توازن الحياة هذا الأسبوع',
     field_auto_track:'التتبع التلقائي من', opt_link_none:'بدون (يدوي)', opt_link_project:'مشروع', opt_link_category:'فئة', opt_link_habit:'عادة', field_which:'أيهما', goal_auto_hint:'يُحتسب التقدم تلقائيًا من المهام المنجزة أو تسجيلات العادات خلال الأسبوع أو الشهر الحالي — لا حاجة لتحديثه يدويًا.',
-    goal_on_track:'على المسار الصحيح', goal_behind:'متأخر عن الوتيرة', goal_auto_badge:'تلقائي', review_no_goals:'لا توجد أهداف بعد — أضف هدفًا لتتبعه هنا.', review_no_habits:'لا توجد عادات متتبَّعة بعد.', review_this_week:'هذا الأسبوع', review_last_week:'الأسبوع الماضي', review_no_lb:'سجّل يومًا في توازن الحياة لترى متوسطك الأسبوعي هنا.', review_lb_avg:'متوسط النقاط لآخر 7 أيام', focus_great:'كل شيء يسير جيدًا هذا الأسبوع — واصل هكذا.', focus_goal:'هدفك "{name}" متأخر عن الوتيرة — امنحه بعض الاهتمام هذا الأسبوع.', focus_habit:'عادتك "{name}" تراجعت — حاول تسجيلها اليوم.', focus_lb:'مؤشر توازن حياتك منخفض هذا الأسبوع — يستحق الانتباه.'
+    goal_on_track:'على المسار الصحيح', goal_behind:'متأخر عن الوتيرة', goal_auto_badge:'تلقائي', review_no_goals:'لا توجد أهداف بعد — أضف هدفًا لتتبعه هنا.', review_no_habits:'لا توجد عادات متتبَّعة بعد.', review_this_week:'هذا الأسبوع', review_last_week:'الأسبوع الماضي', review_no_lb:'سجّل يومًا في توازن الحياة لترى متوسطك الأسبوعي هنا.', review_lb_avg:'متوسط النقاط لآخر 7 أيام', focus_great:'كل شيء يسير جيدًا هذا الأسبوع — واصل هكذا.', focus_goal:'هدفك "{name}" متأخر عن الوتيرة — امنحه بعض الاهتمام هذا الأسبوع.', focus_habit:'عادتك "{name}" تراجعت — حاول تسجيلها اليوم.', focus_lb:'مؤشر توازن حياتك منخفض هذا الأسبوع — يستحق الانتباه.',
+    todays_focus_title:'تركيز اليوم', todays_focus_all_clear:'لا شيء عاجل اليوم — أحسنت.', focus_tag_overdue:'متأخرة', focus_tag_due_today:'تستحق اليوم', focus_tag_goal:'هدف', focus_tag_habit:'عادة',
+    focus_do_task_for_goal:'"{task}" — تدفع هدف "{goal}" للأمام', focus_checkin_habit:'سجّل "{habit}" — يُبقي هدف "{goal}" على المسار', focus_update_goal:'حدّث "{goal}" — إنه متأخر عن الوتيرة',
+    achievements_title:'الإنجازات', achievements_subtitle:'إنجازات مكتسبة من نشاطك الفعلي — لا شراء ولا تزييف.',
+    badge_first_task:'الخطوة الأولى', badge_first_task_hint:'أنجز مهمتك الأولى', badge_ten_tasks:'إنجاز الأمور', badge_ten_tasks_hint:'أنجز 10 مهام', badge_fifty_tasks:'نصف قرن', badge_fifty_tasks_hint:'أنجز 50 مهمة', badge_hundred_tasks:'نادي المئة', badge_hundred_tasks_hint:'أنجز 100 مهمة',
+    badge_streak_3:'في تقدم', badge_streak_3_hint:'سلسلة إنجاز 3 أيام', badge_streak_7:'لا يُوقَف', badge_streak_7_hint:'سلسلة إنجاز 7 أيام', badge_streak_14:'أسطورة السلاسل', badge_streak_14_hint:'أفضل سلسلة 14 يومًا على الإطلاق',
+    badge_goal_getter:'محقق الأهداف', badge_goal_getter_hint:'حقق 100% في هدف', badge_habit_builder:'بنّاء العادات', badge_habit_builder_hint:'سلسلة 7 أيام في عادة', badge_challenger:'المتحدي', badge_challenger_hint:'اربح تحديًا', badge_balanced_life:'حياة متوازنة', badge_balanced_life_hint:'حقق 85+ في توازن الحياة',
+    new_badge_toast:'إنجاز جديد: {name}! \u{1F3C6}', notif_digest_title:'تذكيرات اليوم', notif_digest_overdue:'{n} متأخرة', notif_digest_due:'{n} تستحق اليوم', notif_digest_goals:'{n} هدف متأخر عن الوتيرة'
   }
 };
 let lang = localStorage.getItem('taskflow_lang') || 'en';
@@ -914,7 +928,7 @@ function renderDashboard() {
     '<div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg></div><div class="stat-info"><h3>Done</h3><div class="num">'+done+'</div><div class="trend">'+pct+'%</div></div></div>'+
     '<div class="stat-card"><div class="stat-icon amber"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-info"><h3>In Progress</h3><div class="num">'+inProg+'</div></div></div>'+
     '<div class="stat-card"><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><div class="stat-info"><h3>Overdue</h3><div class="num">'+overdue+'</div></div></div>';
-  renderWeeklyChart(tasks); renderPriorityRing(tasks,done,total); renderHeatmap(tasks); renderUpcoming(tasks); renderActivityList(); renderDashGoals(); renderDashHabits();
+  renderWeeklyChart(tasks); renderPriorityRing(tasks,done,total); renderHeatmap(tasks); renderUpcoming(tasks); renderActivityList(); renderDashGoals(); renderDashHabits(); renderTodaysFocus();
   document.getElementById('notifDot').style.display=overdue>0?'block':'none';
   document.getElementById('taskBadge').textContent=total-done;
 }
@@ -2010,6 +2024,7 @@ function renderProgress(){
   renderHabitConsistency();
   renderChallengeList();
   renderChallengeSuggestions();
+  renderAchievements();
 }
 
 /* ═══════ WEEKLY REVIEW (pulls Goals + Habits + Life Balance together with one focus suggestion) ═══════ */
@@ -2080,6 +2095,81 @@ function renderReview(){
   else if(worstHabit&&worstHabit.pct<50){ focusMsg=tr('focus_habit').replace('{name}',worstHabit.h.name); focusColor='var(--warning)'; }
   else if(lbAvg!=null&&lbAvg<45){ focusMsg=tr('focus_lb'); focusColor='var(--warning)'; }
   document.getElementById('reviewFocusCard').innerHTML='<div style="display:flex;align-items:center;gap:12px"><div style="width:10px;height:10px;border-radius:50%;background:'+focusColor+';flex-shrink:0"></div><div style="font-size:.9rem;font-weight:600">'+focusMsg+'</div></div>';
+}
+
+/* ═══════ TODAY'S FOCUS (turns "what's behind" into "do this specific thing") ═══════ */
+function computeTodaysFocus(){
+  const tasks=loadTasks(), goals=loadGoals(), habits=loadHabits(), today=todayStr();
+  const items=[];
+  loadTasks().filter(isOverdue).slice(0,2).forEach(t=>items.push({color:'var(--danger)',tag:tr('focus_tag_overdue'),text:escHtml(t.title),onclick:"openModal('"+t.id+"')"}));
+  tasks.filter(t=>t.status!=='done'&&t.due===today&&!isOverdue(t)).slice(0,2).forEach(t=>items.push({color:'var(--warning)',tag:tr('focus_tag_due_today'),text:escHtml(t.title),onclick:"openModal('"+t.id+"')"}));
+  const behindGoals=goals.map(g=>{ const p=computeGoalProgress(g,tasks,habits), expected=goalExpectedPct(g); return {goal:g, behind:p.pct<100&&p.pct<expected-15}; }).filter(r=>r.behind).slice(0,2);
+  behindGoals.forEach(r=>{
+    const g=r.goal;
+    if((g.linkType==='project'||g.linkType==='category')&&g.linkId){
+      const candidates=tasks.filter(t=>t.status!=='done'&&t[g.linkType]===g.linkId).sort((a,b)=>(b.smartScore||0)-(a.smartScore||0));
+      if(candidates.length){ items.push({color:'var(--primary)',tag:tr('focus_tag_goal'),text:tr('focus_do_task_for_goal').replace('{task}',escHtml(candidates[0].title)).replace('{goal}',escHtml(g.title)),onclick:"openModal('"+candidates[0].id+"')"}); return; }
+    }
+    if(g.linkType==='habit'&&g.linkId){
+      const h=habits.find(x=>x.id===g.linkId);
+      if(h&&!(h.completions&&h.completions[today])){ items.push({color:'var(--accent)',tag:tr('focus_tag_habit'),text:tr('focus_checkin_habit').replace('{habit}',escHtml(h.name)).replace('{goal}',escHtml(g.title)),onclick:"showPage('habits')"}); return; }
+    }
+    items.push({color:'var(--primary)',tag:tr('focus_tag_goal'),text:tr('focus_update_goal').replace('{goal}',escHtml(g.title)),onclick:"showPage('goals')"});
+  });
+  return items.slice(0,6);
+}
+function renderTodaysFocus(){
+  const el=document.getElementById('todaysFocusCard'); if(!el) return;
+  const items=computeTodaysFocus();
+  let html='<div class="card-title">'+tr('todays_focus_title')+'</div>';
+  html+= items.length ? items.map(it=>'<div class="focus-item"><div class="focus-dot" style="background:'+it.color+'"></div><span class="focus-text" onclick="'+it.onclick+'">'+it.text+'</span><span class="focus-tag">'+it.tag+'</span></div>').join('')
+    : '<p style="color:var(--text3);font-size:.85rem;padding:8px 0 0">'+tr('todays_focus_all_clear')+'</p>';
+  el.innerHTML=html;
+}
+
+/* ═══════ ACHIEVEMENTS (earned from real activity, no manual claiming) ═══════ */
+const BADGE_DEFS=[
+  {id:'first_task',icon:'\u{1F331}',check:ctx=>ctx.tasksDoneCount>=1},
+  {id:'ten_tasks',icon:'✅',check:ctx=>ctx.tasksDoneCount>=10},
+  {id:'fifty_tasks',icon:'\u{1F680}',check:ctx=>ctx.tasksDoneCount>=50},
+  {id:'hundred_tasks',icon:'\u{1F4AF}',check:ctx=>ctx.tasksDoneCount>=100},
+  {id:'streak_3',icon:'\u{1F525}',check:ctx=>ctx.streak>=3},
+  {id:'streak_7',icon:'⚡',check:ctx=>ctx.streak>=7},
+  {id:'streak_14',icon:'\u{1F3C6}',check:ctx=>ctx.bestStreakEver>=14},
+  {id:'goal_getter',icon:'\u{1F3AF}',check:ctx=>ctx.goalCompleted},
+  {id:'habit_builder',icon:'\u{1F9E9}',check:ctx=>ctx.bestHabitStreak>=7},
+  {id:'challenger',icon:'\u{1F3C5}',check:ctx=>ctx.challengesWon>=1},
+  {id:'balanced_life',icon:'⚖️',check:ctx=>ctx.lbBestScore>=85}
+];
+function computeBadgeContext(){
+  const tasks=loadTasks(), archive=loadArchive(), habits=loadHabits(), goals=loadGoals(), challenges=loadChallenges(), today=todayStr();
+  const tasksDoneCount=tasks.filter(t=>t.status==='done').length+archive.length;
+  const goalCompleted=goals.some(g=>computeGoalProgress(g,tasks,habits).pct>=100);
+  const bestHabitStreak=habits.reduce((m,h)=>Math.max(m,calcHabitStreak(h)),0);
+  const challengesWon=challenges.filter(c=>c.status==='completed').length;
+  let lbBestScore=0;
+  for(let i=0;i<30;i++){ const s=lbDailyScore(loadLbLog(addDaysToDateStr(today,-i))); if(s!=null) lbBestScore=Math.max(lbBestScore,s); }
+  return {tasksDoneCount, streak:calcStreak(tasks), bestStreakEver:calcBestStreakEver(tasks), goalCompleted, bestHabitStreak, challengesWon, lbBestScore};
+}
+function getSeenBadgeIds(){ try{ return new Set(JSON.parse(localStorage.getItem(userKey('taskflow_badges_seen')))||[]); }catch{ return new Set(); } }
+function renderAchievements(){
+  const el=document.getElementById('achievementsGrid'); if(!el) return;
+  const ctx=computeBadgeContext();
+  const earnedIds=BADGE_DEFS.filter(b=>b.check(ctx)).map(b=>b.id);
+  const seen=getSeenBadgeIds();
+  const newlyEarned=earnedIds.filter(id=>!seen.has(id));
+  if(newlyEarned.length){
+    launchConfetti();
+    newlyEarned.forEach(id=>toast(tr('new_badge_toast').replace('{name}',tr('badge_'+id)),'success'));
+    const updated=new Set([...seen,...earnedIds]);
+    localStorage.setItem(userKey('taskflow_badges_seen'),JSON.stringify([...updated]));
+    syncKey(userKey('taskflow_badges_seen'));
+  }
+  const earnedSet=new Set(earnedIds);
+  el.innerHTML=BADGE_DEFS.map(b=>{
+    const earned=earnedSet.has(b.id);
+    return '<div class="badge-tile'+(earned?' earned':'')+'"><div class="badge-icon">'+b.icon+'</div><div class="badge-name">'+tr('badge_'+b.id)+'</div><div class="badge-hint">'+tr('badge_'+b.id+'_hint')+'</div></div>';
+  }).join('');
 }
 
 /* ═══════ POMODORO TIMER ═══════ */
@@ -2178,6 +2268,23 @@ function checkReminders(){
     }
   });
   saveTasks(tasks);
+  maybeSendDailyDigest();
+}
+function maybeSendDailyDigest(){
+  if(!currentUser) return;
+  const today=todayStr(), lastKey=userKey('taskflow_last_digest');
+  if(localStorage.getItem(lastKey)===today) return;
+  const tasks=loadTasks(), habits=loadHabits(), goals=loadGoals();
+  const overdueCount=tasks.filter(isOverdue).length;
+  const dueTodayCount=tasks.filter(t=>t.status!=='done'&&t.due===today&&!isOverdue(t)).length;
+  const behindGoalsCount=goals.filter(g=>{ const p=computeGoalProgress(g,tasks,habits), expected=goalExpectedPct(g); return p.pct<100&&p.pct<expected-15; }).length;
+  localStorage.setItem(lastKey,today);
+  if(!overdueCount&&!dueTodayCount&&!behindGoalsCount) return;
+  const parts=[];
+  if(overdueCount) parts.push(tr('notif_digest_overdue').replace('{n}',overdueCount));
+  if(dueTodayCount) parts.push(tr('notif_digest_due').replace('{n}',dueTodayCount));
+  if(behindGoalsCount) parts.push(tr('notif_digest_goals').replace('{n}',behindGoalsCount));
+  showNotification(tr('notif_digest_title'),parts.join(' • '));
 }
 function showNotification(title,body){
   if('Notification' in globalThis&&Notification.permission==='granted'){new Notification(title,{body:body,icon:'icon-192.png'});}

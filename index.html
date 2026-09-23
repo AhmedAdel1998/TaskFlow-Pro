@@ -98,6 +98,7 @@
         <select id="dashAssigneeFilter" class="filter-select" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_owners">All Owners</option></select>
       </div>
     </div>
+    <div class="card" id="todaysFocusCard"></div>
     <div class="stats-grid" id="statsGrid"></div>
     <div class="dash-row"><div class="card"><div class="card-title" data-i18n="weekly_overview">Weekly Overview</div><div class="chart-area" id="weeklyChart"></div></div><div class="card"><div class="card-title" data-i18n="priority_dist">Priority Distribution</div><div class="priority-ring"><div class="ring-chart"><canvas id="ringCanvas" width="130" height="130"></canvas><div class="ring-center"><span class="pct" id="ringPct">0%</span><small data-i18n="done_label">done</small></div></div><div class="ring-legend" id="ringLegend"></div></div></div></div>
     <div class="dash-row"><div class="card"><div class="card-title"><span data-i18n="heatmap_title">Productivity Heatmap</span> <span style="font-size:.7rem;font-weight:400;color:var(--text3)" data-i18n="heatmap_subtitle">Last 16 weeks</span></div><div class="heatmap-wrap" id="heatmapWrap"></div></div><div class="card"><div class="card-title" data-i18n="upcoming">Upcoming Deadlines</div><div id="upcomingDeadlines"></div></div></div>
@@ -281,6 +282,11 @@
       <div class="card-title" data-i18n="beat_your_record">Beat Your Record</div>
       <p style="font-size:.78rem;color:var(--text3);margin-bottom:8px" data-i18n="beat_record_subtitle">Suggested challenges based on your own best-ever performance.</p>
       <div id="challengeSuggestions"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" data-i18n="achievements_title">Achievements</div>
+      <p style="font-size:.78rem;color:var(--text3);margin-bottom:8px" data-i18n="achievements_subtitle">Milestones earned from your own real activity &mdash; nothing to buy, nothing to fake.</p>
+      <div id="achievementsGrid" class="badge-grid"></div>
     </div>
   </div>
   <!-- WEEKLY REVIEW -->

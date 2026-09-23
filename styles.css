@@ -506,3 +506,22 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .lb-badge{color:#fff;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
 .lb-cat-card{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--text3);border-radius:var(--radius-xs);padding:10px 12px;margin-bottom:10px}
 #lbBreakdown{margin-top:6px}
+
+/* ═══════ ACHIEVEMENTS ═══════ */
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.badge-tile{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 10px;text-align:center;transition:transform var(--transition)}
+.badge-tile.earned{background:linear-gradient(160deg,var(--surface2),var(--surface3));border-color:var(--primary)}
+.badge-tile.earned:hover{transform:translateY(-2px)}
+.badge-tile .badge-icon{font-size:1.8rem;line-height:1;margin-bottom:6px;filter:grayscale(1);opacity:.35}
+.badge-tile.earned .badge-icon{filter:none;opacity:1}
+.badge-tile .badge-name{font-size:.72rem;font-weight:700;color:var(--text2)}
+.badge-tile.earned .badge-name{color:var(--text)}
+.badge-tile .badge-hint{font-size:.62rem;color:var(--text3);margin-top:3px}
+
+/* ═══════ TODAY'S FOCUS ═══════ */
+.focus-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.focus-item:last-child{border-bottom:none}
+.focus-item .focus-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.focus-item .focus-text{flex:1;font-size:.85rem;cursor:pointer}
+.focus-item .focus-text:hover{color:var(--primary)}
+.focus-item .focus-tag{font-size:.62rem;color:var(--text3);background:var(--surface3);padding:2px 7px;border-radius:10px;white-space:nowrap}
