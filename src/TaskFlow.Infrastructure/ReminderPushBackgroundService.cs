@@ -28,14 +28,14 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
    if (subs.Count == 0) continue;
    var tzOffsetMinutes = subs[0].TzOffsetMinutes;
    var entries = await db.UserData.Where(x => x.UserId == userId).ToListAsync(ct);
-   var due = new List<(string Kind, string ItemKey, string Title, string Body)>();
+   var due = new List<(string Kind, string ItemKey, string Title, string Body, bool Important)>();
    CollectDueTaskReminders(entries, now, tzOffsetMinutes, due);
    CollectDueEventReminders(entries, now, tzOffsetMinutes, due);
    if (due.Count == 0) continue;
    foreach (var item in due) {
     if (await db.SentReminders.AnyAsync(x => x.UserId == userId && x.Kind == item.Kind && x.ItemKey == item.ItemKey, ct)) continue;
     db.SentReminders.Add(new() { UserId = userId, Kind = item.Kind, ItemKey = item.ItemKey });
-    var payload = JsonSerializer.Serialize(new { title = item.Title, body = item.Body });
+    var payload = JsonSerializer.Serialize(new { title = item.Title, body = item.Body, important = item.Important });
     foreach (var sub in subs.ToList()) {
      try { await client.SendNotificationAsync(new WebPush.PushSubscription(sub.Endpoint, sub.P256dh, sub.Auth), payload, vapid); }
      catch (WebPushException wpEx) when (wpEx.StatusCode is HttpStatusCode.Gone or HttpStatusCode.NotFound) { db.PushSubscriptions.Remove(sub); subs.Remove(sub); }
@@ -45,7 +45,7 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
    await db.SaveChangesAsync(ct);
   }
  }
- static void CollectDueTaskReminders(List<Domain.UserDataEntry> entries, DateTimeOffset now, int tzOffsetMinutes, List<(string, string, string, string)> due) {
+ static void CollectDueTaskReminders(List<Domain.UserDataEntry> entries, DateTimeOffset now, int tzOffsetMinutes, List<(string, string, string, string, bool)> due) {
   var json = entries.FirstOrDefault(x => x.Key.StartsWith("taskflow_tasks_", StringComparison.Ordinal))?.ValueJson;
   if (json is null) return;
   List<JsonElement>? tasks;
@@ -59,12 +59,13 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
    if (!t.TryGetProperty("id", out var idEl)) continue;
    var id = idEl.ToString();
    var title = t.TryGetProperty("title", out var titleEl) ? titleEl.GetString() ?? "Task" : "Task";
+   var important = t.TryGetProperty("important", out var impEl) && impEl.ValueKind == JsonValueKind.True;
    var utc = LocalToUtc(localTime, tzOffsetMinutes);
    var age = now - utc;
-   if (utc <= now && age < TimeSpan.FromMinutes(5)) due.Add(("task", id, "Reminder: " + title, $"Task \"{title}\" is due!"));
+   if (utc <= now && age < TimeSpan.FromMinutes(5)) due.Add(("task", id, "Reminder: " + title, $"Task \"{title}\" is due!", important));
   }
  }
- static void CollectDueEventReminders(List<Domain.UserDataEntry> entries, DateTimeOffset now, int tzOffsetMinutes, List<(string, string, string, string)> due) {
+ static void CollectDueEventReminders(List<Domain.UserDataEntry> entries, DateTimeOffset now, int tzOffsetMinutes, List<(string, string, string, string, bool)> due) {
   var json = entries.FirstOrDefault(x => x.Key.StartsWith("taskflow_events_", StringComparison.Ordinal))?.ValueJson;
   if (json is null) return;
   List<JsonElement>? events;
@@ -80,10 +81,11 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
    if (!ev.TryGetProperty("id", out var idEl)) continue;
    var id = idEl.ToString();
    var title = ev.TryGetProperty("title", out var titleEl) ? titleEl.GetString() ?? "Event" : "Event";
+   var important = ev.TryGetProperty("important", out var impEl) && impEl.ValueKind == JsonValueKind.True;
    var remindBefore = rbEl.ValueKind == JsonValueKind.Number ? rbEl.GetDouble() : 0;
    var triggerUtc = LocalToUtc(localEventTime, tzOffsetMinutes).AddMinutes(-remindBefore);
    var age = now - triggerUtc;
-   if (triggerUtc <= now && age < TimeSpan.FromMinutes(5)) due.Add(("event", id, title, "Coming up now"));
+   if (triggerUtc <= now && age < TimeSpan.FromMinutes(5)) due.Add(("event", id, title, "Coming up now", important));
   }
  }
  static DateTimeOffset LocalToUtc(DateTime naiveLocal, int tzOffsetMinutes) => new DateTimeOffset(DateTime.SpecifyKind(naiveLocal, DateTimeKind.Unspecified), TimeSpan.Zero).AddMinutes(tzOffsetMinutes);

@@ -349,7 +349,10 @@
       <div class="form-group"><label for="taskLinkInput" data-i18n="field_link">Link / URL</label><input type="url" id="taskLinkInput" placeholder="https://..." maxlength="500"></div>
       <div class="form-group"><label for="taskNoteInput" data-i18n="field_note">Note</label><textarea id="taskNoteInput" rows="2" data-i18n-ph="ph_notes_dots" placeholder="Notes..." maxlength="500"></textarea></div>
       <div class="form-group"><label for="taskTagsInput" data-i18n="field_tags">Tags (comma separated)</label><input type="text" id="taskTagsInput" data-i18n-ph="ph_tags_example" placeholder="urgent, frontend" maxlength="200"></div>
-      <div class="form-group"><label for="taskReminderInput" data-i18n="field_reminder">Reminder</label><input type="datetime-local" id="taskReminderInput"></div>
+      <div class="form-row">
+        <div class="form-group"><label for="taskReminderInput" data-i18n="field_reminder">Reminder</label><input type="datetime-local" id="taskReminderInput"></div>
+        <div class="form-group"><label for="taskImportantInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="taskImportantInput" style="width:auto"> <span data-i18n="field_important_alarm">Important (alarm)</span></label></div>
+      </div>
       <div class="form-row">
         <div class="form-group"><label for="taskMilestoneInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="taskMilestoneInput" style="width:auto"> <span data-i18n="field_milestone">Milestone</span></label></div>
         <div class="form-group"><label for="taskDepsInput" data-i18n="field_dependencies">Dependencies</label><select id="taskDepsInput" multiple style="min-height:60px;font-size:.8rem"></select></div>
@@ -486,7 +489,10 @@
         <div class="form-group"><label for="eventEndTimeInput" data-i18n="field_end_time">End Time</label><input type="time" id="eventEndTimeInput"></div>
         <div class="form-group"><label for="eventTypeInput" data-i18n="field_type">Type</label><select id="eventTypeInput"><option value="meeting" data-i18n-opt="opt_meeting">Meeting</option><option value="event" data-i18n-opt="opt_event">Event</option><option value="reminder" data-i18n-opt="opt_reminder">Reminder</option><option value="deadline" data-i18n-opt="opt_deadline">Deadline</option></select></div>
       </div>
-      <div class="form-group"><label for="eventRemindInput" data-i18n="field_remind_me">Remind me</label><select id="eventRemindInput"><option value="none" data-i18n-opt="opt_remind_none">Don't remind me</option><option value="0" data-i18n-opt="opt_remind_attime">At the time</option><option value="10" data-i18n-opt="opt_remind_10">10 minutes before</option><option value="30" data-i18n-opt="opt_remind_30">30 minutes before</option><option value="60" data-i18n-opt="opt_remind_60">1 hour before</option><option value="1440" data-i18n-opt="opt_remind_1440">1 day before</option></select></div>
+      <div class="form-row">
+        <div class="form-group"><label for="eventRemindInput" data-i18n="field_remind_me">Remind me</label><select id="eventRemindInput"><option value="none" data-i18n-opt="opt_remind_none">Don't remind me</option><option value="0" data-i18n-opt="opt_remind_attime">At the time</option><option value="10" data-i18n-opt="opt_remind_10">10 minutes before</option><option value="30" data-i18n-opt="opt_remind_30">30 minutes before</option><option value="60" data-i18n-opt="opt_remind_60">1 hour before</option><option value="1440" data-i18n-opt="opt_remind_1440">1 day before</option></select></div>
+        <div class="form-group"><label for="eventImportantInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="eventImportantInput" style="width:auto"> <span data-i18n="field_important_alarm">Important (alarm)</span></label></div>
+      </div>
       <div class="form-group"><label for="eventColorInput" data-i18n="field_color">Color</label><div style="display:flex;gap:8px;flex-wrap:wrap" id="eventColorPicker"><button type="button" class="ev-color-opt" data-color="#818cf8" style="background:#818cf8" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#f59e0b" style="background:#f59e0b" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#10b981" style="background:#10b981" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#ef4444" style="background:#ef4444" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#3b82f6" style="background:#3b82f6" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#ec4899" style="background:#ec4899" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#8b5cf6" style="background:#8b5cf6" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#64748b" style="background:#64748b" onclick="pickEventColor(this)"></button></div></div>
       <div class="form-group"><label for="eventDescInput" data-i18n="field_description_optional">Description (optional)</label><textarea id="eventDescInput" rows="3" data-i18n-ph="ph_add_details" placeholder="Add details..."></textarea></div>
     </div>
@@ -517,6 +523,19 @@
       <p class="setting-desc" style="margin-top:10px" data-i18n="import_note">Import replaces the current account's matching data sections after validation.</p>
     </div>
     <div class="modal-footer"><button class="btn btn-outline" onclick="closeImportPreview()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="confirmImportPreview()" data-i18n="btn_import">Import</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="alarmModal" style="z-index:9999">
+  <div class="modal alarm-modal" style="max-width:380px;text-align:center">
+    <div class="modal-body" style="padding-top:28px">
+      <div class="alarm-icon" aria-hidden="true">⏰</div>
+      <h2 id="alarmModalTitle" style="margin:12px 0 6px">Reminder</h2>
+      <p id="alarmModalBody" class="setting-desc"></p>
+    </div>
+    <div class="modal-footer" style="justify-content:center;gap:10px">
+      <button class="btn btn-outline" onclick="snoozeAlarm()" data-i18n="btn_snooze">Snooze 5 min</button>
+      <button class="btn btn-primary" onclick="dismissAlarm()" data-i18n="btn_dismiss">Dismiss</button>
+    </div>
   </div>
 </div>
 <!-- QUICK ADD -->

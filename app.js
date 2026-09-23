@@ -192,7 +192,8 @@ const i18n = {
     badge_streak_3:'On a Roll', badge_streak_3_hint:'3-day completion streak', badge_streak_7:'Unstoppable', badge_streak_7_hint:'7-day completion streak', badge_streak_14:'Streak Legend', badge_streak_14_hint:'14-day best streak ever',
     badge_goal_getter:'Goal Getter', badge_goal_getter_hint:'Reach 100% on a goal', badge_habit_builder:'Habit Builder', badge_habit_builder_hint:'7-day streak on a habit', badge_challenger:'Challenger', badge_challenger_hint:'Win a challenge', badge_balanced_life:'Balanced Life', badge_balanced_life_hint:'Score 85+ in Life Balance',
     new_badge_toast:'Achievement unlocked: {name}! \u{1F3C6}', notif_digest_title:'Today’s reminders', notif_digest_overdue:'{n} overdue', notif_digest_due:'{n} due today', notif_digest_goals:'{n} goal(s) behind pace',
-    field_remind_me:'Remind me', opt_remind_none:'Don’t remind me', opt_remind_attime:'At the time', opt_remind_10:'10 minutes before', opt_remind_30:'30 minutes before', opt_remind_60:'1 hour before', opt_remind_1440:'1 day before', event_reminder_title:'Reminder: {title}', event_reminder_body_meeting:'Meeting starting soon', event_reminder_body_deadline:'Deadline coming up', event_reminder_body_generic:'Coming up soon'
+    field_remind_me:'Remind me', opt_remind_none:'Don’t remind me', opt_remind_attime:'At the time', opt_remind_10:'10 minutes before', opt_remind_30:'30 minutes before', opt_remind_60:'1 hour before', opt_remind_1440:'1 day before', event_reminder_title:'Reminder: {title}', event_reminder_body_meeting:'Meeting starting soon', event_reminder_body_deadline:'Deadline coming up', event_reminder_body_generic:'Coming up soon',
+    field_important_alarm:'Important (alarm)', btn_snooze:'Snooze 5 min', btn_dismiss:'Dismiss', alarm_snoozed:'Alarm snoozed for 5 minutes'
   },
   ar: {
     dashboard:'لوحة التحكم', my_day:'يومي', all_tasks:'كل المهام', kanban:'لوحة كانبان', calendar:'التقويم', timetable:'الجدول الزمني', matrix:'مصفوفة أيزنهاور', projects:'المشاريع', goals:'الأهداف', habits:'العادات', notes:'الملاحظات', analytics:'التحليلات والرؤى', time_reports:'تقارير الوقت', life_balance:'توازن الحياة', progress:'التقدم', archive:'الأرشيف', pomodoro:'مؤقت بومودورو', templates:'القوالب', settings:'الإعدادات', new_task:'مهمة جديدة', nav_main:'رئيسي', nav_plan:'التخطيط', nav_analytics:'التحليلات', nav_categories:'الفئات', nav_quick:'سريع',
@@ -247,7 +248,8 @@ const i18n = {
     badge_streak_3:'في تقدم', badge_streak_3_hint:'سلسلة إنجاز 3 أيام', badge_streak_7:'لا يُوقَف', badge_streak_7_hint:'سلسلة إنجاز 7 أيام', badge_streak_14:'أسطورة السلاسل', badge_streak_14_hint:'أفضل سلسلة 14 يومًا على الإطلاق',
     badge_goal_getter:'محقق الأهداف', badge_goal_getter_hint:'حقق 100% في هدف', badge_habit_builder:'بنّاء العادات', badge_habit_builder_hint:'سلسلة 7 أيام في عادة', badge_challenger:'المتحدي', badge_challenger_hint:'اربح تحديًا', badge_balanced_life:'حياة متوازنة', badge_balanced_life_hint:'حقق 85+ في توازن الحياة',
     new_badge_toast:'إنجاز جديد: {name}! \u{1F3C6}', notif_digest_title:'تذكيرات اليوم', notif_digest_overdue:'{n} متأخرة', notif_digest_due:'{n} تستحق اليوم', notif_digest_goals:'{n} هدف متأخر عن الوتيرة',
-    field_remind_me:'ذكّرني', opt_remind_none:'بدون تذكير', opt_remind_attime:'في نفس الوقت', opt_remind_10:'قبل 10 دقائق', opt_remind_30:'قبل 30 دقيقة', opt_remind_60:'قبل ساعة', opt_remind_1440:'قبل يوم', event_reminder_title:'تذكير: {title}', event_reminder_body_meeting:'الاجتماع يبدأ قريبًا', event_reminder_body_deadline:'الموعد النهائي يقترب', event_reminder_body_generic:'موعد قريب'
+    field_remind_me:'ذكّرني', opt_remind_none:'بدون تذكير', opt_remind_attime:'في نفس الوقت', opt_remind_10:'قبل 10 دقائق', opt_remind_30:'قبل 30 دقيقة', opt_remind_60:'قبل ساعة', opt_remind_1440:'قبل يوم', event_reminder_title:'تذكير: {title}', event_reminder_body_meeting:'الاجتماع يبدأ قريبًا', event_reminder_body_deadline:'الموعد النهائي يقترب', event_reminder_body_generic:'موعد قريب',
+    field_important_alarm:'مهم (إنذار)', btn_snooze:'تأجيل 5 دقائق', btn_dismiss:'إغلاق', alarm_snoozed:'تم تأجيل الإنذار 5 دقائق'
   }
 };
 let lang = localStorage.getItem('taskflow_lang') || 'en';
@@ -688,6 +690,7 @@ function openModal(id) {
     document.getElementById('taskTagsInput').value = (t.tags||[]).join(', ');
     document.getElementById('taskRecurInput').value = t.recurring||'';
     document.getElementById('taskReminderInput').value = t.reminder||'';
+    document.getElementById('taskImportantInput').checked = !!t.important;
     document.getElementById('taskMilestoneInput').checked = !!t.milestone;
     const deps = t.dependencies||[];
     const depSel = document.getElementById('taskDepsInput');
@@ -709,6 +712,7 @@ function openModal(id) {
     document.getElementById('taskEstHoursInput').value = '';
     document.getElementById('taskLogHoursInput').value = '';
     document.getElementById('taskRecurInput').value = '';
+    document.getElementById('taskImportantInput').checked = false;
     document.getElementById('taskMilestoneInput').checked = false;
     Array.from(document.getElementById('taskDepsInput').options).forEach(o => { o.selected = false; });
     document.getElementById('commentsSection').style.display = 'none';
@@ -793,6 +797,7 @@ function saveTask() {
     tags, subtasks:tempSubtasks.slice(0,20),
     recurring:document.getElementById('taskRecurInput').value,
     reminder:document.getElementById('taskReminderInput').value,
+    important:document.getElementById('taskImportantInput').checked,
     milestone:document.getElementById('taskMilestoneInput').checked,
     dependencies:selDeps,
   };
@@ -1127,6 +1132,7 @@ function openEventModal(dateStr){
   document.getElementById('eventEndTimeInput').value='10:00';
   document.getElementById('eventTypeInput').value='meeting';
   document.getElementById('eventRemindInput').value='none';
+  document.getElementById('eventImportantInput').checked=false;
   document.getElementById('eventDescInput').value='';
   document.getElementById('eventDeleteBtn').style.display='none';
   document.querySelectorAll('.ev-color-opt').forEach(b=>{b.classList.toggle('active',b.dataset.color==='#818cf8');});
@@ -1143,6 +1149,7 @@ function editEvent(id){
   document.getElementById('eventEndTimeInput').value=ev.endTime||'';
   document.getElementById('eventTypeInput').value=ev.type||'meeting';
   document.getElementById('eventRemindInput').value=ev.remindBefore!=null?String(ev.remindBefore):'none';
+  document.getElementById('eventImportantInput').checked=!!ev.important;
   document.getElementById('eventDescInput').value=ev.description||'';
   document.getElementById('eventDeleteBtn').style.display='inline-flex';
   document.querySelectorAll('.ev-color-opt').forEach(b=>{b.classList.toggle('active',b.dataset.color===selectedEventColor);});
@@ -1158,7 +1165,8 @@ function saveEvent(){
   const events=loadEvents();
   const remindVal=document.getElementById('eventRemindInput').value;
   const remindBefore=remindVal==='none'?null:Number.parseInt(remindVal);
-  const data={title,date,time:document.getElementById('eventTimeInput').value,endTime:document.getElementById('eventEndTimeInput').value,type:document.getElementById('eventTypeInput').value,color:selectedEventColor,description:document.getElementById('eventDescInput').value.trim(),remindBefore,reminderFired:false};
+  const important=document.getElementById('eventImportantInput').checked;
+  const data={title,date,time:document.getElementById('eventTimeInput').value,endTime:document.getElementById('eventEndTimeInput').value,type:document.getElementById('eventTypeInput').value,color:selectedEventColor,description:document.getElementById('eventDescInput').value.trim(),remindBefore,reminderFired:false,important};
   if(editingEventId){const idx=events.findIndex(e=>e.id===editingEventId);if(idx>=0){events[idx]={...events[idx],...data};}}else{events.push({id:genId(),...data,createdAt:Date.now()});}
   saveEvents(events);closeEventModal();renderCalendar();toast(editingEventId?'Event updated':'Event created');
 }
@@ -2271,7 +2279,8 @@ function checkReminders(){
     if(t.reminder&&!t.reminderDismissed){
       const rTime=new Date(t.reminder);
       if(rTime<=now&&(now-rTime)<300000){
-        showNotification('Reminder: '+t.title,'Task "'+t.title+'" is due!');
+        const title='Reminder: '+t.title, body='Task "'+t.title+'" is due!';
+        if(t.important) triggerAlarm(title,body); else showNotification(title,body);
         t.reminderDismissed=true;
       }
     }
@@ -2289,11 +2298,60 @@ function checkEventReminders(now){
     const triggerTime=new Date(eventTime.getTime()-ev.remindBefore*60000);
     if(triggerTime<=now&&(now-triggerTime)<300000){
       const bodyKey=ev.type==='meeting'?'event_reminder_body_meeting':ev.type==='deadline'?'event_reminder_body_deadline':'event_reminder_body_generic';
-      showNotification(tr('event_reminder_title').replace('{title}',ev.title),tr(bodyKey));
+      const title=tr('event_reminder_title').replace('{title}',ev.title), body=tr(bodyKey);
+      if(ev.important) triggerAlarm(title,body); else showNotification(title,body);
       ev.reminderFired=true; changed=true;
     }
   });
   if(changed) saveEvents(events);
+}
+/* ═══════ ALARM (for reminders marked "important") ═══════ */
+let alarmAudioCtx=null, alarmIntervalId=null, alarmSnoozeTimeout=null;
+function playAlarmSound(){
+  stopAlarmSound();
+  try{
+    const Ctx=globalThis.AudioContext||globalThis.webkitAudioContext;
+    if(!Ctx) return;
+    alarmAudioCtx=new Ctx();
+    const beep=()=>{
+      if(!alarmAudioCtx) return;
+      const osc=alarmAudioCtx.createOscillator(), gain=alarmAudioCtx.createGain();
+      osc.type='square'; osc.frequency.value=880;
+      gain.gain.setValueAtTime(0.001,alarmAudioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.25,alarmAudioCtx.currentTime+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001,alarmAudioCtx.currentTime+0.35);
+      osc.connect(gain).connect(alarmAudioCtx.destination);
+      osc.start(); osc.stop(alarmAudioCtx.currentTime+0.4);
+    };
+    beep();
+    alarmIntervalId=setInterval(beep,700);
+  }catch{ /* Web Audio unavailable — the OS notification below still fires */ }
+}
+function stopAlarmSound(){
+  if(alarmIntervalId){ clearInterval(alarmIntervalId); alarmIntervalId=null; }
+  if(alarmAudioCtx){ alarmAudioCtx.close().catch(()=>{}); alarmAudioCtx=null; }
+}
+function triggerAlarm(title,body){
+  document.getElementById('alarmModalTitle').textContent=title;
+  document.getElementById('alarmModalBody').textContent=body;
+  document.getElementById('alarmModal').classList.add('active');
+  playAlarmSound();
+  if('Notification' in globalThis && Notification.permission==='granted'){
+    try{ new Notification(title,{body,icon:'icon-192.png',requireInteraction:true,vibrate:[300,150,300,150,300]}); }catch{}
+  }
+}
+function dismissAlarm(){
+  stopAlarmSound();
+  if(alarmSnoozeTimeout){ clearTimeout(alarmSnoozeTimeout); alarmSnoozeTimeout=null; }
+  document.getElementById('alarmModal').classList.remove('active');
+}
+function snoozeAlarm(){
+  const title=document.getElementById('alarmModalTitle').textContent;
+  const body=document.getElementById('alarmModalBody').textContent;
+  stopAlarmSound();
+  document.getElementById('alarmModal').classList.remove('active');
+  toast(tr('alarm_snoozed'));
+  alarmSnoozeTimeout=setTimeout(()=>triggerAlarm(title,body),300000);
 }
 function maybeSendDailyDigest(){
   if(!currentUser) return;

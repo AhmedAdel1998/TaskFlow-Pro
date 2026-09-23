@@ -24,7 +24,11 @@ globalThis.addEventListener('push', e => {
   let data = {};
   try { data = e.data ? e.data.json() : {}; } catch { data = { title: 'TaskFlow Pro', body: e.data ? e.data.text() : '' }; }
   const title = data.title || 'TaskFlow Pro';
-  const options = { body: data.body || '', icon: './icon-192.png', badge: './icon-192.png', tag: data.tag || 'taskflow-reminder' };
+  const options = { body: data.body || '', icon: './icon-192.png', badge: './icon-192.png', tag: data.tag || ('taskflow-reminder-' + Date.now()) };
+  /* "Important" reminders get an alarm-like push: it stays on screen until the user acts on it
+     and vibrates on mobile. There is no way to loop a custom alarm sound from a closed app —
+     the OS/browser controls the notification sound — so this is as close as push notifications get. */
+  if (data.important) { options.requireInteraction = true; options.vibrate = [300, 150, 300, 150, 300, 150, 600]; }
   e.waitUntil(self.registration.showNotification(title, options));
 });
 globalThis.addEventListener('notificationclick', e => {
