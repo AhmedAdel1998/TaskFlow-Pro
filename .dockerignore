@@ -1,0 +1,8 @@
+node_modules/
+**/bin/
+**/obj/
+**/TestResults/
+*.db
+*.db-shm
+*.db-wal
+.git/

@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TaskFlow">
 <meta name="description" content="Professional task monitoring and productivity tracker">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -24,8 +24,10 @@
     <h1>TaskFlow Pro</h1>
     <p>Team Task Monitoring System</p>
     <div class="login-error" id="loginError"></div>
-    <input type="email" id="loginEmail" placeholder="Enter your email" autocomplete="email" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="btn btn-primary" onclick="doLogin()">Sign In</button>
+    <input type="email" id="loginEmail" placeholder="Enter your email" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    <input type="password" id="loginPassword" placeholder="Password (min 12 characters)" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn btn-primary" onclick="doLogin()" id="loginSubmitBtn">Sign In</button>
+    <div style="font-size:.82rem;color:var(--text2);margin-top:10px"><span id="loginSwitchText">New here?</span> <a href="#" onclick="toggleAuthMode();return false;" id="loginSwitchLink" style="color:var(--primary);font-weight:600">Create an account</a></div>
     <div class="login-team">Powered by TaskFlow Pro &bull; Team Edition</div>
   </div>
 </div>
@@ -40,6 +42,7 @@
     <button class="nav-item" data-page="tasks" onclick="showPage('tasks')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><span data-i18n="all_tasks">All Tasks</span> <span class="badge" id="taskBadge">0</span></button>
     <button class="nav-item" data-page="kanban" onclick="showPage('kanban')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="15" rx="1"/></svg><span data-i18n="kanban">Kanban Board</span></button>
     <button class="nav-item" data-page="calendar" onclick="showPage('calendar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span data-i18n="calendar">Calendar</span></button>
+    <button class="nav-item" data-page="timetable" onclick="showPage('timetable')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 7 12 12 15.5 14"/></svg><span data-i18n="timetable">Timetable</span></button>
     <button class="nav-item" data-page="eisenhower" onclick="showPage('eisenhower')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/></svg><span data-i18n="matrix">Eisenhower Matrix</span></button>
     <div class="nav-section" data-i18n="nav_plan">Planning</div>
     <button class="nav-item" data-page="projects" onclick="showPage('projects')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><span data-i18n="projects">Projects</span></button>
@@ -49,6 +52,8 @@
     <div class="nav-section" data-i18n="nav_analytics">Analytics</div>
     <button class="nav-item" data-page="analytics" onclick="showPage('analytics')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg><span data-i18n="analytics">Analytics</span></button>
     <button class="nav-item" data-page="reports" onclick="showPage('reports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 21V13h3v8"/><path d="M13 21v-6h3v6"/></svg><span data-i18n="time_reports">Time Reports</span></button>
+    <button class="nav-item" data-page="lifebalance" onclick="showPage('lifebalance')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span data-i18n="life_balance">Life Balance</span></button>
+    <button class="nav-item" data-page="progress" onclick="showPage('progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 19v-6M13 19V9M18 19v-9"/></svg><span data-i18n="progress">Progress</span></button>
     <div class="nav-section" data-i18n="nav_categories">Categories</div>
     <div id="categoryNav" style="padding:4px 16px 8px;display:flex;flex-wrap:wrap;gap:6px"></div>
     <div class="nav-section" data-i18n="nav_quick">Quick</div>
@@ -74,6 +79,7 @@
       <div class="search-results" id="searchResults"></div>
     </div>
     <div class="topbar-actions">
+      <button class="icon-btn" id="syncStatusBtn" onclick="openSettings()" title="Sync status" style="display:none"><svg id="syncStatusIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-3-6.7"/><polyline points="21 3 21 9 15 9"/></svg><span class="dot" id="syncPendingDot" style="display:none"></span></button>
       <button class="icon-btn" onclick="toggleTheme()" title="Toggle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>
       <button class="icon-btn" id="notifBtn" onclick="showOverdueTasks()" title="Overdue tasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span class="dot" id="notifDot" style="display:none"></span></button>
       <button class="icon-btn" onclick="toggleLang()" title="Language / RTL"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></button>
@@ -148,6 +154,33 @@
     </div>
     <div class="cal-grid" id="calGrid"></div>
   </div>
+  <!-- TIMETABLE -->
+  <div class="page" id="page-timetable">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="timetable">Timetable</h2>
+        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0">Tasks are auto-scheduled into today's free hours &mdash; updates automatically as tasks or hours change</p>
+      </div>
+      <div class="tt-toolbar">
+        <button class="cal-nav-btn" onclick="timetableNav(-1)" title="Previous day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="cal-today-btn" onclick="timetableToday()">Today</button>
+        <button class="cal-nav-btn" onclick="timetableNav(1)" title="Next day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <span id="ttDateLabel" style="font-weight:700;font-size:.9rem;margin:0 4px"></span>
+        <span class="tt-hours-input"><label for="ttStartInput">From</label><input type="number" id="ttStartInput" min="0" max="23" style="width:52px" onchange="updateWorkHours()"></span>
+        <span class="tt-hours-input"><label for="ttEndInput">To</label><input type="number" id="ttEndInput" min="1" max="24" style="width:52px" onchange="updateWorkHours()"></span>
+      </div>
+    </div>
+    <div class="stats-grid" id="ttStats"></div>
+    <div class="card">
+      <div class="tt-layout">
+        <div class="tt-container" id="ttGrid"></div>
+        <div class="tt-side">
+          <div class="tt-side-title">Not Scheduled Today</div>
+          <div id="ttOverflow"></div>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- EISENHOWER -->
   <div class="page" id="page-eisenhower">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:4px">
@@ -195,6 +228,59 @@
   <div class="page" id="page-reports">
     <h2 style="font-size:1.2rem;font-weight:700" data-i18n="time_reports">Time Reports</h2>
     <div class="report-grid" id="reportGrid"></div>
+  </div>
+  <!-- LIFE BALANCE -->
+  <div class="page" id="page-lifebalance">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="life_balance">Life Balance</h2>
+        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0;max-width:560px">Log how you actually spend your day and see how it compares to sleep, work-hour and well-being research &mdash; not a diagnosis, a mirror.</p>
+      </div>
+      <div class="tt-toolbar">
+        <button class="cal-nav-btn" onclick="lbNav(-1)" title="Previous day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="cal-today-btn" onclick="lbToday()">Today</button>
+        <button class="cal-nav-btn" onclick="lbNav(1)" title="Next day"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <span id="lbDateLabel" style="font-weight:700;font-size:.9rem;margin:0 4px"></span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Log Today's Hours <span style="font-weight:400;font-size:.7rem;color:var(--text3)" id="lbSumHint"></span></div>
+      <div class="lb-input-grid" id="lbInputGrid"></div>
+    </div>
+    <div class="card" id="lbScoreCard"></div>
+    <div class="dash-row">
+      <div class="card"><div class="card-title">Category Breakdown</div><div id="lbBreakdown"></div></div>
+      <div class="card"><div class="card-title">Weekly Work-Hours Check</div><div id="lbWeekly"></div></div>
+    </div>
+    <div class="card">
+      <button class="btn btn-sm btn-outline" onclick="toggleLbSources()" id="lbSourcesToggle">Show Methodology &amp; Sources</button>
+      <div id="lbSources" style="display:none;margin-top:12px;font-size:.78rem;color:var(--text2);line-height:1.7"></div>
+    </div>
+  </div>
+  <!-- PROGRESS -->
+  <div class="page" id="page-progress">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="progress">Progress</h2>
+        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0;max-width:560px">Auto-calculated from your tasks, habits and Life Balance logs &mdash; no manual entry. Compete with your own record, not anyone else's.</p>
+      </div>
+      <button class="btn btn-sm btn-primary" onclick="openChallengeModal()">+ New Challenge</button>
+    </div>
+    <div class="stats-grid" id="progStats"></div>
+    <div class="card"><div class="card-title">Activity Score &mdash; Last 30 Days</div><div id="progActivityChart"></div></div>
+    <div class="dash-row">
+      <div class="card"><div class="card-title">Tasks Completed &mdash; Last 14 Days</div><div class="chart-area" id="progTasksChart"></div></div>
+      <div class="card"><div class="card-title">Habit Consistency &mdash; Last 30 Days</div><div id="progHabitConsistency"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Your Challenges</div>
+      <div id="challengeList"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Beat Your Record</div>
+      <p style="font-size:.78rem;color:var(--text3);margin-bottom:8px">Suggested challenges based on your own best-ever performance.</p>
+      <div id="challengeSuggestions"></div>
+    </div>
   </div>
   <!-- ARCHIVE -->
   <div class="page" id="page-archive">
@@ -272,6 +358,8 @@
     <div class="modal-header"><h2 data-i18n="settings">Settings</h2><button class="icon-btn" onclick="closeSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body"><div class="settings-grid">
       <div class="setting-item"><div><div class="setting-label">Logged in as</div><div class="setting-desc" id="settingsEmail">user@example.com</div></div><button class="btn btn-sm btn-outline" onclick="doLogout()">Logout</button></div>
+      <div class="setting-item"><div><div class="setting-label">Account Database URL</div><div class="setting-desc" id="apiUrlStatus">Not configured</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="testApiConnection()">Test</button><button class="btn btn-sm btn-outline" onclick="editApiUrl()">Edit</button></div></div>
+      <div class="setting-item" id="syncNowSetting" style="display:none"><div><div class="setting-label">Sync Status</div><div class="setting-desc" id="syncPendingStatus">Up to date</div></div><button class="btn btn-sm btn-primary" onclick="flushSyncQueue()">Sync Now</button></div>
       <div class="setting-item"><div><div class="setting-label">Apps Script URL</div><div class="setting-desc" id="scriptUrlStatus">Not configured</div></div><button class="btn btn-sm btn-outline" onclick="editSheetUrl()">Edit</button></div>
       <div class="setting-item"><div><div class="setting-label">Sync Token</div><div class="setting-desc" id="syncTokenStatus">Required for Google Sheets sync</div></div><button class="btn btn-sm btn-outline" onclick="editSyncToken()">Edit</button></div>
       <div class="setting-item"><div><div class="setting-label">Google Sheets Sync</div><div class="setting-desc" id="syncStateLabel">Not synced yet</div></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-sm btn-outline" onclick="testSyncConnection()">Test</button><button class="btn btn-sm btn-outline" onclick="syncPullAll()">Pull</button><button class="btn btn-sm btn-primary" onclick="syncPushAll()">Push</button></div></div>
@@ -336,6 +424,21 @@
       <div class="form-group"><label for="habitNameInput">Habit Name</label><input type="text" id="habitNameInput" maxlength="100" placeholder="e.g. Read 30 minutes"></div>
     </div>
     <div class="modal-footer"><button class="btn btn-outline" onclick="closeHabitModal()">Cancel</button><button class="btn btn-primary" onclick="saveHabit()">Save</button></div>
+  </div>
+</div>
+<!-- CHALLENGE MODAL -->
+<div class="modal-overlay" id="challengeModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><h2>New Challenge</h2><button class="icon-btn" onclick="closeChallengeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label for="challengeTitleInput">Title (optional)</label><input type="text" id="challengeTitleInput" maxlength="100" placeholder="Auto-generated if left blank"></div>
+      <div class="form-row">
+        <div class="form-group"><label for="challengeMetricInput">Track</label><select id="challengeMetricInput" onchange="updateChallengeMetricUI()"><option value="tasks">Tasks Completed</option><option value="hours">Hours Logged</option><option value="habits">Habit Check-ins</option><option value="streak">Daily Completion Streak</option></select></div>
+        <div class="form-group"><label for="challengeTargetInput">Target</label><input type="number" id="challengeTargetInput" min="1" value="10"></div>
+      </div>
+      <div class="form-group" id="challengeDaysGroup"><label for="challengeDaysInput">Over how many days</label><input type="number" id="challengeDaysInput" min="1" max="90" value="7"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeChallengeModal()">Cancel</button><button class="btn btn-primary" onclick="saveChallenge()">Start Challenge</button></div>
   </div>
 </div>
 <!-- NOTE EDITOR MODAL -->

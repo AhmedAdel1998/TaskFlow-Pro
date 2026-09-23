@@ -473,3 +473,36 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   .main{margin-left:0!important;margin-right:0!important}
   .page{display:flex!important;break-inside:avoid}
 }
+
+/* ═══════ TIMETABLE ═══════ */
+.tt-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tt-hours-input{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--text3)}
+.tt-hours-input input{padding:6px 8px;font-size:.8rem}
+.tt-layout{display:flex;gap:18px;align-items:flex-start}
+.tt-container{position:relative;flex:1;min-width:0;border:1px solid var(--border);border-radius:var(--radius-sm);background:repeating-linear-gradient(180deg,var(--surface2) 0,var(--surface2) 1px,transparent 1px,transparent 60px);margin-left:56px}
+.tt-hour-label{position:absolute;left:-56px;top:-8px;width:48px;text-align:right;font-size:.72rem;color:var(--text3)}
+.tt-block{position:absolute;left:6px;right:6px;border-radius:8px;padding:6px 10px;overflow:hidden;color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:pointer;transition:filter .15s ease}
+.tt-block:hover{filter:brightness(1.08)}
+.tt-block .tt-block-title{font-size:.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tt-block .tt-block-meta{font-size:.68rem;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tt-block.tt-done{opacity:.55;text-decoration:line-through}
+.tt-now-line{position:absolute;left:0;right:0;height:0;border-top:2px solid var(--danger);z-index:2}
+.tt-now-line::before{content:'';position:absolute;left:-5px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--danger)}
+.tt-side{width:220px;flex-shrink:0}
+.tt-side-title{font-size:.78rem;font-weight:700;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.02em}
+.tt-overflow-card{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--warning);border-radius:var(--radius-xs);padding:8px 10px;margin-bottom:8px;font-size:.8rem;cursor:pointer}
+.tt-overflow-card .tt-ov-title{font-weight:600}
+.tt-overflow-card .tt-ov-meta{font-size:.7rem;color:var(--text3);margin-top:2px}
+@media(max-width:900px){
+  .tt-layout{flex-direction:column}
+  .tt-side{width:100%}
+}
+
+/* ═══════ LIFE BALANCE ═══════ */
+.lb-input-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:10px}
+.lb-field{display:flex;flex-direction:column;gap:4px}
+.lb-field label{font-size:.78rem;font-weight:600;color:var(--text2)}
+.lb-field input{width:100%;text-align:center}
+.lb-badge{color:#fff;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.lb-cat-card{background:var(--surface2);border:1px solid var(--border);border-left:4px solid var(--text3);border-radius:var(--radius-xs);padding:10px 12px;margin-bottom:10px}
+#lbBreakdown{margin-top:6px}

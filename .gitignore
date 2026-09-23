@@ -9,3 +9,8 @@ bin/
 obj/
 *.user
 TestResults/
+
+# local SQLite dev database
+*.db
+*.db-shm
+*.db-wal

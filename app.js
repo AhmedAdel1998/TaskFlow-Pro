@@ -2,11 +2,163 @@
 const ADMIN_EMAIL = 'osama.kamal@gmail.com';
 const DEFAULT_SCRIPT_URL = '';
 let APPS_SCRIPT_URL = localStorage.getItem('taskflow_script_url') || DEFAULT_SCRIPT_URL;
+const DEFAULT_API_URL = '';
+let API_BASE_URL = localStorage.getItem('taskflow_api_url') ?? DEFAULT_API_URL;
+let authMode = 'login';
+
+/* ═══════ ACCOUNT DATABASE (real per-account persistence, server-of-record) ═══════ */
+function apiConfigured(){ return !!API_BASE_URL; }
+function authKey(email){ return 'taskflow_auth_'+(email||currentUser); }
+function saveAuthSession(email,r){ localStorage.setItem(authKey(email),JSON.stringify({accessToken:r.accessToken,refreshToken:r.refreshToken,expiresAt:r.expiresAt,organizationId:r.organizationId})); }
+function getAuthSession(email){ try{ return JSON.parse(localStorage.getItem(authKey(email))); }catch{ return null; } }
+function clearAuthSession(email){ localStorage.removeItem(authKey(email)); }
+async function apiRaw(path, method, body, needsAuth=true){
+  if(!apiConfigured()){ const err=new Error('API not configured'); err.isNetworkError=true; throw err; }
+  const opts={method, headers:{'Content-Type':'application/json'}};
+  if(needsAuth){ opts.headers.Authorization='Bearer '+(await ensureFreshToken()); }
+  if(body!==undefined) opts.body=JSON.stringify(body);
+  let res;
+  try{ res=await fetch(API_BASE_URL+path, opts); }
+  catch{ const err=new Error('Cannot reach the account database'); err.isNetworkError=true; throw err; }
+  if(res.status===401&&needsAuth){
+    try{
+      const s=getAuthSession(currentUser);
+      const r=await apiRaw('/api/auth/refresh','POST',{refreshToken:s.refreshToken},false);
+      saveAuthSession(currentUser,r);
+      opts.headers.Authorization='Bearer '+r.accessToken;
+      res=await fetch(API_BASE_URL+path,opts);
+    }catch{ /* fall through, handled by !res.ok below */ }
+  }
+  if(!res.ok){
+    let msg='Request failed ('+res.status+')';
+    try{ const j=await res.json(); if(j&&j.error) msg=j.error; }catch{}
+    const err=new Error(msg); err.status=res.status; throw err;
+  }
+  if(res.status===204) return null;
+  return res.json();
+}
+async function ensureFreshToken(){
+  const s=getAuthSession(currentUser);
+  if(!s) throw new Error('Not signed in to the account database');
+  if(new Date(s.expiresAt).getTime()-Date.now()>60000) return s.accessToken;
+  const r=await apiRaw('/api/auth/refresh','POST',{refreshToken:s.refreshToken},false);
+  saveAuthSession(currentUser,r);
+  return r.accessToken;
+}
+function apiRegister(email,password){ return apiRaw('/api/auth/register','POST',{email,password,organizationName:email.split('@')[0]+"'s Workspace"},false); }
+function apiLogin(email,password){ return apiRaw('/api/auth/login','POST',{email,password},false); }
+function pendingSyncKey(){ return 'taskflow_pending_sync'; }
+function getPendingSync(){ try{ return JSON.parse(localStorage.getItem(pendingSyncKey()))||{}; }catch{ return {}; } }
+function setPendingSync(map){ localStorage.setItem(pendingSyncKey(), JSON.stringify(map)); }
+let syncInFlight=false;
+function syncKey(key){
+  if(!apiConfigured()||!currentUser) return;
+  const value=localStorage.getItem(key);
+  if(value===null) return;
+  const pending=getPendingSync(); pending[key]=value; setPendingSync(pending);
+  updateSyncStatusUI();
+  flushSyncQueue();
+}
+async function flushSyncQueue(){
+  updateSyncStatusUI();
+  if(syncInFlight||!apiConfigured()||!currentUser) return;
+  syncInFlight=true; updateSyncStatusUI();
+  try{
+    let pending=getPendingSync();
+    for(const key of Object.keys(pending)){
+      try{
+        await apiRaw('/api/data/'+encodeURIComponent(key),'PUT',{value:pending[key]});
+        pending=getPendingSync(); delete pending[key]; setPendingSync(pending);
+      }catch(e){
+        if(e.isNetworkError) break;
+        pending=getPendingSync(); delete pending[key]; setPendingSync(pending);
+      }
+    }
+  } finally { syncInFlight=false; updateSyncStatusUI(); }
+}
+async function hydrateFromServer(){
+  const items=await apiRaw('/api/data','GET');
+  items.forEach(it=>localStorage.setItem(it.key,it.value));
+  const pending=getPendingSync();
+  Object.keys(pending).forEach(k=>localStorage.setItem(k,pending[k]));
+  await flushSyncQueue();
+}
+function updateSyncStatusUI(){
+  const btn=document.getElementById('syncStatusBtn'), settingRow=document.getElementById('syncNowSetting');
+  const active=apiConfigured()&&!!getAuthSession(currentUser);
+  if(btn) btn.style.display=active?'flex':'none';
+  if(settingRow) settingRow.style.display=active?'flex':'none';
+  if(!active) return;
+  const pendingCount=Object.keys(getPendingSync()).length;
+  const dot=document.getElementById('syncPendingDot');
+  const icon=document.getElementById('syncStatusIcon');
+  const desc=document.getElementById('syncPendingStatus');
+  const offline=!navigator.onLine;
+  let title, descText, color;
+  if(offline){ title='Offline'+(pendingCount?' — '+pendingCount+' change(s) waiting to sync':''); descText='Offline'+(pendingCount?' — '+pendingCount+' change(s) queued':' — will sync when back online'); color='var(--text3)'; }
+  else if(syncInFlight){ title='Syncing...'; descText='Syncing...'; color='var(--primary)'; }
+  else if(pendingCount){ title=pendingCount+' change(s) waiting to sync'; descText=pendingCount+' change(s) waiting to sync'; color='var(--warning)'; }
+  else { title='Up to date'; descText='Up to date'; color='var(--success)'; }
+  if(btn) btn.title=title;
+  if(icon) icon.style.color=color;
+  if(dot) dot.style.display=(pendingCount||offline)?'block':'none';
+  if(desc) desc.textContent=descText;
+}
+function editApiUrl(){
+  const url=prompt('Account Database (API) URL:',API_BASE_URL);
+  if(url===null) return;
+  API_BASE_URL=url.trim().replace(/\/+$/,'');
+  if(API_BASE_URL) localStorage.setItem('taskflow_api_url',API_BASE_URL);
+  else localStorage.removeItem('taskflow_api_url');
+  refreshSettingsStatus();
+  initLoginScreen();
+  if(API_BASE_URL&&!getAuthSession(currentUser)) connectAccountToDatabase();
+}
+async function connectAccountToDatabase(){
+  const password=prompt('Set a password (min 12 characters) to back up "'+currentUser+'" to this database.\nAlready created it there before? Enter that same password to sign in instead.');
+  if(password===null) return;
+  if(password.length<12){ toast('Password must be at least 12 characters','error'); return; }
+  toast('Connecting to account database...');
+  try{
+    let result;
+    try{ result=await apiLogin(currentUser,password); }
+    catch(e){ if(e.status===401) result=await apiRegister(currentUser,password); else throw e; }
+    saveAuthSession(currentUser,result);
+    await pushAllLocalDataToServer();
+    await hydrateFromServer();
+    refreshAll(); refreshSettingsStatus();
+    toast('Account connected — your data is now backed up');
+    startSyncHeartbeat();
+  }catch(e){ toast('Could not connect: '+(e.message||'error'),'error'); }
+}
+let syncHeartbeat=null;
+function startSyncHeartbeat(){
+  updateSyncStatusUI();
+  if(syncHeartbeat) return;
+  syncHeartbeat=setInterval(flushSyncQueue,30000);
+  window.addEventListener('online',()=>{ updateSyncStatusUI(); flushSyncQueue(); });
+  window.addEventListener('offline',updateSyncStatusUI);
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') flushSyncQueue(); });
+}
+function pushAllLocalDataToServer(){
+  const keys=Object.keys(localStorage).filter(k=>(k.endsWith('_'+currentUser)&&!k.startsWith('taskflow_auth_'))||k==='taskflow_templates');
+  keys.forEach(k=>syncKey(k));
+  return flushSyncQueue();
+}
+function testApiConnection(){
+  const el=document.getElementById('apiUrlStatus');
+  if(!apiConfigured()){ toast('Set an Account Database URL first','error'); return; }
+  if(el) el.textContent='Testing...';
+  fetch(API_BASE_URL+'/health/ready').then(r=>{
+    if(r.ok){ toast('Account database reachable'); if(el) el.textContent='Configured — reachable'; }
+    else { toast('Account database not ready','error'); if(el) el.textContent='Configured — not ready'; }
+  }).catch(()=>{ toast('Cannot reach account database','error'); if(el) el.textContent='Configured — unreachable'; });
+}
 
 /* ═══════ i18n ═══════ */
 const i18n = {
-  en:{dashboard:'Dashboard',my_day:'My Day',all_tasks:'All Tasks',kanban:'Kanban Board',calendar:'Calendar',matrix:'Eisenhower Matrix',projects:'Projects',goals:'Goals',habits:'Habits',notes:'Notes',analytics:'Analytics & Insights',time_reports:'Time Reports',archive:'Archive',pomodoro:'Pomodoro Timer',templates:'Templates',settings:'Settings',new_task:'New Task',nav_main:'Main',nav_plan:'Planning',nav_analytics:'Analytics',nav_categories:'Categories',nav_quick:'Quick',weekly_overview:'Weekly Overview',priority_dist:'Priority Distribution',upcoming:'Upcoming Deadlines',goal_progress:'Goal Progress',habit_streaks:'Habit Streaks',recent_activity:'Recent Activity',daily_notes:'Daily Notes'},
-  ar:{dashboard:'\u0644\u0648\u062D\u0629 \u0627\u0644\u062A\u062D\u0643\u0645',my_day:'\u064A\u0648\u0645\u064A',all_tasks:'\u062C\u0645\u064A\u0639 \u0627\u0644\u0645\u0647\u0627\u0645',kanban:'\u0644\u0648\u062D\u0629 \u0643\u0627\u0646\u0628\u0627\u0646',calendar:'\u0627\u0644\u062A\u0642\u0648\u064A\u0645',matrix:'\u0645\u0635\u0641\u0648\u0641\u0629 \u0623\u064A\u0632\u0646\u0647\u0627\u0648\u0631',projects:'\u0627\u0644\u0645\u0634\u0627\u0631\u064A\u0639',goals:'\u0627\u0644\u0623\u0647\u062F\u0627\u0641',habits:'\u0627\u0644\u0639\u0627\u062F\u0627\u062A',notes:'\u0627\u0644\u0645\u0644\u0627\u062D\u0638\u0627\u062A',analytics:'\u0627\u0644\u062A\u062D\u0644\u064A\u0644\u0627\u062A',time_reports:'\u062A\u0642\u0627\u0631\u064A\u0631 \u0627\u0644\u0648\u0642\u062A',archive:'\u0627\u0644\u0623\u0631\u0634\u064A\u0641',pomodoro:'\u0645\u0624\u0642\u062A \u0628\u0648\u0645\u0648\u062F\u0648\u0631\u0648',templates:'\u0627\u0644\u0642\u0648\u0627\u0644\u0628',settings:'\u0627\u0644\u0625\u0639\u062F\u0627\u062F\u0627\u062A',new_task:'\u0645\u0647\u0645\u0629 \u062C\u062F\u064A\u062F\u0629',nav_main:'\u0631\u0626\u064A\u0633\u064A',nav_plan:'\u0627\u0644\u062A\u062E\u0637\u064A\u0637',nav_analytics:'\u0627\u0644\u062A\u062D\u0644\u064A\u0644\u0627\u062A',nav_categories:'\u0627\u0644\u0641\u0626\u0627\u062A',nav_quick:'\u0633\u0631\u064A\u0639',weekly_overview:'\u0646\u0638\u0631\u0629 \u0623\u0633\u0628\u0648\u0639\u064A\u0629',priority_dist:'\u062A\u0648\u0632\u064A\u0639 \u0627\u0644\u0623\u0648\u0644\u0648\u064A\u0627\u062A',upcoming:'\u0627\u0644\u0645\u0648\u0627\u0639\u064A\u062F \u0627\u0644\u0642\u0627\u062F\u0645\u0629',goal_progress:'\u062A\u0642\u062F\u0645 \u0627\u0644\u0623\u0647\u062F\u0627\u0641',habit_streaks:'\u0633\u0644\u0627\u0633\u0644 \u0627\u0644\u0639\u0627\u062F\u0627\u062A',recent_activity:'\u0627\u0644\u0646\u0634\u0627\u0637 \u0627\u0644\u0623\u062E\u064A\u0631',daily_notes:'\u0645\u0644\u0627\u062D\u0638\u0627\u062A \u0627\u0644\u064A\u0648\u0645'}
+  en:{dashboard:'Dashboard',my_day:'My Day',all_tasks:'All Tasks',kanban:'Kanban Board',calendar:'Calendar',timetable:'Timetable',matrix:'Eisenhower Matrix',projects:'Projects',goals:'Goals',habits:'Habits',notes:'Notes',analytics:'Analytics & Insights',time_reports:'Time Reports',life_balance:'Life Balance',progress:'Progress',archive:'Archive',pomodoro:'Pomodoro Timer',templates:'Templates',settings:'Settings',new_task:'New Task',nav_main:'Main',nav_plan:'Planning',nav_analytics:'Analytics',nav_categories:'Categories',nav_quick:'Quick',weekly_overview:'Weekly Overview',priority_dist:'Priority Distribution',upcoming:'Upcoming Deadlines',goal_progress:'Goal Progress',habit_streaks:'Habit Streaks',recent_activity:'Recent Activity',daily_notes:'Daily Notes'},
+  ar:{dashboard:'\u0644\u0648\u062D\u0629 \u0627\u0644\u062A\u062D\u0643\u0645',my_day:'\u064A\u0648\u0645\u064A',all_tasks:'\u062C\u0645\u064A\u0639 \u0627\u0644\u0645\u0647\u0627\u0645',kanban:'\u0644\u0648\u062D\u0629 \u0643\u0627\u0646\u0628\u0627\u0646',calendar:'\u0627\u0644\u062A\u0642\u0648\u064A\u0645',timetable:'\u0627\u0644\u062C\u062F\u0648\u0644 \u0627\u0644\u0632\u0645\u0646\u064A',matrix:'\u0645\u0635\u0641\u0648\u0641\u0629 \u0623\u064A\u0632\u0646\u0647\u0627\u0648\u0631',projects:'\u0627\u0644\u0645\u0634\u0627\u0631\u064A\u0639',goals:'\u0627\u0644\u0623\u0647\u062F\u0627\u0641',habits:'\u0627\u0644\u0639\u0627\u062F\u0627\u062A',notes:'\u0627\u0644\u0645\u0644\u0627\u062D\u0638\u0627\u062A',analytics:'\u0627\u0644\u062A\u062D\u0644\u064A\u0644\u0627\u062A',time_reports:'\u062A\u0642\u0627\u0631\u064A\u0631 \u0627\u0644\u0648\u0642\u062A',life_balance:'\u062A\u0648\u0627\u0632\u0646 \u0627\u0644\u062D\u064A\u0627\u0629',progress:'\u0627\u0644\u062A\u0642\u062F\u0645',archive:'\u0627\u0644\u0623\u0631\u0634\u064A\u0641',pomodoro:'\u0645\u0624\u0642\u062A \u0628\u0648\u0645\u0648\u062F\u0648\u0631\u0648',templates:'\u0627\u0644\u0642\u0648\u0627\u0644\u0628',settings:'\u0627\u0644\u0625\u0639\u062F\u0627\u062F\u0627\u062A',new_task:'\u0645\u0647\u0645\u0629 \u062C\u062F\u064A\u062F\u0629',nav_main:'\u0631\u0626\u064A\u0633\u064A',nav_plan:'\u0627\u0644\u062A\u062E\u0637\u064A\u0637',nav_analytics:'\u0627\u0644\u062A\u062D\u0644\u064A\u0644\u0627\u062A',nav_categories:'\u0627\u0644\u0641\u0626\u0627\u062A',nav_quick:'\u0633\u0631\u064A\u0639',weekly_overview:'\u0646\u0638\u0631\u0629 \u0623\u0633\u0628\u0648\u0639\u064A\u0629',priority_dist:'\u062A\u0648\u0632\u064A\u0639 \u0627\u0644\u0623\u0648\u0644\u0648\u064A\u0627\u062A',upcoming:'\u0627\u0644\u0645\u0648\u0627\u0639\u064A\u062F \u0627\u0644\u0642\u0627\u062F\u0645\u0629',goal_progress:'\u062A\u0642\u062F\u0645 \u0627\u0644\u0623\u0647\u062F\u0627\u0641',habit_streaks:'\u0633\u0644\u0627\u0633\u0644 \u0627\u0644\u0639\u0627\u062F\u0627\u062A',recent_activity:'\u0627\u0644\u0646\u0634\u0627\u0637 \u0627\u0644\u0623\u062E\u064A\u0631',daily_notes:'\u0645\u0644\u0627\u062D\u0638\u0627\u062A \u0627\u0644\u064A\u0648\u0645'}
 };
 let lang = localStorage.getItem('taskflow_lang') || 'en';
 function t(key) { return (i18n[lang] && i18n[lang][key]) || i18n.en[key] || key; }
@@ -31,16 +183,55 @@ function toggleLang() {
 let currentUser = null;
 function userKey(base) { return base + '_' + (currentUser || 'anon'); }
 function isAdmin() { return currentUser === ADMIN_EMAIL; }
-function doLogin() {
+function initLoginScreen(){
+  const configured=apiConfigured();
+  document.getElementById('loginPassword').style.display=configured?'block':'none';
+  const switchRow=document.getElementById('loginSwitchLink');
+  if(switchRow) switchRow.closest('div').style.display=configured?'block':'none';
+}
+function toggleAuthMode(){
+  authMode = authMode==='login' ? 'register' : 'login';
+  document.getElementById('loginSubmitBtn').textContent = authMode==='login' ? 'Sign In' : 'Create Account';
+  document.getElementById('loginSwitchText').textContent = authMode==='login' ? 'New here?' : 'Already have an account?';
+  document.getElementById('loginSwitchLink').textContent = authMode==='login' ? 'Create an account' : 'Sign in';
+  document.getElementById('loginError').textContent='';
+}
+async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  if (!email || !email.includes('@') || !email.includes('.')) {
-    document.getElementById('loginError').textContent = 'Please enter a valid email address'; return;
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.innerHTML='';
+  if (!email || !email.includes('@') || !email.includes('.')) { errEl.textContent = 'Please enter a valid email address'; return; }
+  if (!apiConfigured()) { finishLogin(email, true); return; }
+  if (!password || password.length<12) { errEl.textContent = 'Password must be at least 12 characters'; return; }
+  const btn=document.getElementById('loginSubmitBtn');
+  btn.disabled=true; btn.textContent='Please wait...';
+  try{
+    const result = authMode==='register' ? await apiRegister(email,password) : await apiLogin(email,password);
+    saveAuthSession(email, result);
+    finishLogin(email);
+  }catch(err){
+    if(err.isNetworkError){
+      const cached=getAuthSession(email);
+      if(cached){ errEl.innerHTML='Can\'t reach the account database &mdash; <a href="#" onclick="continueOffline(\''+email+'\');return false;" style="color:var(--primary);font-weight:600">continue offline</a> with your last synced data.'; }
+      else { errEl.textContent='Can\'t reach the account database. Check the Account Database URL in Settings, or make sure the API is running.'; }
+    } else {
+      errEl.textContent = err.message || 'Sign in failed.';
+    }
+  } finally {
+    btn.disabled=false; btn.textContent = authMode==='login' ? 'Sign In' : 'Create Account';
   }
+}
+function continueOffline(email){ finishLogin(email, true); }
+function finishLogin(email, offline){
   currentUser = email;
   localStorage.setItem('taskflow_current_user', email);
   const users = JSON.parse(localStorage.getItem('taskflow_users') || '[]');
   if (!users.includes(email)) { users.push(email); localStorage.setItem('taskflow_users', JSON.stringify(users)); }
   enterApp();
+  if(!offline){
+    hydrateFromServer().then(refreshAll).catch(()=>{});
+  }
 }
 function doLogout() {
   localStorage.removeItem('taskflow_current_user');
@@ -48,6 +239,7 @@ function doLogout() {
   document.getElementById('appContainer').style.display = 'none';
   document.getElementById('loginScreen').classList.remove('hidden');
   document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
   closeSettings();
 }
 function enterApp() {
@@ -65,32 +257,39 @@ function enterApp() {
   ensureNumIds();
   initTheme(); applyLang(); setGreeting(); refreshAll();
   checkOnboarding(); processRecurring(); startReminderCheck();
+  if(apiConfigured()&&getAuthSession(currentUser)) startSyncHeartbeat();
+  else updateSyncStatusUI();
 }
 function checkAutoLogin() {
   const saved = localStorage.getItem('taskflow_current_user');
-  if (saved) { currentUser = saved; enterApp(); }
+  if (!saved) return;
+  currentUser = saved;
+  enterApp();
+  if(apiConfigured()&&getAuthSession(saved)){
+    hydrateFromServer().then(refreshAll).catch(()=>{});
+  }
 }
 
 /* ═══════ DATA LAYER ═══════ */
 function loadTasks() { try { return JSON.parse(localStorage.getItem(userKey('taskflow_tasks'))) || []; } catch { return []; } }
-function saveTasks(tasks) { localStorage.setItem(userKey('taskflow_tasks'), JSON.stringify(tasks)); }
+function saveTasks(tasks) { localStorage.setItem(userKey('taskflow_tasks'), JSON.stringify(tasks)); syncKey(userKey('taskflow_tasks')); }
 function loadActivity() { try { return JSON.parse(localStorage.getItem(userKey('taskflow_activity'))) || []; } catch { return []; } }
-function saveActivity(list) { localStorage.setItem(userKey('taskflow_activity'), JSON.stringify(list.slice(0, 80))); }
+function saveActivity(list) { localStorage.setItem(userKey('taskflow_activity'), JSON.stringify(list.slice(0, 80))); syncKey(userKey('taskflow_activity')); }
 function addActivity(text, type='info') { const l = loadActivity(); l.unshift({text,type,time:Date.now()}); saveActivity(l); }
 function loadArchive() { try { return JSON.parse(localStorage.getItem(userKey('taskflow_archive'))) || []; } catch { return []; } }
-function saveArchive(list) { localStorage.setItem(userKey('taskflow_archive'), JSON.stringify(list)); }
+function saveArchive(list) { localStorage.setItem(userKey('taskflow_archive'), JSON.stringify(list)); syncKey(userKey('taskflow_archive')); }
 function loadTemplates() { try { return JSON.parse(localStorage.getItem('taskflow_templates')) || []; } catch { return []; } }
-function saveTemplates(t) { localStorage.setItem('taskflow_templates', JSON.stringify(t)); }
+function saveTemplates(t) { localStorage.setItem('taskflow_templates', JSON.stringify(t)); syncKey('taskflow_templates'); }
 function loadFilters() { try { return JSON.parse(localStorage.getItem(userKey('taskflow_filters'))) || []; } catch { return []; } }
-function saveFilters(f) { localStorage.setItem(userKey('taskflow_filters'), JSON.stringify(f)); }
+function saveFilters(f) { localStorage.setItem(userKey('taskflow_filters'), JSON.stringify(f)); syncKey(userKey('taskflow_filters')); }
 function loadProjects() { try { return JSON.parse(localStorage.getItem(userKey('taskflow_projects'))) || []; } catch { return []; } }
-function saveProjects(p) { localStorage.setItem(userKey('taskflow_projects'), JSON.stringify(p)); }
+function saveProjects(p) { localStorage.setItem(userKey('taskflow_projects'), JSON.stringify(p)); syncKey(userKey('taskflow_projects')); }
 function loadGoals() { try { return JSON.parse(localStorage.getItem(userKey('taskflow_goals'))) || []; } catch { return []; } }
-function saveGoals(g) { localStorage.setItem(userKey('taskflow_goals'), JSON.stringify(g)); }
+function saveGoals(g) { localStorage.setItem(userKey('taskflow_goals'), JSON.stringify(g)); syncKey(userKey('taskflow_goals')); }
 function loadHabits() { try { return JSON.parse(localStorage.getItem(userKey('taskflow_habits'))) || []; } catch { return []; } }
-function saveHabits(h) { localStorage.setItem(userKey('taskflow_habits'), JSON.stringify(h)); }
+function saveHabits(h) { localStorage.setItem(userKey('taskflow_habits'), JSON.stringify(h)); syncKey(userKey('taskflow_habits')); }
 function loadNotes() { try { return JSON.parse(localStorage.getItem(userKey('taskflow_notes'))) || []; } catch { return []; } }
-function saveNotes(n) { localStorage.setItem(userKey('taskflow_notes'), JSON.stringify(n)); }
+function saveNotes(n) { localStorage.setItem(userKey('taskflow_notes'), JSON.stringify(n)); syncKey(userKey('taskflow_notes')); }
 function loadUsers() { try { return JSON.parse(localStorage.getItem('taskflow_users')) || []; } catch { return []; } }
 function getUserLabel(email) {
   const clean=asText(email, 120);
@@ -212,7 +411,7 @@ function showPage(name) {
   const nv = document.querySelector('.nav-item[data-page="'+name+'"]');
   if (nv) nv.classList.add('active');
   if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open');
-  const renderMap = {dashboard:renderDashboard,tasks:renderTasks,kanban:renderKanban,calendar:renderCalendar,analytics:renderAnalytics,archive:renderArchive,myday:renderMyDay,projects:renderProjects,eisenhower:renderEisenhower,goals:renderGoals,habits:renderHabits,notes:renderNotes,reports:renderReports};
+  const renderMap = {dashboard:renderDashboard,tasks:renderTasks,kanban:renderKanban,calendar:renderCalendar,timetable:renderTimetable,analytics:renderAnalytics,archive:renderArchive,myday:renderMyDay,projects:renderProjects,eisenhower:renderEisenhower,goals:renderGoals,habits:renderHabits,notes:renderNotes,reports:renderReports,lifebalance:renderLifeBalance,progress:renderProgress};
   if (renderMap[name]) renderMap[name]();
 }
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
@@ -279,6 +478,11 @@ function isOverdue(t) {
   return new Date(t.due+'T23:59:59')<d;
 }
 function todayStr() { return new Date().toISOString().slice(0,10); }
+function addDaysToDateStr(dateStr, delta) {
+  const d = new Date(dateStr+'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate()+delta);
+  return d.toISOString().slice(0,10);
+}
 function typeColor(type) {
   if(type==='success') { return 'var(--success)'; }
   if(type==='error') { return 'var(--danger)'; }
@@ -800,7 +1004,7 @@ function initCal(){const n=new Date();calYear=n.getFullYear();calMonth=n.getMont
 function calNav(d){calMonth+=d;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
 function calToday(){initCal();renderCalendar();}
 function loadEvents(){try{return JSON.parse(localStorage.getItem(userKey('taskflow_events')))||[];}catch{return [];}}
-function saveEvents(ev){localStorage.setItem(userKey('taskflow_events'),JSON.stringify(ev));}
+function saveEvents(ev){localStorage.setItem(userKey('taskflow_events'),JSON.stringify(ev));syncKey(userKey('taskflow_events'));}
 function openEventModal(dateStr){
   editingEventId=null;selectedEventColor='#818cf8';
   document.getElementById('eventModalTitle').textContent='New Event';
@@ -896,11 +1100,11 @@ function renderAnalytics(){
 }
 function calcStreak(tasks){
   const comp=tasks.filter(t=>t.completedAt).map(t=>new Date(t.completedAt).toISOString().slice(0,10));
-  const uniq=[...new Set(comp)].sort().reverse();
-  if(!uniq.length) return 0;
-  let streak=0,check=new Date();check.setHours(0,0,0,0);
-  if(!uniq.includes(check.toISOString().slice(0,10))) check.setDate(check.getDate()-1);
-  for(let i=0;i<365;i++){const ds=check.toISOString().slice(0,10);if(uniq.includes(ds)){streak++;check.setDate(check.getDate()-1);}else break;}
+  const uniq=new Set(comp);
+  if(!uniq.size) return 0;
+  let streak=0, checkDs=todayStr();
+  if(!uniq.has(checkDs)) checkDs=addDaysToDateStr(checkDs,-1);
+  for(let i=0;i<365;i++){ if(uniq.has(checkDs)){ streak++; checkDs=addDaysToDateStr(checkDs,-1); } else break; }
   return streak;
 }
 function renderBurndown(tasks){
@@ -953,9 +1157,102 @@ function renderMyDay() {
   if(noteEl&&!noteEl.matches(':focus')) noteEl.value=dailyNote;
 }
 function setMyDaySlot(id,slot){const tasks=loadTasks(),t=tasks.find(x=>x.id===id);if(t){t.myDaySlot=slot;saveTasks(tasks);renderMyDay();}}
-function saveDailyNote(){const el=document.getElementById('dailyNoteInput');if(el)localStorage.setItem(userKey('dailyNote_'+todayStr()),el.value);}
+function saveDailyNote(){const el=document.getElementById('dailyNoteInput');if(el){const k=userKey('dailyNote_'+todayStr());localStorage.setItem(k,el.value);syncKey(k);}}
 function addToMyDay(){const tasks=loadTasks().filter(t=>t.status!=='done'&&t.due!==todayStr()&&t.myDay!==todayStr());if(!tasks.length){toast('No tasks available');return;}
   const id=tasks[0].id;const ts=loadTasks(),t=ts.find(x=>x.id===id);if(t){t.myDay=todayStr();saveTasks(ts);renderMyDay();toast('Added to My Day');}}
+
+/* ═══════ TIMETABLE (dynamic daily auto-scheduler) ═══════ */
+let timetableDate = todayStr();
+function getWorkHours(){
+  let wh=null;
+  try{ wh=JSON.parse(localStorage.getItem(userKey('taskflow_workhours'))); }catch{ wh=null; }
+  if(!wh||typeof wh.start!=='number'||typeof wh.end!=='number') wh={start:9,end:18};
+  wh.start=Math.min(23,Math.max(0,Number.parseInt(wh.start)||0));
+  wh.end=Math.min(24,Math.max(wh.start+1,Number.parseInt(wh.end)||wh.start+1));
+  return wh;
+}
+function saveWorkHours(wh){ localStorage.setItem(userKey('taskflow_workhours'), JSON.stringify(wh)); syncKey(userKey('taskflow_workhours')); }
+function updateWorkHours(){
+  const s=Number.parseInt(document.getElementById('ttStartInput').value);
+  const e=Number.parseInt(document.getElementById('ttEndInput').value);
+  const wh=getWorkHours();
+  if(!Number.isNaN(s)) wh.start=Math.min(23,Math.max(0,s));
+  if(!Number.isNaN(e)) wh.end=Math.min(24,Math.max(wh.start+1,e));
+  saveWorkHours(wh); renderTimetable();
+}
+function timetableNav(delta){
+  timetableDate=addDaysToDateStr(timetableDate, delta); renderTimetable();
+}
+function timetableToday(){ timetableDate=todayStr(); renderTimetable(); }
+function fmtHourLabel(h){
+  const hh=((h%24)+24)%24;
+  const ampm=hh<12?'AM':'PM'; let disp=hh%12; if(disp===0) disp=12;
+  return disp+':00 '+ampm;
+}
+function buildTimetableSchedule(date, wh){
+  const tasks=loadTasks().filter(t=>t.status!=='done'&&(t.due===date||t.myDay===date));
+  tasks.sort((a,b)=>{
+    if(a.due_time&&b.due_time) return a.due_time.localeCompare(b.due_time);
+    if(a.due_time) return -1;
+    if(b.due_time) return 1;
+    return (b.smartScore||0)-(a.smartScore||0);
+  });
+  const startMin=wh.start*60, endMin=wh.end*60;
+  let cursor=startMin;
+  const blocks=[], overflow=[];
+  tasks.forEach(t=>{
+    const dur=Math.max(15, Math.round((t.estimated_hours||1)*60));
+    if(cursor+dur>endMin){ overflow.push(t); return; }
+    blocks.push({task:t, start:cursor, end:cursor+dur});
+    cursor+=dur;
+  });
+  return {blocks, overflow};
+}
+function renderTimetable(){
+  const wh=getWorkHours();
+  document.getElementById('ttStartInput').value=wh.start;
+  document.getElementById('ttEndInput').value=wh.end;
+  const isToday=timetableDate===todayStr();
+  document.getElementById('ttDateLabel').innerHTML=(isToday?'Today &bull; ':'')+escHtml(new Date(timetableDate+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}));
+  const {blocks, overflow}=buildTimetableSchedule(timetableDate, wh);
+  const totalMin=(wh.end-wh.start)*60;
+  const usedMin=blocks.reduce((s,b)=>s+(b.end-b.start),0);
+  const freeMin=Math.max(0, totalMin-usedMin);
+  document.getElementById('ttStats').innerHTML=
+    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Scheduled</h3><div class="num">'+blocks.length+'</div></div></div>'+
+    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Planned Hours</h3><div class="num">'+(usedMin/60).toFixed(1)+'</div></div></div>'+
+    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Free Hours</h3><div class="num">'+(freeMin/60).toFixed(1)+'</div></div></div>'+
+    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Unscheduled</h3><div class="num">'+overflow.length+'</div></div></div>';
+  const grid=document.getElementById('ttGrid');
+  grid.style.height=totalMin+'px';
+  let html='';
+  for(let h=wh.start; h<wh.end; h++){
+    html+='<div class="tt-hour-label" style="top:'+((h-wh.start)*60)+'px">'+fmtHourLabel(h)+'</div>';
+  }
+  blocks.forEach(b=>{
+    const t=b.task, top=b.start-wh.start*60, h=Math.max(20, b.end-b.start);
+    const done=t.status==='done';
+    html+='<div class="tt-block'+(done?' tt-done':'')+'" style="top:'+top+'px;height:'+(h-2)+'px;background:'+priorityColor(t.priority)+'" onclick="openModal(\''+t.id+'\')" title="'+escHtml(t.title)+'">'+
+      '<div class="tt-block-title">'+escHtml(t.title)+'</div>'+
+      '<div class="tt-block-meta">'+fmtHourLabel(b.start/60)+' &ndash; '+fmtHourLabel(b.end/60)+(t.project?' &bull; '+escHtml(getProjectName(t.project)):'')+'</div>'+
+    '</div>';
+  });
+  if(isToday){
+    const now=new Date(), nowMin=now.getHours()*60+now.getMinutes();
+    if(nowMin>=wh.start*60&&nowMin<=wh.end*60){
+      html+='<div class="tt-now-line" style="top:'+(nowMin-wh.start*60)+'px"></div>';
+    }
+  }
+  grid.innerHTML=html;
+  const ov=document.getElementById('ttOverflow');
+  if(!overflow.length){
+    ov.innerHTML='<p style="color:var(--text3);font-size:.8rem">Everything fits today &#127881;</p>';
+  } else {
+    ov.innerHTML=overflow.map(t=>
+      '<div class="tt-overflow-card" onclick="openModal(\''+t.id+'\')"><div class="tt-ov-title">'+escHtml(t.title)+'</div><div class="tt-ov-meta">'+(t.estimated_hours||1)+'h &bull; '+t.priority+'</div></div>'
+    ).join('');
+  }
+}
 
 /* ═══════ PROJECTS ═══════ */
 function renderProjects(){
@@ -1098,10 +1395,9 @@ function renderHabits(){
 }
 function calcHabitStreak(h){
   if(!h.completions) return 0;
-  let streak=0, d=new Date();d.setHours(0,0,0,0);
-  let ds=d.toISOString().slice(0,10);
-  if(!h.completions[ds]){d.setDate(d.getDate()-1);ds=d.toISOString().slice(0,10);}
-  for(let i=0;i<365;i++){ds=d.toISOString().slice(0,10);if(h.completions[ds]){streak++;d.setDate(d.getDate()-1);}else break;}
+  let streak=0, ds=todayStr();
+  if(!h.completions[ds]) ds=addDaysToDateStr(ds,-1);
+  for(let i=0;i<365;i++){ if(h.completions[ds]){ streak++; ds=addDaysToDateStr(ds,-1); } else break; }
   return streak;
 }
 function toggleHabitDay(id,ds){
@@ -1204,6 +1500,396 @@ function renderReports(){
     '</div>';
 }
 
+/* ═══════ LIFE BALANCE (evidence-based daily time-use scoring) ═══════ */
+/* Verdict scoring is a heuristic composite for self-reflection, not a validated clinical index.
+   Category thresholds are drawn from the specific public-health sources cited in LB_SOURCES/lbEvaluate* below. */
+let lbDate = todayStr();
+const LB_FIELDS = [
+  {key:'sleep',label:'Sleep',icon:'&#127769;'},
+  {key:'work',label:'Work',icon:'&#128188;'},
+  {key:'study',label:'Study',icon:'&#128218;'},
+  {key:'exercise',label:'Exercise',icon:'&#127939;'},
+  {key:'social',label:'Social',icon:'&#128101;'},
+  {key:'leisure',label:'Leisure',icon:'&#127918;'}
+];
+const LB_STATUS_SCORE = {optimal:100, good:80, caution:55, low:30, high:40, none:10, na:null};
+const LB_STATUS_LABEL = {optimal:'Optimal', good:'Good', caution:'Caution', low:'Too Low', high:'Too High', none:'None Logged', na:'Not Scored'};
+function lbClampHours(v){ return Math.max(0, Math.min(24, Number.parseFloat(v)||0)); }
+function loadLbLog(date){
+  try{ const v=JSON.parse(localStorage.getItem(userKey('taskflow_timelog_'+date))); return (v&&typeof v==='object')?v:{}; }catch{ return {}; }
+}
+function saveLbLog(date, log){ localStorage.setItem(userKey('taskflow_timelog_'+date), JSON.stringify(log)); syncKey(userKey('taskflow_timelog_'+date)); }
+function lbNav(delta){
+  lbDate=addDaysToDateStr(lbDate, delta); renderLifeBalance();
+}
+function lbToday(){ lbDate=todayStr(); renderLifeBalance(); }
+function lbEvaluateSleep(h){
+  if(h>=7&&h<=9) return {status:'optimal', note:'Within the 7–9h adult range recommended by sleep-health guidelines.'};
+  if(h>=6&&h<7) return {status:'caution', note:'Slightly under the recommended 7–9h — occasional, not chronic, is the goal.'};
+  if(h>9&&h<=10) return {status:'caution', note:'Slightly over 9h — fine occasionally; consistently needing this much can also signal poor sleep quality.'};
+  if(h<6) return {status:'low', note:'Well under the recommended range; chronic short sleep is linked to impaired cognition, mood and long-term health risk.'};
+  return {status:'high', note:'Well over the typical range; if this is a consistent pattern it may be worth discussing with a doctor.'};
+}
+function lbEvaluateExercise(h){
+  const mins=h*60;
+  if(mins>=30) return {status:'optimal', note:'Meets/exceeds the ~30 min/day average implied by WHO’s 150–300 min/week guideline.'};
+  if(mins>=10) return {status:'caution', note:'Below the general 150 min/week guideline, but still more than none — worth building on.'};
+  if(mins>0) return {status:'low', note:'Well below recommended activity levels for cardiovascular and mental-health benefits.'};
+  return {status:'none', note:'No activity logged. Even short daily movement has measurable health benefits.'};
+}
+function lbEvaluateLeisure(h){
+  if(h>=1&&h<=5) return {status:'optimal', note:'Discretionary time in the range associated with peak subjective well-being (highest around ~2h).'};
+  if(h<1) return {status:'low', note:'Very little discretionary time is associated with feeling time-starved and lower well-being.'};
+  return {status:'high', note:'Large amounts of unstructured time show diminishing (sometimes slightly negative) well-being returns unless spent purposefully.'};
+}
+function lbEvaluateSocial(h){
+  if(h>=1) return {status:'optimal', note:'Meaningful social contact is one of the strongest predictors of long-term well-being.'};
+  if(h>0) return {status:'low', note:'Some connection logged, but more consistent social time is consistently linked to better outcomes.'};
+  return {status:'none', note:'No social time logged. Isolation is an established risk factor for both mental and physical health.'};
+}
+function lbEvaluateStudy(h){
+  if(h===0) return {status:'na', note:'No study time logged today — not scored, since not everyone studies daily.'};
+  if(h<=4) return {status:'good', note:'Within the range where focused cognitive work stays sustainable (deliberate-practice research puts the ceiling near 4h/day even for experts).'};
+  if(h<=6) return {status:'caution', note:'Above the range associated with sustained peak performance — make sure real breaks are built in.'};
+  return {status:'high', note:'Sustained high cognitive load without recovery is linked to diminishing returns and burnout risk.'};
+}
+function lbEvaluateWeeklyWork(weeklyHours, daysLogged){
+  if(daysLogged===0) return {status:'na', note:'No work hours logged in the past 7 days.'};
+  if(weeklyHours<=40) return {status:'optimal', note:'At or under the standard 40h/week.'};
+  if(weeklyHours<=55) return {status:'caution', note:'Above standard full-time hours; sustained overwork in this range carries rising health risk.'};
+  return {status:'high', note:'Above 55h/week — a WHO/ILO joint study linked this level to a 35% higher stroke risk and 17% higher risk of fatal ischemic heart disease versus 35–40h/week.'};
+}
+function lbBadgeHtml(status){
+  const colors={optimal:'var(--success)',good:'var(--success)',caution:'var(--warning)',low:'var(--danger)',high:'var(--danger)',none:'var(--text3)',na:'var(--text3)'};
+  return '<span class="lb-badge" style="background:'+colors[status]+'">'+LB_STATUS_LABEL[status]+'</span>';
+}
+function lbFieldChanged(){
+  const log={};
+  LB_FIELDS.forEach(f=>{ log[f.key]=lbClampHours(document.getElementById('lbIn_'+f.key).value); });
+  saveLbLog(lbDate, log);
+  lbRenderCalculations(log);
+}
+function lbRenderCalculations(log){
+  const sum=LB_FIELDS.reduce((s,f)=>s+(log[f.key]||0),0);
+  const other=Math.max(0,24-sum);
+  document.getElementById('lbSumHint').textContent = sum>24
+    ? '— logged '+sum.toFixed(1)+'h, that’s more than 24h in a day, adjust your entries'
+    : '— '+sum.toFixed(1)+'h logged, '+other.toFixed(1)+'h unaccounted for (commute, meals, chores, etc.)';
+  const evals={
+    sleep:lbEvaluateSleep(log.sleep||0),
+    exercise:lbEvaluateExercise(log.exercise||0),
+    leisure:lbEvaluateLeisure(log.leisure||0),
+    social:lbEvaluateSocial(log.social||0),
+    study:lbEvaluateStudy(log.study||0)
+  };
+  const weeklyWork=lbWeeklyWorkSummary();
+  evals.work=weeklyWork.evaluation;
+  const labels={sleep:'Sleep',exercise:'Exercise',leisure:'Leisure',social:'Social',study:'Study',work:'Work (weekly)'};
+  document.getElementById('lbBreakdown').innerHTML=Object.keys(evals).map(k=>{
+    const e=evals[k];
+    return '<div class="lb-cat-card" style="border-left-color:'+({optimal:'var(--success)',good:'var(--success)',caution:'var(--warning)',low:'var(--danger)',high:'var(--danger)',none:'var(--text3)',na:'var(--text3)'}[e.status])+'">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><strong>'+labels[k]+'</strong>'+lbBadgeHtml(e.status)+'</div>'+
+      '<p style="font-size:.78rem;color:var(--text2);margin-top:4px">'+e.note+'</p></div>';
+  }).join('');
+  const scored=['sleep','exercise','leisure','social','work'].map(k=>LB_STATUS_SCORE[evals[k].status]).filter(v=>v!==null);
+  const overall=scored.length?Math.round(scored.reduce((a,b)=>a+b,0)/scored.length):null;
+  let overallLabel='Not enough data', overallColor='var(--text3)';
+  if(overall!==null){
+    if(overall>=85){overallLabel='Excellent balance';overallColor='var(--success)';}
+    else if(overall>=65){overallLabel='Good balance';overallColor='var(--success)';}
+    else if(overall>=45){overallLabel='Needs attention';overallColor='var(--warning)';}
+    else {overallLabel='Poor balance';overallColor='var(--danger)';}
+  }
+  document.getElementById('lbScoreCard').innerHTML=
+    '<div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">'+
+      '<div style="width:100px;height:100px;border-radius:50%;border:6px solid '+overallColor+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:1.6rem;font-weight:800">'+(overall!==null?overall:'--')+'</span></div>'+
+      '<div><div style="font-size:1.1rem;font-weight:800;color:'+overallColor+'">'+overallLabel+'</div>'+
+      '<p style="font-size:.8rem;color:var(--text3);max-width:480px;margin-top:4px">Composite of sleep, exercise, leisure, social and weekly work-hour scores against the sources below. Study time is shown for reflection but not included, since there’s no universal healthy amount.</p></div>'+
+    '</div>';
+  document.getElementById('lbWeekly').innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><strong>'+weeklyWork.totalHours.toFixed(1)+'h over last '+weeklyWork.daysLogged+' logged day(s)</strong>'+lbBadgeHtml(weeklyWork.evaluation.status)+'</div>'+
+    '<p style="font-size:.78rem;color:var(--text2);margin-top:6px">'+weeklyWork.evaluation.note+'</p>';
+}
+function lbWeeklyWorkSummary(){
+  let totalHours=0, daysLogged=0;
+  for(let i=0;i<7;i++){
+    const ds=addDaysToDateStr(lbDate, -i);
+    const log=loadLbLog(ds);
+    if(log&&Object.prototype.hasOwnProperty.call(log,'work')){ totalHours+=lbClampHours(log.work); daysLogged++; }
+  }
+  return {totalHours, daysLogged, evaluation:lbEvaluateWeeklyWork(totalHours, daysLogged)};
+}
+function toggleLbSources(){
+  const el=document.getElementById('lbSources');
+  const show=el.style.display==='none';
+  el.style.display=show?'block':'none';
+  document.getElementById('lbSourcesToggle').textContent=show?'Hide Methodology & Sources':'Show Methodology & Sources';
+  if(show&&!el.dataset.filled){
+    el.dataset.filled='1';
+    el.innerHTML=
+      '<p><strong>Sleep (7–9h):</strong> Hirshkowitz et al., "National Sleep Foundation’s Sleep Time Duration Recommendations," <em>Sleep Health</em>, 2015; consistent with CDC adult sleep guidance.</p>'+
+      '<p><strong>Exercise (≥150 min/week):</strong> World Health Organization, "WHO Guidelines on Physical Activity and Sedentary Behaviour," 2020.</p>'+
+      '<p><strong>Leisure/discretionary time (~2h peak, plateau by ~5h):</strong> Sharif, Mogilner & Hershfield, "Having Too Little or Too Much Time Is Linked to Lower Subjective Well-Being," <em>Journal of Personality and Social Psychology</em>, 2021.</p>'+
+      '<p><strong>Social connection:</strong> Waldinger & Schulz, findings from the Harvard Study of Adult Development (the longest-running longitudinal study on well-being), summarized in <em>The Good Life</em>, 2023.</p>'+
+      '<p><strong>Study/deep work (≈4h sustainable ceiling):</strong> Ericsson, Krampe & Tesch-Römer, "The Role of Deliberate Practice in the Acquisition of Expert Performance," <em>Psychological Review</em>, 1993.</p>'+
+      '<p><strong>Weekly work hours (≤40h optimal, >55h high risk):</strong> Pega et al., joint WHO/ILO study, "Global, Regional, and National Burdens of Ischemic Heart Disease and Stroke Attributable to Exposure to Long Working Hours," <em>Environment International</em>, 2021.</p>'+
+      '<p style="color:var(--text3);margin-top:8px">These are population-level research findings used as reflection benchmarks, not individualized medical advice. Needs vary by age, health status and personal circumstances.</p>';
+  }
+}
+function renderLifeBalance(){
+  const isToday=lbDate===todayStr();
+  document.getElementById('lbDateLabel').innerHTML=(isToday?'Today &bull; ':'')+escHtml(new Date(lbDate+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}));
+  const log=loadLbLog(lbDate);
+  document.getElementById('lbInputGrid').innerHTML=LB_FIELDS.map(f=>
+    '<div class="lb-field"><label for="lbIn_'+f.key+'">'+f.icon+' '+f.label+'</label><input type="number" id="lbIn_'+f.key+'" min="0" max="24" step="0.25" placeholder="0" value="'+(log[f.key]!=null?log[f.key]:'')+'" oninput="lbFieldChanged()"></div>'
+  ).join('');
+  lbRenderCalculations(log);
+}
+
+/* ═══════ PROGRESS & CHALLENGES (auto-calculated from activity, self-competition only) ═══════ */
+function dateOfMs(ms){ return new Date(ms).toISOString().slice(0,10); }
+function lbDailyScore(log){
+  if(!log) return null;
+  const keys=['sleep','exercise','leisure','social'];
+  if(!keys.some(k=>(log[k]||0)>0)) return null;
+  const evalFns={sleep:lbEvaluateSleep,exercise:lbEvaluateExercise,leisure:lbEvaluateLeisure,social:lbEvaluateSocial};
+  const scores=keys.filter(k=>(log[k]||0)>0).map(k=>LB_STATUS_SCORE[evalFns[k](log[k]).status]).filter(v=>v!=null);
+  return scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):null;
+}
+function calcActivityScore(dateStr, tasks, habits){
+  const dayTasks=tasks.filter(t=>t.completedAt&&dateOfMs(t.completedAt)===dateStr);
+  const taskScore=dayTasks.length?Math.min(100, dayTasks.length*25):null;
+  const hoursSum=dayTasks.reduce((s,t)=>s+(t.logged_hours||0),0);
+  const hoursScore=hoursSum>0?Math.min(100, hoursSum/8*100):null;
+  let habitScore=null;
+  if(habits.length){ const doneCount=habits.filter(h=>h.completions&&h.completions[dateStr]).length; habitScore=Math.round(doneCount/habits.length*100); }
+  const lbScore=lbDailyScore(loadLbLog(dateStr));
+  const parts=[taskScore,hoursScore,habitScore,lbScore].filter(v=>v!=null);
+  return parts.length?Math.round(parts.reduce((a,b)=>a+b,0)/parts.length):null;
+}
+function getActivityScoreSeries(days){
+  const tasks=loadTasks(), habits=loadHabits(), today=todayStr(), out=[];
+  for(let i=days-1;i>=0;i--){ const ds=addDaysToDateStr(today,-i); out.push({date:ds, score:calcActivityScore(ds,tasks,habits)}); }
+  return out;
+}
+function calcBestRollingWeek(tasks, metric, lookbackDays=180){
+  const perDay={};
+  tasks.forEach(t=>{ if(t.completedAt){ const ds=dateOfMs(t.completedAt); if(!perDay[ds]) perDay[ds]={tasks:0,hours:0}; perDay[ds].tasks++; perDay[ds].hours+=(t.logged_hours||0); } });
+  const today=todayStr();
+  let best=0;
+  for(let i=0;i<lookbackDays;i++){
+    const end=addDaysToDateStr(today,-i);
+    let sum=0;
+    for(let j=0;j<7;j++){ const ds=addDaysToDateStr(end,-j); sum+=perDay[ds]?perDay[ds][metric]:0; }
+    if(sum>best) best=sum;
+  }
+  return Math.round(best*10)/10;
+}
+function calcBestStreakEver(tasks){
+  const uniq=[...new Set(tasks.filter(t=>t.completedAt).map(t=>dateOfMs(t.completedAt)))].sort();
+  let best=0,cur=0,prev=null;
+  uniq.forEach(ds=>{ cur=(prev&&ds===addDaysToDateStr(prev,1))?cur+1:1; best=Math.max(best,cur); prev=ds; });
+  return best;
+}
+function calcBestHabitStreakEver(){
+  let best=0;
+  loadHabits().forEach(h=>{
+    if(!h.completions) return;
+    const dates=Object.keys(h.completions).filter(k=>h.completions[k]).sort();
+    let cur=0,prev=null;
+    dates.forEach(ds=>{ cur=(prev&&ds===addDaysToDateStr(prev,1))?cur+1:1; best=Math.max(best,cur); prev=ds; });
+  });
+  return best;
+}
+/* Challenges: self-set targets, auto-tracked against your own activity, no manual progress entry */
+function loadChallenges(){ try{ return JSON.parse(localStorage.getItem(userKey('taskflow_challenges')))||[]; }catch{ return []; } }
+function saveChallenges(list){ localStorage.setItem(userKey('taskflow_challenges'), JSON.stringify(list)); syncKey(userKey('taskflow_challenges')); }
+function normalizeChallenge(c){
+  return {
+    id:asText(c.id,80)||'ch'+Date.now()+Math.random().toString(36).slice(2,6),
+    title:asText(c.title,100),
+    metric:asChoice(c.metric,['tasks','hours','habits','streak'],'tasks'),
+    target:Math.max(1, Number.parseFloat(c.target)||1),
+    days:Math.max(1, Math.min(90, Number.parseInt(c.days)||7)),
+    startDate:asDateText(c.startDate)||todayStr(),
+    createdAt:Number(c.createdAt)||Date.now(),
+    status:asChoice(c.status,['active','completed','expired'],'active'),
+    completedAt:c.completedAt?Number(c.completedAt):null
+  };
+}
+const CHALLENGE_METRIC_LABEL={tasks:'Tasks Completed', hours:'Hours Logged', habits:'Habit Check-ins', streak:'Day Completion Streak'};
+function getChallengeProgress(ch, tasks, habits){
+  if(ch.metric==='streak'){
+    const current=calcStreak(tasks);
+    return {current, target:ch.target, pct:Math.min(100,Math.round(current/ch.target*100)), done:current>=ch.target, expired:false};
+  }
+  const periodEnd=addDaysToDateStr(ch.startDate, ch.days);
+  let current=0;
+  if(ch.metric==='tasks'||ch.metric==='hours'){
+    tasks.forEach(t=>{ if(t.completedAt){ const ds=dateOfMs(t.completedAt); if(ds>=ch.startDate&&ds<periodEnd) current+=ch.metric==='tasks'?1:(t.logged_hours||0); } });
+  } else if(ch.metric==='habits'){
+    habits.forEach(h=>{ if(!h.completions) return; Object.keys(h.completions).forEach(ds=>{ if(h.completions[ds]&&ds>=ch.startDate&&ds<periodEnd) current++; }); });
+  }
+  current=Math.round(current*10)/10;
+  const done=current>=ch.target;
+  const expired=!done&&todayStr()>=periodEnd;
+  return {current, target:ch.target, pct:Math.min(100,Math.round(current/ch.target*100)), done, expired, periodEnd};
+}
+function refreshChallengeStatuses(){
+  const challenges=loadChallenges(), tasks=loadTasks(), habits=loadHabits();
+  let changed=false; const justCompleted=[];
+  challenges.forEach(ch=>{
+    if(ch.status!=='active') return;
+    const p=getChallengeProgress(ch,tasks,habits);
+    if(p.done){ ch.status='completed'; ch.completedAt=Date.now(); changed=true; justCompleted.push(ch); }
+    else if(p.expired){ ch.status='expired'; changed=true; }
+  });
+  if(changed) saveChallenges(challenges);
+  return justCompleted;
+}
+function autoChallengeTitle(metric,target,days){
+  if(metric==='streak') return 'Reach a '+target+'-day streak';
+  const plural=target===1;
+  const unit=metric==='hours'?(plural?'hour logged':'hours logged'):metric==='habits'?(plural?'habit check-in':'habit check-ins'):(plural?'task completed':'tasks completed');
+  return target+' '+unit+' in '+days+' day'+(days===1?'':'s');
+}
+function openChallengeModal(){
+  document.getElementById('challengeTitleInput').value='';
+  document.getElementById('challengeMetricInput').value='tasks';
+  document.getElementById('challengeTargetInput').value=10;
+  document.getElementById('challengeDaysInput').value=7;
+  updateChallengeMetricUI();
+  document.getElementById('challengeModal').classList.add('active');
+}
+function closeChallengeModal(){ document.getElementById('challengeModal').classList.remove('active'); }
+function updateChallengeMetricUI(){
+  const metric=document.getElementById('challengeMetricInput').value;
+  document.getElementById('challengeDaysGroup').style.display=metric==='streak'?'none':'block';
+}
+function saveChallenge(){
+  const metric=document.getElementById('challengeMetricInput').value;
+  const target=Number.parseFloat(document.getElementById('challengeTargetInput').value)||1;
+  const days=Number.parseInt(document.getElementById('challengeDaysInput').value)||7;
+  const title=document.getElementById('challengeTitleInput').value.trim()||autoChallengeTitle(metric,target,days);
+  const challenges=loadChallenges();
+  challenges.push(normalizeChallenge({title,metric,target,days,startDate:todayStr(),createdAt:Date.now(),status:'active'}));
+  saveChallenges(challenges);
+  closeChallengeModal();
+  toast('Challenge started');
+  renderProgress();
+}
+function startSuggestedChallenge(metric,target,days){
+  const challenges=loadChallenges();
+  challenges.push(normalizeChallenge({title:autoChallengeTitle(metric,target,days),metric,target,days,startDate:todayStr(),createdAt:Date.now(),status:'active'}));
+  saveChallenges(challenges);
+  toast('Challenge started &mdash; beat your record!');
+  renderProgress();
+}
+function deleteChallenge(id){
+  saveChallenges(loadChallenges().filter(c=>c.id!==id));
+  renderProgress();
+}
+function renderActivityChart(series){
+  const w=100,h=40;
+  const n=series.length;
+  const stepX=n>1?w/(n-1):w;
+  const segments=[]; let current=[];
+  series.forEach((pt,i)=>{
+    if(pt.score==null){ if(current.length){segments.push(current);current=[];} return; }
+    const x=i*stepX, y=h-(pt.score/100)*h;
+    current.push(x.toFixed(2)+','+y.toFixed(2));
+  });
+  if(current.length) segments.push(current);
+  const paths=segments.map(seg=>'<polyline points="'+seg.join(' ')+'" fill="none" stroke="var(--primary)" stroke-width="1.5" vector-effect="non-scaling-stroke"/>').join('');
+  const dots=series.map((pt,i)=>{
+    if(pt.score==null) return '';
+    const x=i*stepX, y=h-(pt.score/100)*h, isLast=i===series.length-1;
+    return '<circle cx="'+x.toFixed(2)+'" cy="'+y.toFixed(2)+'" r="'+(isLast?2.4:1.1)+'" fill="'+(isLast?'var(--primary)':'var(--primary-light)')+'"><title>'+pt.date+': '+pt.score+'</title></circle>';
+  }).join('');
+  const hasData=series.some(p=>p.score!=null);
+  if(!hasData) return '<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:24px">No activity logged yet &mdash; complete tasks, check off habits, or log a Life Balance day to see your trend.</p>';
+  const first=series[0].date, mid=series[Math.floor(series.length/2)].date, last=series[series.length-1].date;
+  return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="width:100%;height:160px;display:block">'+
+    '<line x1="0" y1="'+h+'" x2="'+w+'" y2="'+h+'" stroke="var(--border)" stroke-width="0.5"/>'+
+    '<line x1="0" y1="'+(h*0.5)+'" x2="'+w+'" y2="'+(h*0.5)+'" stroke="var(--border)" stroke-width="0.3" stroke-dasharray="2,2"/>'+
+    paths+dots+
+  '</svg><div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--text3);margin-top:4px"><span>'+fmtDate(first)+'</span><span>'+fmtDate(mid)+'</span><span>'+fmtDate(last)+'</span></div>';
+}
+function renderProgressTasksChart(tasks){
+  const el=document.getElementById('progTasksChart'); if(!el) return;
+  const today=todayStr(), bars=[];
+  for(let i=13;i>=0;i--){
+    const ds=addDaysToDateStr(today,-i);
+    const count=tasks.filter(t=>t.completedAt&&dateOfMs(t.completedAt)===ds).length;
+    bars.push({ds,count,isToday:i===0});
+  }
+  const max=Math.max(...bars.map(b=>b.count),1);
+  el.innerHTML=bars.map(b=>'<div class="chart-bar-wrap"><div class="chart-bar" style="height:'+Math.max(b.count/max*140,4)+'px;background:'+(b.isToday?'var(--primary)':'var(--primary-light)')+';opacity:'+(b.isToday?1:.6)+'"><span class="tooltip">'+b.count+'</span></div><span class="label">'+new Date(b.ds+'T00:00:00Z').getUTCDate()+'</span></div>').join('');
+}
+function renderHabitConsistency(){
+  const el=document.getElementById('progHabitConsistency'); if(!el) return;
+  const habits=loadHabits();
+  if(!habits.length){ el.innerHTML='<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:12px">No habits tracked yet</p>'; return; }
+  const today=todayStr();
+  el.innerHTML=habits.map(h=>{
+    let done=0;
+    for(let i=0;i<30;i++){ const ds=addDaysToDateStr(today,-i); if(h.completions&&h.completions[ds]) done++; }
+    const pct=Math.round(done/30*100);
+    return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px"><span>'+escHtml(h.name)+'</span><span style="font-weight:600">'+pct+'%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pct+'%;background:var(--accent)"></div></div></div>';
+  }).join('');
+}
+function renderChallengeList(){
+  const el=document.getElementById('challengeList');
+  const tasks=loadTasks(), habits=loadHabits();
+  const challenges=loadChallenges().sort((a,b)=>b.createdAt-a.createdAt);
+  if(!challenges.length){ el.innerHTML='<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:12px">No challenges yet &mdash; start one below or create your own.</p>'; return; }
+  el.innerHTML=challenges.map(ch=>{
+    const p=getChallengeProgress(ch,tasks,habits);
+    const badgeColor=ch.status==='completed'?'var(--success)':ch.status==='expired'?'var(--text3)':'var(--primary)';
+    const badgeLabel=ch.status==='completed'?'&#127942; Completed':ch.status==='expired'?'Ended':'Active';
+    return '<div class="lb-cat-card" style="border-left-color:'+badgeColor+'">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><strong>'+escHtml(ch.title)+'</strong><span style="display:flex;align-items:center;gap:8px"><span class="lb-badge" style="background:'+badgeColor+'">'+badgeLabel+'</span><button class="btn-icon" onclick="deleteChallenge(\''+ch.id+'\')" style="color:var(--text3)" title="Remove">&#128465;</button></span></div>'+
+      '<div style="font-size:.78rem;color:var(--text2);margin:4px 0 6px">'+p.current+' / '+ch.target+' '+CHALLENGE_METRIC_LABEL[ch.metric]+(ch.metric!=='streak'?' &bull; '+ch.days+'-day window':'')+'</div>'+
+      '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+p.pct+'%;background:'+badgeColor+'"></div></div>'+
+    '</div>';
+  }).join('');
+}
+function renderChallengeSuggestions(){
+  const el=document.getElementById('challengeSuggestions');
+  const tasks=loadTasks();
+  const bestWeekTasks=calcBestRollingWeek(tasks,'tasks');
+  const bestWeekHours=calcBestRollingWeek(tasks,'hours');
+  const bestStreak=calcBestStreakEver(tasks);
+  const bestHabitStreak=calcBestHabitStreakEver();
+  const suggestions=[
+    {metric:'tasks', days:7, target:Math.max(5,bestWeekTasks+1), note:'Your best 7-day run: '+bestWeekTasks+' tasks'},
+    {metric:'hours', days:7, target:Math.max(5,Math.ceil(bestWeekHours)+1), note:'Your best 7-day run: '+bestWeekHours+'h logged'},
+    {metric:'streak', days:null, target:Math.max(3,bestStreak+1), note:'Your longest-ever streak: '+bestStreak+' day'+(bestStreak===1?'':'s')}
+  ];
+  if(loadHabits().length){ suggestions.push({metric:'habits', days:14, target:Math.max(5,bestHabitStreak+1), note:'Your longest-ever habit streak: '+bestHabitStreak+' day'+(bestHabitStreak===1?'':'s')}); }
+  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">'+suggestions.map(s=>
+    '<div class="tt-overflow-card" style="cursor:default"><div class="tt-ov-title">'+autoChallengeTitle(s.metric,s.target,s.days||0)+'</div><div class="tt-ov-meta">'+s.note+'</div><button class="btn btn-sm btn-outline" style="margin-top:8px;width:100%" onclick="startSuggestedChallenge(\''+s.metric+'\','+s.target+','+(s.days||1)+')">Start Challenge</button></div>'
+  ).join('')+'</div>';
+}
+function renderProgress(){
+  const justCompleted=refreshChallengeStatuses();
+  if(justCompleted.length){ launchConfetti(); justCompleted.forEach(ch=>toast('Challenge complete: '+ch.title+' &#127881;','success')); }
+  const tasks=loadTasks(), habits=loadHabits(), today=todayStr();
+  const todayScore=calcActivityScore(today,tasks,habits);
+  const streak=calcStreak(tasks), bestStreak=calcBestStreakEver(tasks);
+  const activeCount=loadChallenges().filter(c=>c.status==='active').length;
+  document.getElementById('progStats').innerHTML=
+    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Activity Score Today</h3><div class="num">'+(todayScore!=null?todayScore:'—')+'</div></div></div>'+
+    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Current Streak</h3><div class="num">'+streak+'</div></div></div>'+
+    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Best Streak Ever</h3><div class="num">'+bestStreak+'</div></div></div>'+
+    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Challenges</h3><div class="num">'+activeCount+' <span style="font-size:.9rem;color:var(--text3)">active</span></div></div></div>';
+  document.getElementById('progActivityChart').innerHTML=renderActivityChart(getActivityScoreSeries(30));
+  renderProgressTasksChart(tasks);
+  renderHabitConsistency();
+  renderChallengeList();
+  renderChallengeSuggestions();
+}
+
 /* ═══════ POMODORO TIMER ═══════ */
 function loadPomodoroSettings(){
   pomoWorkSec=(Number.parseInt(localStorage.getItem(userKey('pomoWork')))||25)*60;
@@ -1215,6 +1901,7 @@ function savePomodoroSettings(){
   localStorage.setItem(userKey('pomoWork'),String(Math.floor(pomoWorkSec/60)));
   localStorage.setItem(userKey('pomoBreak'),String(Math.floor(pomoBreakSec/60)));
   localStorage.setItem(userKey('pomoSessions'),String(pomoSessionCount));
+  syncKey(userKey('pomoWork')); syncKey(userKey('pomoBreak')); syncKey(userKey('pomoSessions'));
 }
 function openPomodoro(){
   document.getElementById('focusOverlay').classList.add('active');
@@ -1576,9 +2263,11 @@ function refreshSettingsStatus(){
   const urlEl=document.getElementById('scriptUrlStatus');
   const tokenEl=document.getElementById('syncTokenStatus');
   const syncEl=document.getElementById('syncStateLabel');
+  const apiEl=document.getElementById('apiUrlStatus');
   if(urlEl) urlEl.textContent=APPS_SCRIPT_URL ? 'Configured' : 'Not configured';
   if(tokenEl) tokenEl.textContent=getSyncToken() ? 'Configured for this account' : 'Required for Google Sheets sync';
   if(syncEl) syncEl.textContent=getSyncStatusText();
+  if(apiEl) apiEl.textContent=apiConfigured() ? (getAuthSession(currentUser)?'Configured — signed in':'Configured — not signed in') : 'Not configured';
 }
 function getLastSyncAt(){return Number(localStorage.getItem(userKey('taskflow_last_sync_at')))||0;}
 function setLastSyncAt(ts=Date.now()){localStorage.setItem(userKey('taskflow_last_sync_at'),String(ts));refreshSettingsStatus();}
@@ -1615,7 +2304,7 @@ function showOnboardStep(i){
   document.getElementById('onboardProgress').textContent='Step '+(i+1)+' of '+onboardSteps.length;
 }
 function nextOnboardStep(){showOnboardStep(onboardIdx+1);}
-function skipOnboarding(){document.getElementById('onboardOverlay').classList.remove('active');localStorage.setItem(userKey('onboarded'),'1');}
+function skipOnboarding(){document.getElementById('onboardOverlay').classList.remove('active');const k=userKey('onboarded');localStorage.setItem(k,'1');syncKey(k);}
 let onboardIdx=0;
 
 /* ═══════ KEYBOARD SHORTCUTS ═══════ */
@@ -1659,7 +2348,7 @@ document.addEventListener('focusin',e=>{
 
 /* ═══════ REFRESH ALL ═══════ */
 function refreshAll(){
-  const map={dashboard:renderDashboard,tasks:renderTasks,kanban:renderKanban,calendar:renderCalendar,analytics:renderAnalytics,myday:renderMyDay,projects:renderProjects,eisenhower:renderEisenhower,goals:renderGoals,habits:renderHabits,notes:renderNotes,reports:renderReports,archive:renderArchive};
+  const map={dashboard:renderDashboard,tasks:renderTasks,kanban:renderKanban,calendar:renderCalendar,timetable:renderTimetable,analytics:renderAnalytics,myday:renderMyDay,projects:renderProjects,eisenhower:renderEisenhower,goals:renderGoals,habits:renderHabits,notes:renderNotes,reports:renderReports,archive:renderArchive,lifebalance:renderLifeBalance,progress:renderProgress};
   const fn=map[currentPage];if(fn)fn();
   renderCategoryNav();populateProjectFilter();processRecurring();
   updateBulkBar();
@@ -1754,6 +2443,7 @@ function showOverdueTasks(){
 
 /* ═══════ INIT ═══════ */
 initAccessibility();
+initLoginScreen();
 checkAutoLogin();
 
 /* ═══════ SERVICE WORKER & PWA ═══════ */

@@ -7,16 +7,23 @@ using Microsoft.IdentityModel.Tokens;
 using TaskFlow.Application;
 using TaskFlow.Infrastructure;
 var builder=WebApplication.CreateBuilder(args);
+var port=Environment.GetEnvironmentVariable("PORT"); if(!string.IsNullOrEmpty(port)) builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 var cs=builder.Configuration.GetConnectionString("TaskFlow")??throw new InvalidOperationException("ConnectionStrings:TaskFlow is required."); var key=builder.Configuration["Jwt:Key"]??throw new InvalidOperationException("Jwt:Key is required.");
-builder.Services.AddDbContext<TaskFlowDbContext>(o=>o.UseNpgsql(cs));
+builder.Services.AddDbContext<TaskFlowDbContext>(o=>o.UseSqlite(cs));
 builder.Services.AddScoped<IAuthService,AuthService>();
 builder.Services.AddScoped<ITaskService,TaskService>();
 builder.Services.AddScoped<IProjectService,ProjectService>();
 builder.Services.AddScoped<ISubtaskService,SubtaskService>();
 builder.Services.AddScoped<ICommentService,CommentService>();
 builder.Services.AddScoped<ITagService,TagService>();
+builder.Services.AddScoped<IUserDataService,UserDataService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(o=>{o.MapInboundClaims=false;o.TokenValidationParameters=new(){ValidateIssuerSigningKey=true,IssuerSigningKey=new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),ValidateIssuer=false,ValidateAudience=false,ValidateLifetime=true};}); builder.Services.AddAuthorization(); var authRateLimit=builder.Configuration.GetValue<int?>("RateLimits:Auth")??10; builder.Services.AddRateLimiter(o=>{o.RejectionStatusCode=429;o.AddFixedWindowLimiter("auth",x=>{x.PermitLimit=authRateLimit;x.Window=TimeSpan.FromMinutes(1);x.QueueLimit=0;});});
-var app=builder.Build(); app.UseHttpsRedirection();app.UseRateLimiter();app.UseAuthentication();app.UseAuthorization();
+builder.Services.AddCors(o=>o.AddDefaultPolicy(p=>p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+var app=builder.Build();
+using(var scope=app.Services.CreateScope()){var db=scope.ServiceProvider.GetRequiredService<TaskFlowDbContext>();db.Database.Migrate();db.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");}
+/* No app-level HTTPS redirect: Railway (and most PaaS hosts) terminate TLS at their edge and forward
+   plain HTTP to the container, so redirecting here would either be redundant or loop. */
+app.UseCors();app.UseRateLimiter();app.UseAuthentication();app.UseAuthorization();
 app.Use(async(c,n)=>{c.Response.Headers.Append("X-Content-Type-Options","nosniff");c.Response.Headers.Append("Referrer-Policy","no-referrer");await n();});
 app.Use(async(c,n)=>{
  try{await n();}
@@ -42,6 +49,9 @@ app.MapGet("/api/tasks/{taskId:guid}/comments",async(Guid taskId,ClaimsPrincipal
 app.MapPost("/api/tasks/{taskId:guid}/comments",async(Guid taskId,ClaimsPrincipal p,CreateCommentCommand x,ICommentService s,CancellationToken ct)=>Results.Ok(await s.CreateAsync(User(p),Org(p),taskId,x,ct))).RequireAuthorization();
 app.MapGet("/api/tags",async(ClaimsPrincipal p,ITagService s,CancellationToken ct)=>Results.Ok(await s.ListAsync(User(p),Org(p),ct))).RequireAuthorization();
 app.MapPost("/api/tags",async(ClaimsPrincipal p,CreateTagCommand x,ITagService s,CancellationToken ct)=>Results.Ok(await s.CreateAsync(User(p),Org(p),x,ct))).RequireAuthorization();
+app.MapGet("/api/data",async(ClaimsPrincipal p,IUserDataService s,CancellationToken ct)=>Results.Ok(await s.ListAsync(User(p),ct))).RequireAuthorization();
+app.MapPut("/api/data/{key}",async(string key,ClaimsPrincipal p,UpsertDataCommand x,IUserDataService s,CancellationToken ct)=>Results.Ok(await s.UpsertAsync(User(p),key,x,ct))).RequireAuthorization();
+app.MapDelete("/api/data/{key}",async(string key,ClaimsPrincipal p,IUserDataService s,CancellationToken ct)=>{await s.DeleteAsync(User(p),key,ct);return Results.NoContent();}).RequireAuthorization();
 app.Run();
 static Guid User(ClaimsPrincipal p)=>Guid.Parse(p.FindFirst("sub")!.Value); static Guid Org(ClaimsPrincipal p)=>Guid.Parse(p.FindFirst("org")!.Value); public record RefreshRequest(string RefreshToken);
 public partial class Program;
