@@ -16,14 +16,15 @@ concurrency:
 
 jobs:
   frontend-test:
-    runs-on: ubuntu-latest
+    # smoke.js drives a real installed Chrome/Edge (not Playwright's own browser download),
+    # so this needs a runner that ships one preinstalled — windows-latest includes Edge.
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
       - run: npm test
 
   backend-test:
