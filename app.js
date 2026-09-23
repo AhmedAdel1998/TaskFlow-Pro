@@ -797,6 +797,7 @@ function saveTask() {
     tags, subtasks:tempSubtasks.slice(0,20),
     recurring:document.getElementById('taskRecurInput').value,
     reminder:document.getElementById('taskReminderInput').value,
+    reminderDismissed:false,
     important:document.getElementById('taskImportantInput').checked,
     milestone:document.getElementById('taskMilestoneInput').checked,
     dependencies:selDeps,
