@@ -180,7 +180,10 @@ const i18n = {
     modal_import_preview:'Import Preview', import_no_file:'No file selected', import_note:'Import replaces matching data after validation.',
     ph_quick_add:'Quick add task... (Enter to create)', quick_add_hint:'Enter = create, Esc = close',
     pomo_work:'WORK', pomo_break:'BREAK', pomo_select_task:'Select a task to focus on', btn_start:'Start', btn_reset:'Reset', btn_save_time:'Save Time',
-    onboard_welcome:'Welcome to TaskFlow Pro!', onboard_desc:'Your all-in-one professional task platform.', btn_skip:'Skip', btn_next:'Next'
+    onboard_welcome:'Welcome to TaskFlow Pro!', onboard_desc:'Your all-in-one professional task platform.', btn_skip:'Skip', btn_next:'Next',
+    review:'Weekly Review', review_subtitle:'Goals, habits and life balance pulled together in one place, with a suggestion for what to focus on next.', review_goals_title:'Goals This Period', review_habits_title:'Habit Consistency', review_velocity_title:'Tasks Completed: This Week vs Last Week', review_lifebalance_title:'Life Balance This Week',
+    field_auto_track:'Auto-track from', opt_link_none:'None (manual)', opt_link_project:'Project', opt_link_category:'Category', opt_link_habit:'Habit', field_which:'Which one', goal_auto_hint:'Progress is counted automatically from completed tasks or habit check-ins in the current week/month — no need to update it by hand.',
+    goal_on_track:'On track', goal_behind:'Behind pace', goal_auto_badge:'Auto', review_no_goals:'No goals yet — add one to see it tracked here.', review_no_habits:'No habits tracked yet.', review_this_week:'This week', review_last_week:'Last week', review_no_lb:'Log a day in Life Balance to see your weekly average here.', review_lb_avg:'7-day average score', focus_great:'Everything is tracking well this week — keep it up.', focus_goal:'Your goal "{name}" is behind pace — give it some attention this week.', focus_habit:'Your habit "{name}" has slipped — try to check it in today.', focus_lb:'Your Life Balance score has been low this week — worth a look.'
   },
   ar: {
     dashboard:'لوحة التحكم', my_day:'يومي', all_tasks:'كل المهام', kanban:'لوحة كانبان', calendar:'التقويم', timetable:'الجدول الزمني', matrix:'مصفوفة أيزنهاور', projects:'المشاريع', goals:'الأهداف', habits:'العادات', notes:'الملاحظات', analytics:'التحليلات والرؤى', time_reports:'تقارير الوقت', life_balance:'توازن الحياة', progress:'التقدم', archive:'الأرشيف', pomodoro:'مؤقت بومودورو', templates:'القوالب', settings:'الإعدادات', new_task:'مهمة جديدة', nav_main:'رئيسي', nav_plan:'التخطيط', nav_analytics:'التحليلات', nav_categories:'الفئات', nav_quick:'سريع',
@@ -223,7 +226,10 @@ const i18n = {
     modal_import_preview:'معاينة الاستيراد', import_no_file:'لم يتم اختيار ملف', import_note:'يستبدل الاستيراد البيانات المطابقة بعد التحقق.',
     ph_quick_add:'إضافة سريعة للمهمة... (Enter للإنشاء)', quick_add_hint:'Enter = إنشاء, Esc = إغلاق',
     pomo_work:'عمل', pomo_break:'راحة', pomo_select_task:'اختر مهمة للتركيز عليها', btn_start:'ابدأ', btn_reset:'إعادة تعيين', btn_save_time:'حفظ الوقت',
-    onboard_welcome:'مرحبًا بك في TaskFlow Pro!', onboard_desc:'منصتك الاحترافية الشاملة لإدارة المهام.', btn_skip:'تخطي', btn_next:'التالي'
+    onboard_welcome:'مرحبًا بك في TaskFlow Pro!', onboard_desc:'منصتك الاحترافية الشاملة لإدارة المهام.', btn_skip:'تخطي', btn_next:'التالي',
+    review:'المراجعة الأسبوعية', review_subtitle:'الأهداف والعادات وتوازن الحياة في مكان واحد، مع اقتراح لما يستحق تركيزك القادم.', review_goals_title:'الأهداف لهذه الفترة', review_habits_title:'انتظام العادات', review_velocity_title:'المهام المنجزة: هذا الأسبوع مقابل الأسبوع الماضي', review_lifebalance_title:'توازن الحياة هذا الأسبوع',
+    field_auto_track:'التتبع التلقائي من', opt_link_none:'بدون (يدوي)', opt_link_project:'مشروع', opt_link_category:'فئة', opt_link_habit:'عادة', field_which:'أيهما', goal_auto_hint:'يُحتسب التقدم تلقائيًا من المهام المنجزة أو تسجيلات العادات خلال الأسبوع أو الشهر الحالي — لا حاجة لتحديثه يدويًا.',
+    goal_on_track:'على المسار الصحيح', goal_behind:'متأخر عن الوتيرة', goal_auto_badge:'تلقائي', review_no_goals:'لا توجد أهداف بعد — أضف هدفًا لتتبعه هنا.', review_no_habits:'لا توجد عادات متتبَّعة بعد.', review_this_week:'هذا الأسبوع', review_last_week:'الأسبوع الماضي', review_no_lb:'سجّل يومًا في توازن الحياة لترى متوسطك الأسبوعي هنا.', review_lb_avg:'متوسط النقاط لآخر 7 أيام', focus_great:'كل شيء يسير جيدًا هذا الأسبوع — واصل هكذا.', focus_goal:'هدفك "{name}" متأخر عن الوتيرة — امنحه بعض الاهتمام هذا الأسبوع.', focus_habit:'عادتك "{name}" تراجعت — حاول تسجيلها اليوم.', focus_lb:'مؤشر توازن حياتك منخفض هذا الأسبوع — يستحق الانتباه.'
   }
 };
 let lang = localStorage.getItem('taskflow_lang') || 'en';
@@ -419,7 +425,29 @@ function normalizeTask(t, idx=0) {
   return task;
 }
 function normalizeProject(p) { return {id:asText(p.id,80)||'p'+Date.now(),name:asText(p.name,100)||'Untitled Project',color:/^#[0-9a-f]{6}$/i.test(p.color||'')?p.color:'#4f46e5',description:asText(p.description,300),createdAt:Number(p.createdAt)||Date.now()}; }
-function normalizeGoal(g) { return {id:asText(g.id,80)||'g'+Date.now(),title:asText(g.title,150)||'Untitled Goal',type:asChoice(g.type,['weekly','monthly'],'weekly'),target:Math.max(1,Number.parseInt(g.target)||1),current:Math.max(0,Number.parseInt(g.current)||0),unit:asText(g.unit,30)||'tasks',createdAt:Number(g.createdAt)||Date.now()}; }
+function normalizeGoal(g) { return {id:asText(g.id,80)||'g'+Date.now(),title:asText(g.title,150)||'Untitled Goal',type:asChoice(g.type,['weekly','monthly'],'weekly'),target:Math.max(1,Number.parseInt(g.target)||1),current:Math.max(0,Number.parseInt(g.current)||0),unit:asText(g.unit,30)||'tasks',linkType:asChoice(g.linkType,['','project','category','habit'],''),linkId:asText(g.linkId,80),createdAt:Number(g.createdAt)||Date.now()}; }
+/* Goals can either be tracked by hand (linkType '') or auto-tracked from real activity (project/category/habit),
+   the same way Challenges already are — closing the gap where Goals used to silently drift from what you actually did. */
+function goalPeriodStart(type, from){
+  const base=from||todayStr();
+  if(type==='monthly') return base.slice(0,8)+'01';
+  const dow=new Date(base+'T00:00:00Z').getUTCDay();
+  return addDaysToDateStr(base,-dow);
+}
+function computeGoalProgress(g, tasks, habits){
+  tasks=tasks||loadTasks(); habits=habits||loadHabits();
+  if(!g.linkType) return {current:g.current||0, target:g.target, pct:Math.min(100,Math.round((g.current||0)/g.target*100)), auto:false};
+  const periodStart=goalPeriodStart(g.type);
+  let current=0;
+  if(g.linkType==='project'||g.linkType==='category'){
+    const field=g.linkType==='project'?'project':'category';
+    current=tasks.filter(t=>t.status==='done'&&t[field]===g.linkId&&t.completedAt&&dateOfMs(t.completedAt)>=periodStart).length;
+  } else if(g.linkType==='habit'){
+    const h=habits.find(x=>x.id===g.linkId);
+    if(h&&h.completions) current=Object.keys(h.completions).filter(ds=>h.completions[ds]&&ds>=periodStart&&ds<=todayStr()).length;
+  }
+  return {current, target:g.target, pct:Math.min(100,Math.round(current/g.target*100)), auto:true};
+}
 function normalizeHabit(h) { return {id:asText(h.id,80)||'h'+Date.now(),name:asText(h.name,100)||'Untitled Habit',completions:(h.completions&&typeof h.completions==='object')?h.completions:{},createdAt:Number(h.createdAt)||Date.now()}; }
 function normalizeNote(n) { return {id:asText(n.id,80)||'n'+Date.now(),title:asText(n.title,150)||'Untitled Note',content:String(n.content??'').slice(0,20000),folder:asText(n.folder,50),pinned:Boolean(n.pinned),createdAt:Number(n.createdAt)||Date.now(),updatedAt:Number(n.updatedAt)||Date.now()}; }
 function validateBackup(data) {
@@ -475,7 +503,7 @@ function showPage(name) {
   const nv = document.querySelector('.nav-item[data-page="'+name+'"]');
   if (nv) nv.classList.add('active');
   if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open');
-  const renderMap = {dashboard:renderDashboard,tasks:renderTasks,kanban:renderKanban,calendar:renderCalendar,timetable:renderTimetable,analytics:renderAnalytics,archive:renderArchive,myday:renderMyDay,projects:renderProjects,eisenhower:renderEisenhower,goals:renderGoals,habits:renderHabits,notes:renderNotes,reports:renderReports,lifebalance:renderLifeBalance,progress:renderProgress};
+  const renderMap = {dashboard:renderDashboard,tasks:renderTasks,kanban:renderKanban,calendar:renderCalendar,timetable:renderTimetable,analytics:renderAnalytics,archive:renderArchive,myday:renderMyDay,projects:renderProjects,eisenhower:renderEisenhower,goals:renderGoals,habits:renderHabits,notes:renderNotes,reports:renderReports,lifebalance:renderLifeBalance,progress:renderProgress,review:renderReview};
   if (renderMap[name]) renderMap[name]();
 }
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
@@ -946,7 +974,8 @@ function renderUpcoming(tasks) {
 function renderDashGoals() {
   const goals=loadGoals().slice(0,3), c=document.getElementById('dashGoals');
   if(!goals.length){c.innerHTML='<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:12px">No goals set</p>';return;}
-  c.innerHTML=goals.map(g=>{const pct=Math.min(100,Math.round((g.current||0)/g.target*100)); return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px"><span>'+escHtml(g.title)+'</span><span style="font-weight:700">'+pct+'%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pct+'%;background:var(--primary)"></div></div></div>';}).join('');
+  const tasks=loadTasks(), habits=loadHabits();
+  c.innerHTML=goals.map(g=>{const pct=computeGoalProgress(g,tasks,habits).pct; return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px"><span>'+escHtml(g.title)+'</span><span style="font-weight:700">'+pct+'%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pct+'%;background:var(--primary)"></div></div></div>';}).join('');
 }
 function renderDashHabits() {
   const habits=loadHabits().slice(0,4), c=document.getElementById('dashHabits'), today=todayStr();
@@ -1416,10 +1445,31 @@ function renderGoals(){
   if(filter!=='all') goals=goals.filter(g=>g.type===filter);
   const c=document.getElementById('goalsList');
   if(!goals.length){c.innerHTML='<div class="empty-state"><h3>No Goals</h3><p>Set your first goal</p><button class="btn btn-sm btn-primary" onclick="openGoalModal()">Create Goal</button></div>';return;}
+  const tasks=loadTasks(), habits=loadHabits();
   c.innerHTML=goals.map(g=>{
-    const pct=Math.min(100,Math.round((g.current||0)/g.target*100));
-    return '<div class="goal-card"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px"><div><h3 style="font-size:.95rem;font-weight:700">'+escHtml(g.title)+'</h3><span class="tag" style="font-size:.65rem;background:var(--surface3)">'+g.type+'</span></div><div style="display:flex;gap:4px"><button class="btn-icon" onclick="openGoalModal(\''+g.id+'\')" style="color:var(--text3)">&#9998;</button><button class="btn-icon" onclick="deleteGoal(\''+g.id+'\')" style="color:var(--danger)">&#128465;</button></div></div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px"><span>'+escHtml(g.unit||'tasks')+'</span><span style="font-weight:700">'+(g.current||0)+'/'+g.target+'</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pct+'%;background:'+(pct>=100?'var(--success)':'var(--primary)')+'"></div></div><div style="text-align:center;font-size:1.2rem;font-weight:800;margin-top:6px;color:'+(pct>=100?'var(--success)':'var(--primary)')+'">'+pct+'%</div></div>';
+    const p=computeGoalProgress(g,tasks,habits), pct=p.pct;
+    const autoBadge=p.auto?'<span class="tag" style="font-size:.6rem;background:var(--primary);color:#fff">'+tr('goal_auto_badge')+'</span>':'';
+    return '<div class="goal-card"><div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><h3 style="font-size:.95rem;font-weight:700">'+escHtml(g.title)+'</h3><span class="tag" style="font-size:.65rem;background:var(--surface3)">'+g.type+'</span>'+autoBadge+'</div><div style="display:flex;gap:4px"><button class="btn-icon" onclick="openGoalModal(\''+g.id+'\')" style="color:var(--text3)">&#9998;</button><button class="btn-icon" onclick="deleteGoal(\''+g.id+'\')" style="color:var(--danger)">&#128465;</button></div></div><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:4px"><span>'+escHtml(g.unit||'tasks')+'</span><span style="font-weight:700">'+p.current+'/'+g.target+'</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pct+'%;background:'+(pct>=100?'var(--success)':'var(--primary)')+'"></div></div><div style="text-align:center;font-size:1.2rem;font-weight:800;margin-top:6px;color:'+(pct>=100?'var(--success)':'var(--primary)')+'">'+pct+'%</div></div>';
   }).join('');
+}
+function goalLinkOptions(linkType, selected){
+  if(linkType==='project') return loadProjects().map(p=>'<option value="'+p.id+'"'+(p.id===selected?' selected':'')+'>'+escHtml(p.name)+'</option>').join('');
+  if(linkType==='category'){ const cats=[...new Set(loadTasks().map(t=>t.category).filter(Boolean))]; return cats.map(c=>'<option value="'+escHtml(c)+'"'+(c===selected?' selected':'')+'>'+escHtml(c)+'</option>').join(''); }
+  if(linkType==='habit') return loadHabits().map(h=>'<option value="'+h.id+'"'+(h.id===selected?' selected':'')+'>'+escHtml(h.name)+'</option>').join('');
+  return '';
+}
+function updateGoalLinkUI(selectedValue){
+  const linkType=document.getElementById('goalLinkTypeInput').value;
+  const valueGroup=document.getElementById('goalLinkValueGroup');
+  const currentGroup=document.getElementById('goalCurrentGroup');
+  const hint=document.getElementById('goalAutoHint');
+  if(!linkType){
+    valueGroup.style.display='none'; currentGroup.style.display='block'; hint.style.display='none';
+    return;
+  }
+  valueGroup.style.display='block'; currentGroup.style.display='none'; hint.style.display='block';
+  const options=goalLinkOptions(linkType, selectedValue);
+  document.getElementById('goalLinkValueInput').innerHTML=options||'<option value="">'+(linkType==='habit'?'No habits yet':linkType==='project'?'No projects yet':'No categories yet')+'</option>';
 }
 function openGoalModal(id){
   const g=id?loadGoals().find(x=>x.id===id):null;
@@ -1429,6 +1479,8 @@ function openGoalModal(id){
   document.getElementById('goalTargetInput').value=g?g.target:5;
   document.getElementById('goalCurrentInput').value=g?g.current||0:0;
   document.getElementById('goalUnitInput').value=g?g.unit||'tasks':'tasks';
+  document.getElementById('goalLinkTypeInput').value=g?g.linkType||'':'';
+  updateGoalLinkUI(g?g.linkId:'');
   document.getElementById('goalModal').classList.add('active');
 }
 function closeGoalModal(){document.getElementById('goalModal').classList.remove('active');editingGoalId=null;}
@@ -1436,7 +1488,8 @@ function saveGoal(){
   const title=document.getElementById('goalTitleInput').value.trim();
   if(!title){toast('Goal title required');return;}
   const goals=loadGoals();
-  const data={title:title,type:document.getElementById('goalTypeInput').value,target:Number.parseInt(document.getElementById('goalTargetInput').value)||5,current:Number.parseInt(document.getElementById('goalCurrentInput').value)||0,unit:document.getElementById('goalUnitInput').value.trim()||'tasks'};
+  const linkType=document.getElementById('goalLinkTypeInput').value;
+  const data={title:title,type:document.getElementById('goalTypeInput').value,target:Number.parseInt(document.getElementById('goalTargetInput').value)||5,current:Number.parseInt(document.getElementById('goalCurrentInput').value)||0,unit:document.getElementById('goalUnitInput').value.trim()||'tasks',linkType:linkType,linkId:linkType?document.getElementById('goalLinkValueInput').value:''};
   if(editingGoalId){const g=goals.find(x=>x.id===editingGoalId);if(g)Object.assign(g,data);}
   else{goals.push({id:'g'+Date.now(),...data,createdAt:Date.now()});}
   saveGoals(goals);closeGoalModal();renderGoals();renderDashGoals();toast('Goal saved');
@@ -1891,15 +1944,19 @@ function renderProgressTasksChart(tasks){
   const max=Math.max(...bars.map(b=>b.count),1);
   el.innerHTML=bars.map(b=>'<div class="chart-bar-wrap"><div class="chart-bar" style="height:'+Math.max(b.count/max*140,4)+'px;background:'+(b.isToday?'var(--primary)':'var(--primary-light)')+';opacity:'+(b.isToday?1:.6)+'"><span class="tooltip">'+b.count+'</span></div><span class="label">'+new Date(b.ds+'T00:00:00Z').getUTCDate()+'</span></div>').join('');
 }
-function renderHabitConsistency(){
-  const el=document.getElementById('progHabitConsistency'); if(!el) return;
+function habitConsistencyPct(h, windowDays, today){
+  let done=0;
+  for(let i=0;i<windowDays;i++){ const ds=addDaysToDateStr(today,-i); if(h.completions&&h.completions[ds]) done++; }
+  return Math.round(done/windowDays*100);
+}
+function renderHabitConsistency(containerId,windowDays){
+  containerId=containerId||'progHabitConsistency'; windowDays=windowDays||30;
+  const el=document.getElementById(containerId); if(!el) return;
   const habits=loadHabits();
   if(!habits.length){ el.innerHTML='<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:12px">No habits tracked yet</p>'; return; }
   const today=todayStr();
   el.innerHTML=habits.map(h=>{
-    let done=0;
-    for(let i=0;i<30;i++){ const ds=addDaysToDateStr(today,-i); if(h.completions&&h.completions[ds]) done++; }
-    const pct=Math.round(done/30*100);
+    const pct=habitConsistencyPct(h,windowDays,today);
     return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:3px"><span>'+escHtml(h.name)+'</span><span style="font-weight:600">'+pct+'%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+pct+'%;background:var(--accent)"></div></div></div>';
   }).join('');
 }
@@ -1953,6 +2010,76 @@ function renderProgress(){
   renderHabitConsistency();
   renderChallengeList();
   renderChallengeSuggestions();
+}
+
+/* ═══════ WEEKLY REVIEW (pulls Goals + Habits + Life Balance together with one focus suggestion) ═══════ */
+function weekRange(weeksAgo){
+  const dow=new Date(todayStr()+'T00:00:00Z').getUTCDay();
+  const thisWeekStart=addDaysToDateStr(todayStr(),-dow);
+  const start=addDaysToDateStr(thisWeekStart,-7*weeksAgo);
+  const end=weeksAgo===0?todayStr():addDaysToDateStr(start,6);
+  return {start,end};
+}
+function countTasksCompletedInRange(tasks,start,end){
+  return tasks.filter(t=>t.completedAt&&dateOfMs(t.completedAt)>=start&&dateOfMs(t.completedAt)<=end).length;
+}
+function lbWeeklyAverage(){
+  const today=todayStr(); const scores=[];
+  for(let i=0;i<7;i++){ const s=lbDailyScore(loadLbLog(addDaysToDateStr(today,-i))); if(s!=null) scores.push(s); }
+  return scores.length?Math.round(scores.reduce((a,b)=>a+b,0)/scores.length):null;
+}
+function goalExpectedPct(g){
+  const today=new Date(todayStr()+'T00:00:00Z');
+  if(g.type==='monthly'){ const totalDays=new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth()+1,0)).getUTCDate(); return Math.min(100,Math.round(today.getUTCDate()/totalDays*100)); }
+  return Math.min(100,Math.round((today.getUTCDay()+1)/7*100));
+}
+function renderReview(){
+  const tasks=loadTasks(), habits=loadHabits(), goals=loadGoals();
+
+  const goalRows=goals.map(g=>{
+    const p=computeGoalProgress(g,tasks,habits), expected=goalExpectedPct(g);
+    const behind=p.pct<100&&p.pct<expected-15;
+    return {goal:g, progress:p, behind};
+  });
+  const c=document.getElementById('reviewGoals');
+  if(!goalRows.length){ c.innerHTML='<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:12px">'+tr('review_no_goals')+'</p>'; }
+  else {
+    c.innerHTML=goalRows.map(r=>{
+      const badge=r.behind?'<span class="lb-badge" style="background:var(--warning)">'+tr('goal_behind')+'</span>':'<span class="lb-badge" style="background:var(--success)">'+tr('goal_on_track')+'</span>';
+      return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:center;font-size:.82rem;margin-bottom:3px;gap:8px"><span>'+escHtml(r.goal.title)+'</span>'+badge+'</div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+r.progress.pct+'%;background:'+(r.behind?'var(--warning)':'var(--primary)')+'"></div></div></div>';
+    }).join('');
+  }
+
+  renderHabitConsistency('reviewHabits',7);
+  const worstHabit=habits.map(h=>({h,pct:habitConsistencyPct(h,7,todayStr())})).sort((a,b)=>a.pct-b.pct)[0];
+
+  const thisWeek=weekRange(0), lastWeek=weekRange(1);
+  const thisWeekCount=countTasksCompletedInRange(tasks,thisWeek.start,thisWeek.end);
+  const lastWeekCount=countTasksCompletedInRange(tasks,lastWeek.start,lastWeek.end);
+  const delta=thisWeekCount-lastWeekCount;
+  const deltaColor=delta>0?'var(--success)':delta<0?'var(--danger)':'var(--text3)';
+  const deltaSign=delta>0?'+':'';
+  document.getElementById('reviewVelocity').innerHTML=
+    '<div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">'+
+      '<div><div style="font-size:.72rem;color:var(--text3)">'+tr('review_this_week')+'</div><div style="font-size:1.8rem;font-weight:800;color:var(--primary)">'+thisWeekCount+'</div></div>'+
+      '<div><div style="font-size:.72rem;color:var(--text3)">'+tr('review_last_week')+'</div><div style="font-size:1.8rem;font-weight:800;color:var(--text2)">'+lastWeekCount+'</div></div>'+
+      '<div style="font-weight:700;color:'+deltaColor+'">'+deltaSign+delta+'</div>'+
+    '</div>';
+
+  const lbAvg=lbWeeklyAverage();
+  const lbEl=document.getElementById('reviewLifeBalance');
+  if(lbAvg==null){ lbEl.innerHTML='<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:12px">'+tr('review_no_lb')+'</p>'; }
+  else{
+    const color=lbAvg>=85?'var(--success)':lbAvg>=65?'var(--success)':lbAvg>=45?'var(--warning)':'var(--danger)';
+    lbEl.innerHTML='<div style="display:flex;align-items:center;gap:16px"><div style="width:64px;height:64px;border-radius:50%;border:5px solid '+color+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:1.1rem;font-weight:800">'+lbAvg+'</span></div><div style="font-size:.82rem;color:var(--text2)">'+tr('review_lb_avg')+'</div></div>';
+  }
+
+  let focusMsg=tr('focus_great'), focusColor='var(--success)';
+  const worstGoal=goalRows.filter(r=>r.behind).sort((a,b)=>(a.progress.pct-goalExpectedPct(a.goal))-(b.progress.pct-goalExpectedPct(b.goal)))[0];
+  if(worstGoal){ focusMsg=tr('focus_goal').replace('{name}',worstGoal.goal.title); focusColor='var(--warning)'; }
+  else if(worstHabit&&worstHabit.pct<50){ focusMsg=tr('focus_habit').replace('{name}',worstHabit.h.name); focusColor='var(--warning)'; }
+  else if(lbAvg!=null&&lbAvg<45){ focusMsg=tr('focus_lb'); focusColor='var(--warning)'; }
+  document.getElementById('reviewFocusCard').innerHTML='<div style="display:flex;align-items:center;gap:12px"><div style="width:10px;height:10px;border-radius:50%;background:'+focusColor+';flex-shrink:0"></div><div style="font-size:.9rem;font-weight:600">'+focusMsg+'</div></div>';
 }
 
 /* ═══════ POMODORO TIMER ═══════ */
@@ -2413,7 +2540,7 @@ document.addEventListener('focusin',e=>{
 
 /* ═══════ REFRESH ALL ═══════ */
 function refreshAll(){
-  const map={dashboard:renderDashboard,tasks:renderTasks,kanban:renderKanban,calendar:renderCalendar,timetable:renderTimetable,analytics:renderAnalytics,myday:renderMyDay,projects:renderProjects,eisenhower:renderEisenhower,goals:renderGoals,habits:renderHabits,notes:renderNotes,reports:renderReports,archive:renderArchive,lifebalance:renderLifeBalance,progress:renderProgress};
+  const map={dashboard:renderDashboard,tasks:renderTasks,kanban:renderKanban,calendar:renderCalendar,timetable:renderTimetable,analytics:renderAnalytics,myday:renderMyDay,projects:renderProjects,eisenhower:renderEisenhower,goals:renderGoals,habits:renderHabits,notes:renderNotes,reports:renderReports,archive:renderArchive,lifebalance:renderLifeBalance,progress:renderProgress,review:renderReview};
   const fn=map[currentPage];if(fn)fn();
   renderCategoryNav();populateProjectFilter();processRecurring();
   updateBulkBar();

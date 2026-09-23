@@ -54,6 +54,7 @@
     <button class="nav-item" data-page="reports" onclick="showPage('reports')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 21V13h3v8"/><path d="M13 21v-6h3v6"/></svg><span data-i18n="time_reports">Time Reports</span></button>
     <button class="nav-item" data-page="lifebalance" onclick="showPage('lifebalance')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg><span data-i18n="life_balance">Life Balance</span></button>
     <button class="nav-item" data-page="progress" onclick="showPage('progress')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 19v-6M13 19V9M18 19v-9"/></svg><span data-i18n="progress">Progress</span></button>
+    <button class="nav-item" data-page="review" onclick="showPage('review')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/><path d="M9 3v4M6 3v4"/></svg><span data-i18n="review">Weekly Review</span></button>
     <div class="nav-section" data-i18n="nav_categories">Categories</div>
     <div id="categoryNav" style="padding:4px 16px 8px;display:flex;flex-wrap:wrap;gap:6px"></div>
     <div class="nav-section" data-i18n="nav_quick">Quick</div>
@@ -282,6 +283,25 @@
       <div id="challengeSuggestions"></div>
     </div>
   </div>
+  <!-- WEEKLY REVIEW -->
+  <div class="page" id="page-review">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2 style="font-size:1.35rem;font-weight:800;margin:0" data-i18n="review">Weekly Review</h2>
+        <p style="font-size:.78rem;color:var(--text3);margin:4px 0 0;max-width:560px" data-i18n="review_subtitle">Goals, habits and life balance pulled together in one place, with a suggestion for what to focus on next.</p>
+      </div>
+    </div>
+    <div class="card" id="reviewFocusCard"></div>
+    <div class="dash-row">
+      <div class="card"><div class="card-title" data-i18n="review_goals_title">Goals This Period</div><div id="reviewGoals"></div></div>
+      <div class="card"><div class="card-title" data-i18n="review_habits_title">Habit Consistency</div><div id="reviewHabits"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title" data-i18n="review_velocity_title">Tasks Completed: This Week vs Last Week</div>
+      <div id="reviewVelocity"></div>
+    </div>
+    <div class="card"><div class="card-title" data-i18n="review_lifebalance_title">Life Balance This Week</div><div id="reviewLifeBalance"></div></div>
+  </div>
   <!-- ARCHIVE -->
   <div class="page" id="page-archive">
     <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="archive">Archive</h2><button class="btn btn-sm btn-danger" onclick="clearArchive()" data-i18n="clear_archive">Clear Archive</button></div>
@@ -411,7 +431,12 @@
         <div class="form-group"><label for="goalTargetInput" data-i18n="field_target">Target</label><input type="number" id="goalTargetInput" min="1" value="5" placeholder="5"></div>
       </div>
       <div class="form-group"><label for="goalUnitInput" data-i18n="field_unit">Unit</label><input type="text" id="goalUnitInput" maxlength="30" data-i18n-ph="ph_unit_example" placeholder="tasks, hours, etc." value="tasks"></div>
-      <div class="form-group"><label for="goalCurrentInput" data-i18n="field_current_progress">Current Progress</label><input type="number" id="goalCurrentInput" min="0" value="0"></div>
+      <div class="form-row">
+        <div class="form-group"><label for="goalLinkTypeInput" data-i18n="field_auto_track">Auto-track from</label><select id="goalLinkTypeInput" onchange="updateGoalLinkUI()"><option value="" data-i18n-opt="opt_link_none">None (manual)</option><option value="project" data-i18n-opt="opt_link_project">Project</option><option value="category" data-i18n-opt="opt_link_category">Category</option><option value="habit" data-i18n-opt="opt_link_habit">Habit</option></select></div>
+        <div class="form-group" id="goalLinkValueGroup" style="display:none"><label for="goalLinkValueInput" data-i18n="field_which">Which one</label><select id="goalLinkValueInput"></select></div>
+      </div>
+      <div class="form-group" id="goalCurrentGroup"><label for="goalCurrentInput" data-i18n="field_current_progress">Current Progress</label><input type="number" id="goalCurrentInput" min="0" value="0"></div>
+      <p class="field-hint" id="goalAutoHint" style="display:none" data-i18n="goal_auto_hint">Progress is counted automatically from completed tasks or habit check-ins in the current week/month &mdash; no need to update it by hand.</p>
     </div>
     <div class="modal-footer"><button class="btn btn-outline" onclick="closeGoalModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveGoal()" data-i18n="btn_save">Save</button></div>
   </div>

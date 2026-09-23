@@ -117,7 +117,7 @@ async function runSmokeTests(executablePath) {
     if (await skip.isVisible().catch(() => false)) await skip.click();
   }, failures);
 
-  for (const pageName of ['dashboard','myday','tasks','kanban','calendar','timetable','eisenhower','projects','goals','habits','notes','analytics','reports','lifebalance','progress','archive']) {
+  for (const pageName of ['dashboard','myday','tasks','kanban','calendar','timetable','eisenhower','projects','goals','habits','notes','analytics','reports','lifebalance','progress','review','archive']) {
     await step(`open ${pageName}`, async () => {
       await page.click(`[data-page="${pageName}"]`);
       await page.waitForSelector(`#page-${pageName}.active`);
