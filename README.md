@@ -1,432 +1,244 @@
 # TaskFlow Pro Documentation
 
-TaskFlow Pro is a task management product currently made of **two parts that are not yet connected to each other**:
+TaskFlow Pro is a task, habit, and time-management PWA with a real .NET backend. Unlike the "two disconnected halves" state described in older versions of this document, the client app and backend are now fully wired together and deployed live:
 
-1. **The client app** (`index.html`, `styles.css`, `app.js`, `sw.js`, `AppsScript.gs`) — a static, browser-based Progressive Web App (PWA). It stores work locally in the browser and can optionally sync task data to Google Sheets. This is what a person actually opens and uses today.
-2. **The backend foundation** (`src/TaskFlow.*`, `tests/TaskFlow.IntegrationTests`) — a real ASP.NET Core Web API with PostgreSQL, JWT authentication, and organization-scoped (multi-tenant) data, built to replace `localStorage` as the system of record. It is functional and covered by automated tests, but **no UI is wired up to it yet** — it cannot currently be used by an end user.
+- **Frontend (PWA)**: `ahmedadel1998.github.io/TaskFlow-Pro/` — static site on GitHub Pages, auto-deployed from `main`.
+- **Backend API**: `api-production-1da6.up.railway.app` — ASP.NET Core 9 + SQLite on Railway, auto-deployed from `main`.
 
-This split is deliberate: see `docs/phase-1-audit.md` for why (short version — the client app has no real authentication, authorization, or tenant isolation, so it is not safe to sell to teams/companies as-is; the backend is being built as a staged "strangler" replacement rather than a risky big-bang rewrite). `docs/feature-parity-matrix.md` tracks which features have moved from "local-only" to "built and tested on the API" so far.
+Every push to `main` runs the test suite (frontend syntax/smoke tests on Windows, backend integration tests on Linux) via GitHub Actions, then deploys both the static site and the API automatically — see "Deployment & CI/CD" below.
+
+`docs/phase-1-audit.md` and `docs/feature-parity-matrix.md` are historical planning documents from before this integration; they describe a since-superseded architecture (PostgreSQL, no wired-up auth, no deployment) and are kept only for background on why the backend was originally structured as a "strangler" migration. They no longer reflect the current state — this README does.
 
 ## Contents
 
 - Application overview
+- Live environment
 - Repository structure
 - Running the client app
 - User guide (client app)
-- Google Sheets sync setup
-- Backend API (in progress)
+- Reminders, alarms, and push notifications
+- Internationalization (English/Arabic)
+- Authentication
+- Sync and offline behavior
+- Backend API
+- Deployment & CI/CD
 - Security model
 - Backup, restore, import, and export
-- Offline/PWA behavior
 - Testing
 - Developer notes
-- Project status and roadmap
 - Known limitations
 - Troubleshooting
 
 ## Application Overview
 
-TaskFlow Pro is designed for personal and lightweight team task monitoring, with a longer-term goal of becoming a commercial multi-tenant SaaS product (see `docs/phase-1-audit.md` for the full target architecture).
+TaskFlow Pro is a task manager for personal and lightweight team use: tasks, Kanban, calendar, Eisenhower matrix, projects, goals, habits, notes, a timetable auto-scheduler, life-balance tracking, progress/achievements, and a weekly review — all synced to a real per-account database, usable offline, and installable as a PWA.
 
-### Client app (what exists today, usable now)
+- **Client app** (`index.html`, `styles.css`, `app.js`, `sw.js`) — the PWA. Local-first: every read/write goes through `localStorage` first for instant UI, then syncs to the backend in the background.
+- **Backend** (`src/TaskFlow.*`) — ASP.NET Core 9 Web API with SQLite, JWT auth (access + refresh tokens), organization-scoped data, a generic per-user key/value sync store, and a background service that sends real push notifications.
 
-- No build step is required to open or host it.
-- User data is stored in browser `localStorage`.
-- Optional sync pushes/pulls task data to a Google Sheet using `AppsScript.gs`.
-- PWA support allows browser installation and offline access when served over `http` or `https`.
-- Includes task lists, Kanban, calendar events, Eisenhower matrix, projects, goals, habits, notes, analytics, reports, archive, Pomodoro timer, templates, saved filters, import/export, RTL language toggle, theme toggle, and Google Sheets sync.
+## Live Environment
 
-### Backend API (new, not yet connected to any UI)
+| Component | URL |
+| --- | --- |
+| App (PWA) | `https://ahmedadel1998.github.io/TaskFlow-Pro/` |
+| API | `https://api-production-1da6.up.railway.app` |
+| API health | `https://api-production-1da6.up.railway.app/health/ready` |
 
-- ASP.NET Core 9 Web API (`src/TaskFlow.Api`) following a Clean Architecture split: `TaskFlow.Domain` (entities), `TaskFlow.Application` (contracts/use-case interfaces), `TaskFlow.Infrastructure` (EF Core/PostgreSQL, JWT auth, tenant-scoped services), `TaskFlow.Api` (thin HTTP endpoints).
-- Real registration/login (password hashing, JWT access token + refresh token), organization-scoped tasks/projects/subtasks/comments/tags, row-version optimistic concurrency, and server-side tenant isolation enforced on every query.
-- Verified with an automated integration test suite that runs against a real, ephemeral PostgreSQL container (see "Backend API" section below).
+The app ships already pointed at the live API (`DEFAULT_API_URL` in `app.js`). To point a local build at a different API instance, use Settings → Account Database (API) URL, or set `localStorage.taskflow_api_url` before loading the page.
 
 ## Repository Structure
 
 ```text
 E:\Task Pro
-  index.html                        Client app: HTML shell and UI markup
-  styles.css                        Client app: styling and responsive design
-  app.js                            Client app: main application logic
-  sw.js                             Client app: service worker for PWA/offline caching
+  index.html                        Client app: HTML shell, all page/modal markup
+  styles.css                        Client app: styling, themes, responsive layout
+  app.js                            Client app: data layer, rendering, sync, auth, reminders/alarms
+  sw.js                             Client app: service worker — offline caching + Web Push handling
   manifest.json                     Client app: PWA manifest
-  AppsScript.gs                     Client app: Google Apps Script sync backend
-  icon-192.png, icon-512.png        Client app: PWA icons
-  package.json, package-lock.json   Client app: test scripts and dev dependency metadata
-  tests/
-    syntax-check.js                 Client app: syntax and DOM reference validation
-    smoke.js                        Client app: browser smoke test using Playwright Core
-    TaskFlow.IntegrationTests/      Backend: xUnit integration tests (auth, tenant isolation, concurrency)
+  AppsScript.gs                     Optional legacy Google Sheets export/sync script
+  icon-192.png, icon-512.png        PWA icons
+  package.json, package-lock.json   Test scripts and dev dependency metadata
 
-  TaskFlow.sln                      Backend: .NET solution file
+  tests/
+    syntax-check.js                 Static syntax + DOM-reference validation for app.js/index.html
+    smoke.js                        End-to-end Playwright smoke test (spins up a real local API instance)
+    TaskFlow.IntegrationTests/      xUnit integration tests: auth, tenancy, concurrency, rate limiting
+
+  TaskFlow.sln                      .NET solution file
   src/
-    TaskFlow.Domain/                Backend: entities (User, Organization, TaskItem, Subtask, TaskComment, Tag, ...)
-    TaskFlow.Application/           Backend: DTOs, commands, and service interfaces
-    TaskFlow.Infrastructure/        Backend: EF Core DbContext, migrations, auth/task/project/subtask/comment/tag services
-    TaskFlow.Api/                   Backend: Program.cs — endpoint mapping, JWT config, rate limiting, health checks
+    TaskFlow.Domain/                Entities: User, Organization, TaskItem, UserDataEntry,
+                                     PushSubscription, SentReminder, ...
+    TaskFlow.Application/           DTOs, commands, and service interfaces
+    TaskFlow.Infrastructure/        EF Core DbContext + SQLite migrations, auth/task/data/push
+                                     services, ReminderPushBackgroundService
+    TaskFlow.Api/                   Program.cs — endpoint mapping, JWT config, rate limiting,
+                                     health checks, Dockerfile
+
+  .github/workflows/deploy.yml      CI/CD: test (frontend + backend) -> deploy (GitHub Pages)
+  railway.json                      Railway build config (Dockerfile-based deploy for the API)
 
   docs/
-    phase-1-audit.md                Architecture, security, and data-model audit of the client app
-    feature-parity-matrix.md        Feature-by-feature status: local-only vs. built-and-tested on the API
+    phase-1-audit.md                Historical: pre-integration architecture/security audit
+    feature-parity-matrix.md        Historical: local-only vs. API feature tracking from that phase
 ```
 
 ## Running The Client App
 
 ### Simple local use
 
-Open `index.html` directly in a browser.
-
-Most app features work this way. Service worker registration is skipped on `file://` because browsers only allow service workers on `http`, `https`, or localhost.
+Open `index.html` directly in a browser. Most features work this way, but service workers (offline caching, push notifications) only run over `http://`, `https://`, or `localhost` — never `file://`.
 
 ### Local HTTP server
-
-For full PWA behavior, serve the folder over HTTP:
 
 ```powershell
 cd "E:\Task Pro"
 python -m http.server 8000
 ```
 
-Then open:
-
-```text
-http://127.0.0.1:8000/index.html
-```
+Then open `http://127.0.0.1:8000/index.html`. By default this still talks to the **live** production API — see "Backend API > Running it locally" if you want a fully local stack.
 
 ## User Guide
 
-### Login
+### Account
 
-Enter an email address on the login screen.
-
-Important: this is local identity selection, not secure account authentication. It separates each local user's data in browser storage and enables owner assignment.
+Registration and login require a **username** (3–32 characters: letters, numbers, underscores) and a **password** (6+ characters). This is real server-side authentication — the backend hashes passwords and issues short-lived JWT access tokens plus long-lived rotating refresh tokens. There is no anonymous/local-only mode; an account is required to use the app.
 
 ### Dashboard
 
-The dashboard shows:
-
-- Total tasks
-- Completed tasks
-- In-progress tasks
-- Overdue tasks
-- Weekly completion chart
-- Priority distribution
-- Productivity heatmap
-- Upcoming deadlines
-- Goal progress
-- Habit streaks
-- Recent activity
-
-Dashboard filters:
-
-- Date: all dates, today, this week, this month
-- Project
-- Owner
+- Total / completed / in-progress / overdue task counts
+- Weekly completion chart, priority distribution, productivity heatmap
+- Upcoming deadlines, goal progress, habit streaks, recent activity
+- **Today's Focus** widget: a short, prioritized list of what most needs attention right now (overdue items, due-today items, goals falling behind pace)
+- Filters: date range, project, owner
 
 ### Tasks
 
-Tasks support:
+Fields: title, description, priority, category, project, owner, Eisenhower quadrant, due date/time, status, progress, estimated/logged hours, link, notes, tags, recurrence, **reminder** (date + time), **Important (alarm)** flag, milestone flag, dependencies, subtasks, comments.
 
-- Title and description
-- Priority
-- Category
-- Project
-- Owner
-- Eisenhower quadrant
-- Due date and due time
-- Status
-- Progress
-- Estimated hours
-- Logged hours
-- Link
-- Notes
-- Tags
-- Recurrence
-- Reminder
-- Milestone flag
-- Dependencies
-- Subtasks
-- Comments
+Shortcuts: `Q` quick add, `/` focus search, `Alt+N` new task modal, `Escape` close overlays.
 
-Useful shortcuts:
+Quick add syntax: `Prepare report !high @Work #finance ~ProjectName` — supports `!priority`, `@category`, `#tag`, `~project`.
 
-- `Q`: quick add task
-- `/`: focus task search
-- `Alt+N`: open new task modal
-- `Escape`: close open overlays/modals
+### Kanban, Eisenhower Matrix, Projects, Goals, Habits, Notes, Reports, Archive
 
-Quick add syntax:
-
-```text
-Prepare report !high @Work #finance ~ProjectName
-```
-
-Supported quick tokens:
-
-- `!high`, `!medium`, `!low` for priority
-- `@category` for category
-- `#tag` for tags
-- `~project` for an existing project
-
-### Task Filters
-
-The task page can filter by:
-
-- Status
-- Priority
-- Category
-- Project
-- Owner
-- Search text
-
-Sorting options:
-
-- Newest
-- Oldest
-- Due soon
-- Priority
-- Smart score
-- A-Z
-
-### Kanban
-
-Kanban groups tasks by:
-
-- To Do
-- In Progress
-- Done
-
-Drag a task between columns to update its status.
+Unchanged in spirit from earlier versions, with one addition: **Goals** can now be linked to a project, category, or habit (`linkType`/`linkId`) so their progress is auto-tracked from real activity instead of manual entry — see "Weekly Review" below.
 
 ### Calendar
 
-Calendar includes:
+Events support title, date/time/end time, type (meeting/event/reminder/deadline), color, description, a **"Remind me"** interval (none / at the time / 10 / 30 / 60 minutes / 1 day before), and an **Important (alarm)** flag.
 
-- Tasks by due date
-- Custom events
-- Event type
-- Event time and end time
-- Event color
-- Event description
+### Timetable
 
-Click a day to create an event.
+Auto-assigns tasks across the day's available hours based on estimated duration, priority, and due date — a lightweight daily schedule generated from your task list rather than something you build by hand.
 
-### Eisenhower Matrix
+### Life Balance
 
-The matrix organizes active tasks into:
+Tracks time allocation across life areas and reports back against general well-established time-use guidance, so you can see where your logged hours are actually going versus where you intend them to go.
 
-- Urgent and important
-- Not urgent and important
-- Urgent and not important
-- Not urgent and not important
+### Progress
 
-Tasks can be assigned manually to a quadrant, or the app can infer placement from priority and due date.
+- Auto-calculated activity/progress charts from real task completion and habit data
+- Self-competition "Beat Your Record" challenges
+- **Achievements**: badges computed live from your existing data (no separate tracking to maintain), shown once per unlock via a toast and permanently in a badge grid
 
-### Projects
+### Review (Weekly Review)
 
-Projects support:
-
-- Name
-- Description
-- Color
-- Progress based on linked tasks
-
-Projects can be used as filters across tasks and dashboard views.
-
-### Goals
-
-Goals support:
-
-- Weekly or monthly goal type
-- Target
-- Current progress
-- Unit
-
-### Habits
-
-Habits track daily completion and streaks.
-
-### Notes
-
-Notes support:
-
-- Title
-- Folder
-- Pinning
-- Markdown-style preview for simple formatting
-- Search
-
-### Reports
-
-Reports summarize logged time by:
-
-- Total logged hours
-- Category
-- Project
-- Recent days
-
-### Archive
-
-Archived tasks are removed from the active task list and stored in the archive. They can be restored or permanently cleared.
+A dedicated weekly page: goal progress vs. expected pace, habit consistency (30-day window), task-completion velocity, a life-balance summary, and a suggested focus area for the week ahead.
 
 ### Pomodoro Timer
 
-The Pomodoro timer supports:
+Work/break duration, session count, optional task linking, and saving focus time back to a task. Configured in Settings.
 
-- Work duration
-- Break duration
-- Session count
-- Optional task selection
-- Saving focus time to a task
+## Reminders, Alarms, And Push Notifications
 
-Durations are configured in Settings.
+TaskFlow Pro has three escalating layers of "don't let me forget this":
 
-## Settings
+1. **In-app reminder** (tab open): a toast/browser notification at the reminder time for tasks, and per the "Remind me" interval for calendar events.
+2. **Push notification** (app fully closed): a background service on the server checks every user's synced task/event data once a minute and sends a real Web Push notification via the browser's push service (e.g. Chrome's FCM) — this works even with no tab open anywhere, because it's server-initiated, not driven by a page timer.
+3. **Alarm** (important items, tab open): check **"Important (alarm)"** on a task or event, and when its reminder fires while the app is open, a full-screen alarm modal appears with a looping Web Audio beep, staying up until you hit **Dismiss** or **Snooze (5 min)**. The corresponding push notification is also marked `requireInteraction` + vibration, so even when the tab is closed it won't silently auto-dismiss the way a normal notification does — but a genuinely looping alarm *sound* from a fully closed app isn't achievable with web push; that's a browser/OS platform limit, not a client-code gap.
 
-Settings includes:
+To receive push notifications at all, click **Enable Notifications** in Settings once per device/browser — this requests OS notification permission and registers a push subscription with the backend (VAPID). A daily digest notification also summarizes overdue tasks, tasks due today, and goals falling behind pace, once per day.
 
-- Current local user
-- Apps Script URL
-- Sync token
-- Google Sheets sync controls
-- Admin sync-all control
-- Pomodoro durations
-- Language/RTL toggle
-- Export
-- Import
-- Browser notifications
-- Clear all data
+Editing a task's reminder to a new time always re-arms it (this used to silently fail to re-arm after a reminder had already fired once — fixed 2026-09-23).
 
-## Google Sheets Sync Setup
+## Internationalization (English/Arabic)
 
-Google Sheets sync uses `AppsScript.gs`. It is optional.
+Full English and Arabic translations (360 matched keys as of this writing) covering every page, modal, button, placeholder, and notification string — not just top-level labels. Arabic mode also switches the layout to RTL. Toggle language in Settings.
 
-### 1. Create a Google Sheet
+## Authentication
 
-Create a spreadsheet in Google Sheets and copy its spreadsheet ID from the URL.
+- Registration: `POST /api/auth/register` with `{username, password, organizationName}`.
+- Login: `POST /api/auth/login` with `{username, password}`.
+- Access tokens are JWTs with a 15-minute lifetime; refresh tokens are long random values, stored server-side only as a SHA-256 hash, and rotate on every use (the old one is revoked the moment a new one is issued).
+- The client (`app.js`) transparently refreshes the access token in the background via `ensureFreshToken()`/`apiRaw()` and retries once on a 401.
 
-Example URL shape:
+## Sync And Offline Behavior
 
-```text
-https://docs.google.com/spreadsheets/d/SPREADSHEET_ID/edit
-```
+Every piece of app data — tasks, events, goals, habits, notes, everything — is stored in `localStorage` first (instant, works offline) and mirrored to the backend through a generic key/value store:
 
-### 2. Create Apps Script Project
+- `GET /api/data` — fetch every synced key for the signed-in user
+- `PUT /api/data/{key}` — upsert one key's JSON value
+- `DELETE /api/data/{key}`
 
-1. Go to `https://script.google.com`.
-2. Create a new project.
-3. Paste the full contents of `AppsScript.gs`.
+On login, the client hydrates from the server, replays anything still queued locally (`taskflow_pending_sync`), then keeps flushing that queue every 30 seconds and on `online`/visibility-change events. If the network is unreachable, changes queue locally and sync automatically once connectivity returns — this is what makes the app usable offline on mobile with no data loss.
 
-### 3. Configure Script Properties
+`AppsScript.gs` (Google Sheets export/sync) still exists as an optional, separate mirror for anyone who wants a spreadsheet copy of their tasks — it is independent of the real backend sync above and not required for normal use.
 
-In Apps Script:
-
-1. Open Project Settings.
-2. Add Script Properties:
-
-```text
-SPREADSHEET_ID = your spreadsheet id
-SYNC_TOKEN = a long random secret
-ADMIN_EMAILS = admin1@example.com,admin2@example.com
-```
-
-`ADMIN_EMAILS` is required only for the Sync All Users action.
-
-Use a long random `SYNC_TOKEN`. Do not publish it in source code.
-
-### 4. Deploy Web App
-
-Deploy as a web app:
-
-- Execute as: Me
-- Who has access: Anyone
-
-The web app can be public because `AppsScript.gs` checks `SYNC_TOKEN` before spreadsheet access.
-
-### 5. Configure The App
-
-In TaskFlow Pro Settings:
-
-1. Set Apps Script URL to the deployed web app URL.
-2. Set Sync Token to the same value as `SYNC_TOKEN`.
-3. Click Test.
-4. Use Push or Pull.
-
-## Sync Behavior
-
-### Push
-
-Push sends the current account's tasks to the matching sheet.
-
-### Pull
-
-Pull replaces the current account's local tasks with tasks from Google Sheets.
-
-If local tasks changed after the last sync, the app warns before pulling.
-
-### Sync All
-
-Admin-only client control for pushing all local users from this browser to separate sheets. Server-side Apps Script also checks `ADMIN_EMAILS`.
-
-## Backend API (In Progress)
-
-This is the real API/database foundation described in the audit. It is functional and tested but **has no connected UI** — there is no login screen, task list, or any other page that talks to it. It is meant to eventually replace the client app's `localStorage` layer.
+## Backend API
 
 ### Architecture
 
 ```text
-src/TaskFlow.Api            Program.cs: minimal-API endpoint mapping, JWT bearer auth, rate limiting,
-                             security headers, exception-to-HTTP-status middleware, health checks
-src/TaskFlow.Application     Commands/DTOs (RegisterCommand, CreateTaskCommand, TaskDto, ...) and
-                             service interfaces (IAuthService, ITaskService, IProjectService, ...)
-src/TaskFlow.Infrastructure  EF Core DbContext + PostgreSQL migrations, and the concrete service
-                             implementations that enforce organization membership on every query
-src/TaskFlow.Domain          Plain entities: User, Organization, OrganizationMember, Project,
-                             TaskItem, Subtask, TaskComment, Tag, TaskTag, RefreshSession
+src/TaskFlow.Api            Program.cs: endpoint mapping, JWT bearer auth, rate limiting,
+                             security headers, exception-to-HTTP-status middleware, health checks,
+                             hosts ReminderPushBackgroundService
+src/TaskFlow.Application     Commands/DTOs and service interfaces
+src/TaskFlow.Infrastructure  EF Core DbContext + SQLite migrations; auth/task/project/subtask/
+                             comment/tag/user-data/push-subscription service implementations;
+                             ReminderPushBackgroundService (server-side reminder scanning + Web Push)
+src/TaskFlow.Domain          Entities: User, Organization, OrganizationMember, Project, TaskItem,
+                             Subtask, TaskComment, Tag, TaskTag, RefreshSession, UserDataEntry,
+                             PushSubscription, SentReminder
 ```
 
-Every entity that belongs to an organization carries an `OrganizationId`, and every service method re-checks that the authenticated user is a member of that organization before touching any row — the organization ID is read from the signed JWT claim, never from a client-supplied value.
+Every organization-scoped entity carries an `OrganizationId`, and every service method re-verifies the caller's membership (from the signed JWT claim, never a client-supplied value) before touching a row.
 
-### Endpoints implemented so far
+Database is **SQLite** (not PostgreSQL — deliberately, to avoid running/paying for a separate database service). `DateTimeOffset` columns use a custom value converter (stored as Unix milliseconds) since SQLite has no native `DateTimeOffset` support; WAL mode is enabled at startup for safe concurrent writes.
+
+### Endpoints
 
 ```text
-POST /api/auth/register        Create user + organization + Owner membership; returns JWT + refresh token
-POST /api/auth/login            Returns JWT + refresh token, or 401
-POST /api/auth/refresh          Rotates a refresh token, or 401 if invalid/expired/revoked
+POST /api/auth/register             Create user + organization + Owner membership
+POST /api/auth/login                Returns access + refresh token, or 401
+POST /api/auth/refresh              Rotates a refresh token, or 401 if invalid/expired/revoked
 
-GET  /api/tasks                 List tasks in the caller's organization
-POST /api/tasks                 Create a task
-PUT  /api/tasks/{id}             Update a task (requires the row's current Version; stale Version -> 409)
+GET  /api/tasks | POST /api/tasks | PUT /api/tasks/{id}
+GET  /api/projects | POST /api/projects
+GET  /api/tasks/{taskId}/subtasks | POST .../subtasks | PUT .../subtasks/{id}
+GET  /api/tasks/{taskId}/comments | POST .../comments
+GET  /api/tags | POST /api/tags
 
-GET  /api/projects              List projects in the caller's organization
-POST /api/projects              Create a project
+GET  /api/data                      All synced key/value entries for the caller
+PUT  /api/data/{key}                Upsert one key
+DELETE /api/data/{key}
 
-GET  /api/tasks/{taskId}/subtasks    List a task's subtasks
-POST /api/tasks/{taskId}/subtasks    Add a subtask
-PUT  /api/tasks/{taskId}/subtasks/{id} Update a subtask
+GET  /api/push/vapid-public-key     Public VAPID key for the client to subscribe with
+POST /api/push/subscribe            Register a browser push subscription
+POST /api/push/unsubscribe          Remove a push subscription
 
-GET  /api/tasks/{taskId}/comments    List a task's comments
-POST /api/tasks/{taskId}/comments    Add a comment
-
-GET  /api/tags                  List organization tags
-POST /api/tags                  Create a tag
-
-GET  /health/live               Liveness probe
-GET  /health/ready               Readiness probe (checks DB connectivity)
+GET  /health/live                   Liveness probe
+GET  /health/ready                  Readiness probe (checks DB connectivity)
 ```
 
-All `/api/*` routes except `/api/auth/*` require a valid `Authorization: Bearer <token>` header. Unauthenticated requests get 401; requests for another organization's data get 403/404 rather than leaking whether the record exists.
+All `/api/*` routes except `/api/auth/*` and the VAPID public-key lookup require `Authorization: Bearer <token>`.
+
+### ReminderPushBackgroundService
+
+A `BackgroundService` that ticks every 60 seconds: for every user with at least one push subscription, it reads their synced task/event JSON from `/api/data`'s underlying table, finds reminders due in the last 5 minutes (correcting for the browser's timezone offset, captured at subscribe time), sends a real Web Push notification via VAPID, and records what it sent in `SentReminders` so the same reminder is never pushed twice. This is what makes reminders fire even when no browser tab is open anywhere.
 
 ### Running it locally
 
-Requires the .NET 9 SDK and a PostgreSQL instance. The quickest way to get a database is Docker:
-
-```powershell
-docker run -d --name taskflow-postgres -e POSTGRES_PASSWORD=devpassword123 -e POSTGRES_DB=taskflow -p 5432:5432 postgres:16-alpine
-```
-
-Set the connection string and JWT signing key (either edit `src/TaskFlow.Api/appsettings.Development.json` or set environment variables), then apply migrations and run:
+Requires the .NET 9 SDK. No external database service is needed — SQLite is a local file.
 
 ```powershell
 cd "E:\Task Pro"
@@ -434,10 +246,10 @@ dotnet ef database update --project src\TaskFlow.Infrastructure --startup-projec
 dotnet run --project src\TaskFlow.Api
 ```
 
-The API listens on the URL printed at startup (see `src/TaskFlow.Api/Properties/launchSettings.json`). Try it with:
+Try it:
 
 ```powershell
-curl -X POST http://localhost:5299/api/auth/register -H "Content-Type: application/json" -d "{\"email\":\"you@example.com\",\"password\":\"a-long-enough-password\",\"organizationName\":\"My Org\"}"
+curl -X POST http://localhost:5299/api/auth/register -H "Content-Type: application/json" -d "{\"username\":\"you\",\"password\":\"a-long-enough-password\",\"organizationName\":\"My Org\"}"
 ```
 
 ### Configuration
@@ -445,12 +257,13 @@ curl -X POST http://localhost:5299/api/auth/register -H "Content-Type: applicati
 `src/TaskFlow.Api/appsettings.json` reads:
 
 ```text
-ConnectionStrings:TaskFlow   PostgreSQL connection string (required)
-Jwt:Key                      HMAC-SHA256 signing key for access tokens (required, 32+ bytes recommended)
-RateLimits:Auth              Requests/minute permitted per policy window on /api/auth/* (default 10)
+ConnectionStrings:TaskFlow   SQLite connection string (required), e.g. Data Source=taskflow.db
+Jwt:Key                      HMAC-SHA256 signing key for access tokens (required)
+RateLimits:Auth              Requests/minute on /api/auth/* (default 10)
+Vapid:PublicKey / PrivateKey / Subject   VAPID key pair + contact for Web Push
 ```
 
-The checked-in `appsettings.json` value for `Jwt:Key` and the PostgreSQL password are placeholders for local development only — replace both before deploying anywhere real. Real secrets must never be committed; use environment variables or a secrets manager in any shared or production environment.
+The checked-in values are **development-only placeholders**. Production (Railway) uses its own distinct values set as environment variables (`Jwt__Key`, `Vapid__PublicKey`, `Vapid__PrivateKey`, `ConnectionStrings__TaskFlow` pointing at the persistent volume) — never the values committed to source.
 
 ### Testing
 
@@ -460,330 +273,137 @@ dotnet build TaskFlow.sln
 dotnet test TaskFlow.sln
 ```
 
-`dotnet test` runs `tests/TaskFlow.IntegrationTests`, which spins up a real, ephemeral PostgreSQL container per test class (via Testcontainers) and exercises the running API through `WebApplicationFactory`. It currently proves:
+`tests/TaskFlow.IntegrationTests` spins up a real, ephemeral SQLite database per test class and exercises the running API through `WebApplicationFactory`. It proves: registration/login/task-creation end-to-end; wrong-password and duplicate-username rejection; cross-tenant isolation (404, not an empty list); anonymous access rejection (401); stale optimistic-concurrency rejection (409); server-side input validation (400); and the auth rate limiter actually returning 429.
 
-- Registration, login, and task creation succeed end-to-end.
-- Wrong password and duplicate-email registration are rejected.
-- **Cross-tenant isolation**: one organization's tasks, subtasks, and comments are invisible to, and cannot be modified by, a user in a different organization (404, not just an empty list).
-- Anonymous requests to protected endpoints are rejected (401).
-- A stale optimistic-concurrency `Version` on update is rejected (409), proving two concurrent editors cannot silently clobber each other.
-- Blank/invalid input is rejected server-side (400), not trusted from the client.
-- The auth rate limiter actually returns 429 once its configured threshold is exceeded.
+## Deployment & CI/CD
 
-As of 2026-09-15, all 9 integration tests pass against a clean build. This is evidence for the claims above — it is not a claim that the backend is production-ready as a whole (see "Known Limitations").
+`.github/workflows/deploy.yml` runs on every push to `main`:
+
+1. **`frontend-test`** (windows-latest): builds a throwaway local API instance, runs `tests/syntax-check.js` and `tests/smoke.js` against it with a real Chrome/Edge browser.
+2. **`backend-test`** (ubuntu-latest): `dotnet test` against the integration test suite.
+3. **`deploy-pages`** (needs both to pass): deploys the static site to GitHub Pages.
+
+Railway watches the same GitHub repo directly and rebuilds/redeploys the API container from `src/TaskFlow.Api/Dockerfile` on every push to `main`, independent of the GitHub Actions run. Both deploys are triggered by the same push, so "push to `main`" is the single action that ships both halves of the product.
+
+If a CI job fails intermittently with a loopback CORS-looking error on `frontend-test`, that is a known, environment-level Chrome Private Network Access quirk unrelated to the app — re-running the job resolves it.
 
 ## Security Model
 
-### Client app: what is protected
-
-- The Apps Script rejects requests without the configured `SYNC_TOKEN`.
-- Spreadsheet ID is stored in Apps Script Properties, not in source.
-- Sync All requires the current user email to be in `ADMIN_EMAILS`.
-- Client no longer ships a hardcoded Apps Script deployment URL.
-- XLSX CDN script includes Subresource Integrity.
-- A Content Security Policy is defined in `index.html`.
-
-### Client app: what is not protected
-
-The client app is still a static browser app. It does not provide true server-side login, sessions, or role permissions.
-
-The login screen is local identity selection only. Anyone with browser access can inspect localStorage. For sensitive team data, use a real backend with authentication, authorization, audit logs, and server-side storage — which is exactly what the backend API above is being built to provide, once it is wired up.
-
-### Backend API: what is protected
+### What is protected
 
 - Passwords are hashed (`Microsoft.AspNetCore.Identity.PasswordHasher`), never stored or logged in plain text.
-- Access tokens are short-lived (15 min) signed JWTs; refresh tokens are long random values stored server-side only as a SHA-256 hash, so a leaked database row cannot be replayed as a token.
-- Every data-access path derives the organization ID from the signed JWT, then re-verifies organization membership before any read or write — a client cannot request another organization's data by guessing or forging an ID.
-- Row-version optimistic concurrency prevents silent overwrite on concurrent edits.
-- `/api/auth/*` is rate-limited; unhandled exceptions are mapped to generic HTTP status codes instead of leaking stack traces.
-- Security response headers (`X-Content-Type-Options`, `Referrer-Policy`) are set on every response; HTTPS redirection is enabled.
+- Access tokens are short-lived (15 min) signed JWTs; refresh tokens are long random values, stored server-side only as a SHA-256 hash, and rotate on every use.
+- Every data-access path derives the organization ID from the signed JWT, then re-verifies membership before any read or write.
+- Row-version optimistic concurrency prevents silent overwrite on concurrent task edits.
+- `/api/auth/*` is rate-limited; unhandled exceptions map to generic HTTP status codes instead of leaking stack traces.
+- Security response headers (`X-Content-Type-Options`, `Referrer-Policy`) are set on every response.
+- VAPID private key and JWT signing key are environment-variable secrets in production, distinct from the dev placeholders committed to source.
 
-### Backend API: what is not yet protected
+### What is not (yet) protected
 
 - No email verification, password reset flow, account lockout, or MFA.
-- Only the `Owner` role currently exists in practice — the `OrganizationRole` enum has Admin/Manager/Member/Viewer values, but no endpoint yet checks role beyond "is a member of this organization."
-- No audit log, no invitations, no CORS policy configured, no secrets manager integration — the JWT key and DB password in `appsettings.json` are dev-only placeholders.
-- Not deployed anywhere; no CI/CD; no production configuration has been created or tested.
+- Only the `Owner` role is enforced in practice — the `OrganizationRole` enum has Admin/Manager/Member/Viewer values, but no endpoint currently checks role beyond "is a member of this organization."
+- No audit log, no invitations.
+- Single-tenant-per-user in practice: registration always creates a new personal organization; there's no UI for inviting others into an existing one yet.
 
 ## Backup, Restore, Import, And Export
 
-### Export JSON
+- **Export JSON**: tasks, projects, goals, habits, notes.
+- **Export CSV**: tasks with id, title, status, priority, category, due date, tags, owner, created/updated.
+- **Export Excel**: one sheet per known local user.
+- **Import JSON**: validated and normalized before saving, with a preview showing record counts; replaces matching local data sections for the current account.
 
-Exports:
-
-- Tasks
-- Projects
-- Goals
-- Habits
-- Notes
-
-### Export CSV
-
-Exports tasks with:
-
-- ID
-- Title
-- Status
-- Priority
-- Category
-- Due date
-- Tags
-- Owner
-- Created
-- Updated
-
-### Export Excel
-
-Exports one sheet per known local user.
-
-### Import JSON
-
-Import validates and normalizes data before saving. It opens a preview showing the number of records to import.
-
-Import replaces matching local data sections for the current account.
-
-## Offline And PWA Behavior
-
-`sw.js` caches:
-
-- `index.html`
-- `styles.css`
-- `app.js`
-- `manifest.json`
-- icons
-
-The service worker uses a network-first strategy and falls back to cached files.
-
-Service workers require HTTP/HTTPS. They do not run from direct `file://` loading.
+Because everything also syncs to the server automatically, a JSON export is a manual point-in-time backup, not the only copy of your data.
 
 ## Testing
 
-This section covers the client app's own test suite (Node/Playwright). For the backend API's test suite (`dotnet test`), see "Backend API > Testing" above.
-
-Install dependencies:
+Client app test suite (Node/Playwright):
 
 ```powershell
 cd "E:\Task Pro"
 npm install
-```
-
-Run all tests:
-
-```powershell
-npm test
-```
-
-Run syntax checks:
-
-```powershell
+npm test               # syntax + smoke
 npm run test:syntax
-```
-
-Run browser smoke test:
-
-```powershell
 npm run test:smoke
 ```
 
-The smoke test verifies:
+The smoke test covers: app load, register+login, navigation across every page (including Timetable, Life Balance, Progress, Review), task creation, global search, planning-record creation, note + calendar event creation, dashboard filters, settings/sync status, import preview, accessibility attributes, and local data persistence.
 
-- App load
-- Login
-- Navigation across all primary pages
-- Task creation
-- Global search
-- Owner filtering
-- Project/goal/habit creation
-- Note creation and search
-- Calendar event creation
-- Dashboard filters
-- Settings sync status
-- Import preview
-- Accessibility attributes
-- Local data persistence
+Backend test suite: see "Backend API > Testing" above.
 
 ## Developer Notes
 
-### Backend layout and conventions
+### Backend conventions
 
-- Keep tenant scoping mandatory: every new `Infrastructure` service method must take the caller's `Guid organizationId` (read from the JWT claim by the endpoint, never from the request body) and verify membership (see the `Tenant.Require`/`Tenant.IsMember` helper in `src/TaskFlow.Infrastructure/Services.cs`) before touching any row.
-- Add new entities to `src/TaskFlow.Domain/Entities.cs`, configure them in `TaskFlowDbContext.OnModelCreating`, then generate a migration:
+- Every new `Infrastructure` service method takes the caller's `Guid organizationId` (or `userId` for account-scoped data) from the JWT claim and verifies access before touching any row.
+- New entities go in `src/TaskFlow.Domain/Entities.cs`, get configured in `TaskFlowDbContext.OnModelCreating`, then need a migration:
   ```powershell
   dotnet ef migrations add <Name> --project src\TaskFlow.Infrastructure --startup-project src\TaskFlow.Api --output-dir Migrations
   ```
-- Add new endpoints in `src/TaskFlow.Api/Program.cs`; wrap anything that should map to a specific HTTP status by throwing `UnauthorizedAccessException` (403), `KeyNotFoundException` (404), `ArgumentException`/`InvalidOperationException` (400), or letting EF Core throw `DbUpdateConcurrencyException` (409) — the shared exception-handling middleware maps these consistently.
-- Add integration test coverage in `tests/TaskFlow.IntegrationTests`. Prefer proving negative/security cases (cross-tenant access, missing auth, stale versions) over only happy-path cases — that is what makes the test suite meaningful evidence rather than a smoke check.
+- Be careful with LINQ comparisons against columns that use a custom `ValueConverter` (e.g. the `DateTimeOffset` -> Unix-ms converter): comparing directly against `DateTimeOffset.UtcNow` in a `Where()` clause can fail to translate to SQL under SQLite. Filter by the indexed/simple columns in SQL, then compare the converted value in memory after materializing the row (see `AuthService.RefreshAsync` for the fixed pattern).
+- New endpoints go in `src/TaskFlow.Api/Program.cs`; throw `UnauthorizedAccessException` (403), `KeyNotFoundException` (404), `ArgumentException`/`InvalidOperationException` (400), or let EF Core throw `DbUpdateConcurrencyException` (409) — shared middleware maps these consistently.
+- Add integration test coverage in `tests/TaskFlow.IntegrationTests`, favoring negative/security cases over happy-path-only.
 
 ### Main client files
 
-- `index.html`: markup, modals, page containers, external scripts.
-- `styles.css`: theme variables, layout, responsive rules, component styles.
-- `app.js`: data layer, rendering, event handlers, sync, import/export, PWA registration.
+- `index.html`: markup, modals, page containers.
+- `styles.css`: theme variables, layout, component styles.
+- `app.js`: data layer, rendering, sync engine, auth, reminders/alarms, push subscription, i18n.
+- `sw.js`: offline cache + Web Push (`push`/`notificationclick`) handling.
 
 ### Data storage
 
-Data is stored in browser `localStorage`.
-
-Most keys are user-scoped:
+Data lives in `localStorage`, namespaced per account:
 
 ```text
-<base_key>_<currentUserEmail>
+<base_key>_<currentUsername>
 ```
 
-Examples:
+e.g. `taskflow_tasks_ahmedadel`, `taskflow_events_ahmedadel`, `taskflow_goals_ahmedadel`. These same keys are what gets mirrored to the backend's generic `/api/data` store.
 
-```text
-taskflow_tasks_user@example.com
-taskflow_projects_user@example.com
-taskflow_goals_user@example.com
-```
+### When saving a task/event, always re-set dismissal flags
 
-Global keys:
-
-```text
-taskflow_users
-taskflow_templates
-taskflow_lang
-taskflow_theme
-taskflow_current_user
-taskflow_script_url
-```
-
-### Task model
-
-Core task fields include:
-
-```text
-id
-numId
-title
-description
-status
-priority
-category
-project
-assignee
-eisenhower
-due
-due_time
-progress
-note
-estimated_hours
-logged_hours
-link
-tags
-subtasks
-recurring
-reminder
-milestone
-dependencies
-createdAt
-updatedAt
-completedAt
-comments
-sortOrder
-myDay
-myDaySlot
-smartScore
-```
-
-### Adding New UI
-
-Use existing patterns:
-
-- Page containers use `id="page-..."`.
-- Navigation uses `data-page`.
-- Modals use `.modal-overlay` and `.modal`.
-- Toasts use `toast(message, type)`.
-- User data should be scoped through `userKey(base)`.
-- Validate imported or synced data before saving.
+If you add a new escalation flag similar to `reminderDismissed` (tasks) or `reminderFired` (events), make sure the save path resets it whenever the underlying trigger condition (the reminder time itself) changes — otherwise editing a fired reminder to a new time silently never re-arms it. This was a real bug (fixed 2026-09-23); the pattern to follow is calendar events' `saveEvent()`, which already always includes `reminderFired:false` in its update payload.
 
 ### Adding Tests
-
-Add coverage in:
 
 - `tests/syntax-check.js` for static/syntax validation.
 - `tests/smoke.js` for browser-level behavior.
 
-Run `npm test` before deployment.
-
-## Project Status And Roadmap
-
-TaskFlow Pro is mid-migration from a local-only client app to a real multi-tenant SaaS backend, following the staged plan in `docs/phase-1-audit.md`. Current state, honestly:
-
-| Layer | Status |
-| --- | --- |
-| Client app (`index.html`/`app.js`) | Fully functional as a local/single-browser tool. This is the only part an end user can currently use. |
-| Backend API (`src/TaskFlow.*`) | Auth, tasks, projects, subtasks, comments, and tags are implemented, tenant-isolated, and covered by passing integration tests against a real database. Not deployed; not connected to any UI. |
-| Frontend-to-API integration | Not started. The client app still reads/writes only `localStorage`. |
-| Everything else in the audit (roles beyond Owner, invitations, goals/habits/notes/calendar/reports on the API, billing, CI/CD, deployment) | Not started. |
-
-See `docs/feature-parity-matrix.md` for the up-to-date feature-by-feature status, and `docs/phase-1-audit.md` for the full architecture/security audit and target design. Do not describe this project as "production-ready" or safe for real company/team data until both the audit's critical findings are resolved and a frontend is actually wired to the authenticated API.
+Run `npm test` before pushing — `deploy-pages` won't run if it fails.
 
 ## Known Limitations
 
-### Client app
-
-- No true server-side authentication.
-- No true role-based authorization inside the static client.
-- Google Sheets sync is not a transactional database.
-- Conflict handling warns before overwrite but does not merge record-by-record.
-- LocalStorage can be cleared by the browser or user.
+- No email verification, password reset, or MFA.
+- No role enforcement beyond organization membership.
+- A true looping alarm sound cannot be played from a fully closed browser tab — push notifications for important items get `requireInteraction` + vibration instead, which is the strongest thing the Web Push API allows in that state.
+- Push notifications depend on the browser's own push service (e.g. Chrome/Edge use Google's FCM) being reachable; there is no fallback if that service is down or blocked.
+- Google Sheets sync (`AppsScript.gs`) is a separate, optional, non-transactional mirror — not a substitute for the real backend sync.
 - Large task histories may eventually hit browser storage limits.
 - Excel export depends on the XLSX CDN being available.
 
-### Backend API
-
-- No UI is connected to it yet — it cannot be used end-to-end today.
-- No password reset, email verification, or account recovery flow.
-- No role enforcement beyond "is an organization member" (the Admin/Manager/Member/Viewer roles exist in the data model but are not yet checked anywhere).
-- No invitations, audit log, notifications, or reporting endpoints.
-- Not deployed, no CI/CD pipeline, and the checked-in dev configuration values (JWT key, DB password) must be replaced before any real deployment.
-
 ## Troubleshooting
 
-### Service worker does not register
+### Service worker does not register / no push notifications
 
-Use HTTP/HTTPS instead of opening `index.html` directly with `file://`.
+Use HTTP/HTTPS, not `file://`. Then check, in order: (1) OS notification permission was granted (Settings → Enable Notifications), (2) the browser console for a failed `/api/push/subscribe` call, (3) whether the account's session can actually reach the API at all — a broken refresh token loop (repeated 400/429 on `/api/auth/refresh` in the console) will silently prevent all syncing, including the data the server-side push service needs to see. Log out and back in to get a fresh session if you see that.
 
-### Sync test fails
+### An "important" reminder fired once but never fires again after I changed its time
 
-Check:
+Fixed 2026-09-23 — make sure you're on the latest deploy (hard-refresh, `Ctrl+Shift+R`). If it's still stuck, open the task and click Save Changes once (even without further edits) to clear the old dismissed state.
 
-- Apps Script URL is correct.
-- Sync token matches `SYNC_TOKEN`.
-- Apps Script is deployed as a web app.
-- `SPREADSHEET_ID` is set in Script Properties.
-- The script owner has access to the spreadsheet.
+### Sync shows "waiting to sync" indefinitely
 
-### Sync All fails
-
-Check:
-
-- `ADMIN_EMAILS` is set in Script Properties.
-- The logged-in app email matches one of the admin emails.
-- The same `SYNC_TOKEN` is configured in the app.
+Check the browser console for failed requests to the API. If `/api/auth/refresh` is failing, your session needs to be re-established — log out and back in.
 
 ### Import does not work
 
-Check:
-
-- File is valid JSON.
-- File shape contains supported arrays such as `tasks`, `projects`, `goals`, `habits`, or `notes`.
-- Confirm the import preview modal.
+Confirm the file is valid JSON containing supported arrays (`tasks`, `projects`, `goals`, `habits`, `notes`), and confirm the import preview modal before finalizing.
 
 ### Excel export fails
 
 Check internet access to the XLSX CDN, or bundle the XLSX library locally and update `index.html`.
 
-## Operational Checklist
+### Google Sheets sync (optional, legacy)
 
-Before using with real team data:
-
-1. Deploy the latest `AppsScript.gs`.
-2. Set `SPREADSHEET_ID`, `SYNC_TOKEN`, and `ADMIN_EMAILS`.
-3. Configure Apps Script URL and Sync Token in Settings.
-4. Click Test in Settings.
-5. Run `npm test`.
-6. Export a JSON backup before large imports or pulls.
-
+If using `AppsScript.gs`: confirm the Apps Script URL and Sync Token in Settings match the deployed script's `SYNC_TOKEN`, that it's deployed as a web app, and that `SPREADSHEET_ID` is set in Script Properties.
