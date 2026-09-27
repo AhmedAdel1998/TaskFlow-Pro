@@ -526,6 +526,7 @@ function showPage(name) {
   if (window.innerWidth <= 900) document.getElementById('sidebar').classList.remove('open');
   const renderMap = {dashboard:renderDashboard,tasks:renderTasks,kanban:renderKanban,calendar:renderCalendar,timetable:renderTimetable,analytics:renderAnalytics,archive:renderArchive,myday:renderMyDay,projects:renderProjects,eisenhower:renderEisenhower,goals:renderGoals,habits:renderHabits,notes:renderNotes,reports:renderReports,lifebalance:renderLifeBalance,progress:renderProgress,review:renderReview};
   if (renderMap[name]) renderMap[name]();
+  applyLang();
 }
 function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
 function setGreeting() {

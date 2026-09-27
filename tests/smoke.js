@@ -174,6 +174,10 @@ async function runSmokeTests(executablePath) {
 
   await step('reserve a fixed timetable block', async () => {
     await page.click('[data-page="timetable"]');
+    await page.click('[data-page="dashboard"]');
+    await page.click('[data-page="timetable"]');
+    const addBlockLabel = await page.locator('#page-timetable [data-i18n="tt_add_block"]').innerText();
+    if (addBlockLabel !== 'Add time block') throw new Error('timetable controls were not translated after navigation');
     await page.click('#page-timetable button:has-text("Add time block")');
     await page.fill('#ttBlockTitleInput', 'Audit Project A');
     await page.fill('#ttBlockDateInput', '2026-08-02');
