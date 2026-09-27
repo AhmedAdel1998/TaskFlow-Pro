@@ -1,4 +1,6 @@
-const CACHE_NAME = 'taskflow-v8';
+// Bump this whenever the app shell changes so an existing install cannot mix a
+// newly deployed index.html with an older cached app.js.
+const CACHE_NAME = 'taskflow-v9';
 const ASSETS = ['./index.html', './styles.css', './app.js', './manifest.json', './icon-192.png', './icon-512.png'];
 globalThis.addEventListener('install', e => { e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS))); globalThis.skipWaiting(); });
 globalThis.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))); globalThis.clients.claim(); });
