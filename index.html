@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TaskFlow">
 <meta name="description" content="Professional task monitoring and productivity tracker">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https: http://localhost:5000 http://127.0.0.1:5000 http://localhost:51789 http://127.0.0.1:51789; object-src 'none'; base-uri 'self'; form-action 'self';">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -27,7 +27,7 @@
     <input type="text" id="loginUsername" aria-label="Username" data-i18n-ph="ph_username" placeholder="Username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
     <input type="password" id="loginPassword" aria-label="Password" data-i18n-ph="ph_password" placeholder="Password (min 6 characters)" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="btn btn-primary" onclick="doLogin()" id="loginSubmitBtn" data-i18n="sign_in">Sign In</button>
-    <div style="font-size:.82rem;color:var(--text2);margin-top:10px"><span id="loginSwitchText" data-i18n="new_here">New here?</span> <a href="#" onclick="toggleAuthMode();return false;" id="loginSwitchLink" style="color:var(--primary);font-weight:600" data-i18n="switch_to_create">Create an account</a></div>
+    <div style="font-size:.82rem;color:var(--text2);margin-top:10px"><span id="loginSwitchText" data-i18n="new_here">New here?</span> <button type="button" onclick="toggleAuthMode()" id="loginSwitchLink" style="background:none;border:0;padding:0;font:inherit;color:var(--primary);font-weight:600;cursor:pointer" data-i18n="switch_to_create">Create an account</button></div>
     <div class="login-team" data-i18n="login_footer">Powered by TaskFlow Pro &bull; Team Edition</div>
   </div>
 </div>
@@ -75,7 +75,7 @@
     <button class="hamburger" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="search-box" id="globalSearchBox">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" data-i18n-ph="ph_search_tasks" placeholder="Search tasks..." oninput="handleGlobalSearch(event)" onfocus="handleGlobalSearch(event)" onblur="setTimeout(()=>closeSearch(),200)">
+      <input type="text" id="searchInput" aria-label="Search tasks" data-i18n-ph="ph_search_tasks" placeholder="Search tasks..." oninput="handleGlobalSearch(event)" onfocus="handleGlobalSearch(event)" onblur="setTimeout(()=>closeSearch(),200)">
       <span class="shortcut-hint">/</span>
       <div class="search-results" id="searchResults"></div>
     </div>
@@ -93,9 +93,9 @@
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div style="font-size:1.3rem;font-weight:700"><span id="greeting"></span> <span id="greetUser" style="color:var(--primary)"></span></div>
       <div class="filter-bar">
-        <select id="dashDateFilter" class="filter-select" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_dates">All Dates</option><option value="today" data-i18n-opt="filter_today">Today</option><option value="week" data-i18n-opt="filter_this_week">This Week</option><option value="month" data-i18n-opt="filter_this_month">This Month</option></select>
-        <select id="dashProjectFilter" class="filter-select" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_projects">All Projects</option></select>
-        <select id="dashAssigneeFilter" class="filter-select" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_owners">All Owners</option></select>
+        <select id="dashDateFilter" class="filter-select" aria-label="Filter dashboard by date" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_dates">All Dates</option><option value="today" data-i18n-opt="filter_today">Today</option><option value="week" data-i18n-opt="filter_this_week">This Week</option><option value="month" data-i18n-opt="filter_this_month">This Month</option></select>
+        <select id="dashProjectFilter" class="filter-select" aria-label="Filter dashboard by project" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_projects">All Projects</option></select>
+        <select id="dashAssigneeFilter" class="filter-select" aria-label="Filter dashboard by owner" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_owners">All Owners</option></select>
       </div>
     </div>
     <div class="card" id="todaysFocusCard"></div>
@@ -110,19 +110,19 @@
     <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="my_day">My Day</h2><div style="display:flex;gap:6px"><span id="myDayDate" style="font-size:.85rem;color:var(--text2)"></span></div></div>
     <div class="stats-grid" id="myDayStats"></div>
     <div id="myDayBlocks"></div>
-    <div class="card"><div class="card-title" data-i18n="daily_notes">Daily Notes</div><textarea id="dailyNoteInput" rows="3" data-i18n-ph="ph_daily_notes" placeholder="Write your notes for today..." style="width:100%;resize:vertical" oninput="saveDailyNote()"></textarea></div>
+    <div class="card"><div class="card-title" data-i18n="daily_notes">Daily Notes</div><textarea id="dailyNoteInput" aria-label="Daily notes" rows="3" data-i18n-ph="ph_daily_notes" placeholder="Write your notes for today..." style="width:100%;resize:vertical" oninput="saveDailyNote()"></textarea></div>
   </div>
   <!-- TASKS -->
   <div class="page" id="page-tasks">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
       <h2 style="font-size:1.2rem;font-weight:700" data-i18n="all_tasks">All Tasks</h2>
       <div class="filter-bar">
-        <select id="filterStatus" class="filter-select" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_status">All Status</option><option value="todo" data-i18n-opt="status_todo">To Do</option><option value="in-progress" data-i18n-opt="status_inprogress">In Progress</option><option value="done" data-i18n-opt="status_done">Done</option></select>
-        <select id="filterPriority" class="filter-select" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_priorities">All Priorities</option><option value="high" data-i18n-opt="priority_high">High</option><option value="medium" data-i18n-opt="priority_medium">Medium</option><option value="low" data-i18n-opt="priority_low">Low</option></select>
-        <select id="filterCategory" class="filter-select" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_categories">All Categories</option></select>
-        <select id="filterProject" class="filter-select" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_projects">All Projects</option></select>
-        <select id="filterAssignee" class="filter-select" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_owners">All Owners</option></select>
-        <select id="sortBy" class="filter-select" onchange="renderTasks()"><option value="created-desc" data-i18n-opt="sort_newest">Newest</option><option value="created-asc" data-i18n-opt="sort_oldest">Oldest</option><option value="due-asc" data-i18n-opt="sort_due_soon">Due Soon</option><option value="priority-desc" data-i18n-opt="sort_priority">Priority</option><option value="score-desc" data-i18n-opt="sort_smart_score">Smart Score</option><option value="alpha-asc" data-i18n-opt="sort_az">A-Z</option></select>
+        <select id="filterStatus" class="filter-select" aria-label="Filter tasks by status" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_status">All Status</option><option value="todo" data-i18n-opt="status_todo">To Do</option><option value="in-progress" data-i18n-opt="status_inprogress">In Progress</option><option value="done" data-i18n-opt="status_done">Done</option></select>
+        <select id="filterPriority" class="filter-select" aria-label="Filter tasks by priority" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_priorities">All Priorities</option><option value="high" data-i18n-opt="priority_high">High</option><option value="medium" data-i18n-opt="priority_medium">Medium</option><option value="low" data-i18n-opt="priority_low">Low</option></select>
+        <select id="filterCategory" class="filter-select" aria-label="Filter tasks by category" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_categories">All Categories</option></select>
+        <select id="filterProject" class="filter-select" aria-label="Filter tasks by project" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_projects">All Projects</option></select>
+        <select id="filterAssignee" class="filter-select" aria-label="Filter tasks by owner" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_owners">All Owners</option></select>
+        <select id="sortBy" class="filter-select" aria-label="Sort tasks" onchange="renderTasks()"><option value="created-desc" data-i18n-opt="sort_newest">Newest</option><option value="created-asc" data-i18n-opt="sort_oldest">Oldest</option><option value="due-asc" data-i18n-opt="sort_due_soon">Due Soon</option><option value="priority-desc" data-i18n-opt="sort_priority">Priority</option><option value="score-desc" data-i18n-opt="sort_smart_score">Smart Score</option><option value="alpha-asc" data-i18n-opt="sort_az">A-Z</option></select>
         <button class="filter-star" onclick="openSavedFilters()" data-i18n-title="title_saved_filters" title="Saved filters">&#9733;</button>
       </div>
     </div>
@@ -218,7 +218,7 @@
   </div>
   <!-- NOTES -->
   <div class="page" id="page-notes">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="notes">Notes</h2><div style="display:flex;gap:8px;align-items:center"><input id="noteSearch" type="search" data-i18n-ph="ph_search_notes" placeholder="Search notes..." oninput="renderNotes()" style="min-width:180px"><button class="btn btn-sm btn-primary" onclick="openNoteEditor()" data-i18n="new_note">+ New Note</button></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="notes">Notes</h2><div style="display:flex;gap:8px;align-items:center"><input id="noteSearch" type="search" aria-label="Search notes" data-i18n-ph="ph_search_notes" placeholder="Search notes..." oninput="renderNotes()" style="min-width:180px"><button class="btn btn-sm btn-primary" onclick="openNoteEditor()" data-i18n="new_note">+ New Note</button></div></div>
     <div class="notes-layout"><div class="notes-sidebar" id="notesFolders"></div><div class="notes-grid" id="notesGrid"></div></div>
   </div>
   <!-- ANALYTICS -->
@@ -394,11 +394,11 @@
       <div class="setting-item"><div><div class="setting-label" data-i18n="setting_sync_token">Sync Token</div><div class="setting-desc" id="syncTokenStatus" data-i18n="setting_sync_token_desc">Required for Google Sheets sync</div></div><button class="btn btn-sm btn-outline" onclick="editSyncToken()" data-i18n="btn_edit">Edit</button></div>
       <div class="setting-item"><div><div class="setting-label" data-i18n="setting_gsheets_sync">Google Sheets Sync</div><div class="setting-desc" id="syncStateLabel" data-i18n="setting_not_synced">Not synced yet</div></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-sm btn-outline" onclick="testSyncConnection()" data-i18n="btn_test">Test</button><button class="btn btn-sm btn-outline" onclick="syncPullAll()" data-i18n="btn_pull">Pull</button><button class="btn btn-sm btn-primary" onclick="syncPushAll()" data-i18n="btn_push">Push</button></div></div>
       <div class="setting-item" id="adminSyncSetting" style="display:none"><div><div class="setting-label" data-i18n="setting_sync_all">Sync All to Google Sheets</div><div class="setting-desc" data-i18n="setting_sync_all_desc">Admin token required; pushes all local users</div></div><button class="btn btn-sm btn-primary" onclick="syncAllUsersToSheet()" data-i18n="btn_sync_all">Sync All</button></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_pomo_work">Pomodoro Work (min)</div><div class="setting-desc"><span data-i18n="setting_default_prefix">Default</span>: 25</div></div><input type="number" id="pomoWorkMin" value="25" min="1" max="90" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_pomo_break">Pomodoro Break (min)</div><div class="setting-desc"><span data-i18n="setting_default_prefix">Default</span>: 5</div></div><input type="number" id="pomoBreakMin" value="5" min="1" max="30" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_pomo_work">Pomodoro Work (min)</div><div class="setting-desc"><span data-i18n="setting_default_prefix">Default</span>: 25</div></div><input type="number" id="pomoWorkMin" aria-label="Pomodoro work duration in minutes" value="25" min="1" max="90" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_pomo_break">Pomodoro Break (min)</div><div class="setting-desc"><span data-i18n="setting_default_prefix">Default</span>: 5</div></div><input type="number" id="pomoBreakMin" aria-label="Pomodoro break duration in minutes" value="5" min="1" max="30" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
       <div class="setting-item"><div><div class="setting-label" data-i18n="setting_language">Language / RTL</div><div class="setting-desc" id="currentLangLabel">English</div></div><button class="btn btn-sm btn-outline" onclick="toggleLang()" data-i18n="btn_toggle">Toggle</button></div>
       <div class="setting-item"><div><div class="setting-label" data-i18n="setting_export">Export Tasks</div><div class="setting-desc" data-i18n="setting_export_desc">CSV, JSON, or Excel</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="exportCSV()">CSV</button><button class="btn btn-sm btn-outline" onclick="exportJSON()">JSON</button><button class="btn btn-sm btn-outline" onclick="exportExcel()">Excel</button></div></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_import">Import Tasks</div><div class="setting-desc" data-i18n="setting_import_desc">Upload JSON backup</div></div><button class="btn btn-sm btn-outline" onclick="document.getElementById('importFile').click()" data-i18n="btn_import">Import</button><input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)"></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_import">Import Tasks</div><div class="setting-desc" data-i18n="setting_import_desc">Upload JSON backup</div></div><button class="btn btn-sm btn-outline" onclick="document.getElementById('importFile').click()" data-i18n="btn_import">Import</button><input type="file" id="importFile" aria-label="Import task backup file" accept=".json" style="display:none" onchange="importJSON(event)"></div>
       <div class="setting-item"><div><div class="setting-label" data-i18n="setting_notifications">Enable Notifications</div><div class="setting-desc" data-i18n="setting_notifications_desc">Browser reminders</div></div><button class="btn btn-sm btn-outline" onclick="requestNotifPermission()" data-i18n="btn_enable">Enable</button></div>
       <div class="setting-item"><div><div class="setting-label" data-i18n="setting_clear_data">Clear All Data</div><div class="setting-desc" data-i18n="setting_clear_data_desc">Permanently erase</div></div><button class="btn btn-sm btn-danger" onclick="clearAllData()" data-i18n="btn_clear">Clear</button></div>
     </div></div>
@@ -484,6 +484,8 @@
       <div class="form-group"><label for="ttBlockTitleInput" data-i18n="field_title">Title</label><input type="text" id="ttBlockTitleInput" maxlength="150" data-i18n-ph="tt_block_title" placeholder="What will you work on?"></div>
       <div class="form-group"><label for="ttBlockDateInput" data-i18n="field_date">Date</label><input type="date" id="ttBlockDateInput"></div>
       <div class="form-row"><div class="form-group"><label for="ttBlockStartInput" data-i18n="label_from">From</label><input type="time" id="ttBlockStartInput"></div><div class="form-group"><label for="ttBlockEndInput" data-i18n="label_to">To</label><input type="time" id="ttBlockEndInput"></div></div>
+      <div class="form-row"><div class="form-group"><label for="ttBlockPriorityInput" data-i18n="field_priority">Priority</label><select id="ttBlockPriorityInput"><option value="low" data-i18n-opt="priority_low">Low</option><option value="medium" data-i18n-opt="priority_medium">Medium</option><option value="high" data-i18n-opt="priority_high">High</option></select></div><div class="form-group"><label for="ttBlockReminderInput" data-i18n="field_reminder">Reminder</label><input type="datetime-local" id="ttBlockReminderInput"></div></div>
+      <div class="form-group"><label for="ttBlockImportantInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="ttBlockImportantInput" style="width:auto"> <span data-i18n="field_important_alarm">Important (alarm)</span></label></div>
     </div>
     <div class="modal-footer"><button class="btn btn-outline" id="ttBlockDeleteBtn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteTimetableBlock()" data-i18n="btn_delete">Delete</button><div style="flex:1"></div><button class="btn btn-outline" onclick="closeTimetableBlockModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveTimetableBlock()" data-i18n="btn_save">Save</button></div>
   </div>
@@ -554,7 +556,7 @@
 <!-- QUICK ADD -->
 <div class="quick-add-overlay" id="quickAddOverlay">
   <div class="quick-add-box">
-    <input type="text" id="quickAddInput" data-i18n-ph="ph_quick_add" placeholder="Quick add task... (Enter to create)" onkeydown="handleQuickAdd(event)">
+    <input type="text" id="quickAddInput" aria-label="Quick add task" data-i18n-ph="ph_quick_add" placeholder="Quick add task... (Enter to create)" onkeydown="handleQuickAdd(event)">
     <div class="quick-add-hint" data-i18n="quick_add_hint">Enter = create &bull; Esc = close &bull; #tag !high @category ~project</div>
   </div>
 </div>
@@ -570,7 +572,7 @@
     <button class="btn btn-outline" onclick="resetPomoTimer()" data-i18n="btn_reset">Reset</button>
     <button class="btn btn-success" onclick="savePomoTime()" data-i18n="btn_save_time">Save Time</button>
   </div>
-  <select id="focusTaskSelect" onchange="selectFocusTask()" style="margin-top:20px;max-width:400px;width:100%"></select>
+  <select id="focusTaskSelect" aria-label="Choose a task to focus on" onchange="selectFocusTask()" style="margin-top:20px;max-width:400px;width:100%"></select>
 </div>
 <!-- ONBOARDING -->
 <div class="onboard-overlay" id="onboardOverlay">

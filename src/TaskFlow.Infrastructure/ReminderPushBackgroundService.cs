@@ -31,6 +31,7 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
    var due = new List<(string Kind, string ItemKey, string Title, string Body, bool Important)>();
    CollectDueTaskReminders(entries, now, tzOffsetMinutes, due);
    CollectDueEventReminders(entries, now, tzOffsetMinutes, due);
+    CollectDueTimetableBlockReminders(entries, now, tzOffsetMinutes, due);
    if (due.Count == 0) continue;
    foreach (var item in due) {
     if (await db.SentReminders.AnyAsync(x => x.UserId == userId && x.Kind == item.Kind && x.ItemKey == item.ItemKey, ct)) continue;
@@ -86,6 +87,28 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
    var triggerUtc = LocalToUtc(localEventTime, tzOffsetMinutes).AddMinutes(-remindBefore);
    var age = now - triggerUtc;
    if (triggerUtc <= now && age < TimeSpan.FromMinutes(5)) due.Add(("event", id, title, "Coming up now", important));
+  }
+ }
+ static void CollectDueTimetableBlockReminders(List<Domain.UserDataEntry> entries, DateTimeOffset now, int tzOffsetMinutes, List<(string, string, string, string, bool)> due) {
+  var json = entries.FirstOrDefault(x => x.Key.StartsWith("taskflow_timetable_blocks_", StringComparison.Ordinal))?.ValueJson;
+  if (json is null) return;
+  List<JsonElement>? blocks;
+  try { blocks = JsonSerializer.Deserialize<List<JsonElement>>(json); } catch { return; }
+  if (blocks is null) return;
+  foreach (var block in blocks) {
+   if (!block.TryGetProperty("reminder", out var remEl) || remEl.ValueKind != JsonValueKind.String) continue;
+   var raw = remEl.GetString();
+   if (string.IsNullOrEmpty(raw)) continue;
+   if (block.TryGetProperty("completedAt", out var completedEl) && completedEl.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined) continue;
+   if (block.TryGetProperty("reminderDismissed", out var dismissedEl) && dismissedEl.ValueKind == JsonValueKind.True) continue;
+   if (!DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var localTime)) continue;
+   if (!block.TryGetProperty("id", out var idEl)) continue;
+   var id = idEl.ToString();
+   var title = block.TryGetProperty("title", out var titleEl) ? titleEl.GetString() ?? "Time block" : "Time block";
+   var important = block.TryGetProperty("important", out var impEl) && impEl.ValueKind == JsonValueKind.True;
+   var utc = LocalToUtc(localTime, tzOffsetMinutes);
+   var age = now - utc;
+   if (utc <= now && age < TimeSpan.FromMinutes(5)) due.Add(("timetable", id, "Reminder: " + title, "Time block is starting!", important));
   }
  }
  static DateTimeOffset LocalToUtc(DateTime naiveLocal, int tzOffsetMinutes) => new DateTimeOffset(DateTime.SpecifyKind(naiveLocal, DateTimeKind.Unspecified), TimeSpan.Zero).AddMinutes(tzOffsetMinutes);

@@ -31,7 +31,7 @@ async function apiRaw(path, method, body, needsAuth=true){
   }
   if(!res.ok){
     let msg='Request failed ('+res.status+')';
-    try{ const j=await res.json(); if(j&&j.error) msg=j.error; }catch{}
+    try{ const j=await res.json(); if(j?.error) msg=j.error; }catch{}
     const err=new Error(msg); err.status=res.status; throw err;
   }
   if(res.status===204) return null;
@@ -86,28 +86,38 @@ async function hydrateFromServer(){
 function updateSyncStatusUI(){
   const btn=document.getElementById('syncStatusBtn'), settingRow=document.getElementById('syncNowSetting');
   const active=apiConfigured()&&!!getAuthSession(currentUser);
-  if(btn) btn.style.display=active?'flex':'none';
-  if(settingRow) settingRow.style.display=active?'flex':'none';
+  setSyncControlsVisibility(active,btn,settingRow);
   if(!active) return;
   const pendingCount=Object.keys(getPendingSync()).length;
   const dot=document.getElementById('syncPendingDot');
   const icon=document.getElementById('syncStatusIcon');
   const desc=document.getElementById('syncPendingStatus');
-  const offline=!navigator.onLine;
-  let title, descText, color;
-  if(offline){ title='Offline'+(pendingCount?' — '+pendingCount+' change(s) waiting to sync':''); descText='Offline'+(pendingCount?' — '+pendingCount+' change(s) queued':' — will sync when back online'); color='var(--text3)'; }
-  else if(syncInFlight){ title='Syncing...'; descText='Syncing...'; color='var(--primary)'; }
-  else if(pendingCount){ title=pendingCount+' change(s) waiting to sync'; descText=pendingCount+' change(s) waiting to sync'; color='var(--warning)'; }
-  else { title='Up to date'; descText='Up to date'; color='var(--success)'; }
-  if(btn) btn.title=title;
-  if(icon) icon.style.color=color;
-  if(dot) dot.style.display=(pendingCount||offline)?'block':'none';
-  if(desc) desc.textContent=descText;
+  const status=getSyncStatus(pendingCount,!navigator.onLine);
+  if(btn) btn.title=status.title;
+  if(icon) icon.style.color=status.color;
+  if(dot) dot.style.display=(pendingCount||status.offline)?'block':'none';
+  if(desc) desc.textContent=status.description;
+}
+function setSyncControlsVisibility(active,btn,settingRow){
+  if(btn) btn.style.display=active?'flex':'none';
+  if(settingRow) settingRow.style.display=active?'flex':'none';
+}
+function getSyncStatus(pendingCount,offline){
+  if(offline){
+    return {title:'Offline'+(pendingCount?' — '+pendingCount+' change(s) waiting to sync':''),description:'Offline'+(pendingCount?' — '+pendingCount+' change(s) queued':' — will sync when back online'),color:'var(--text3)',offline:true};
+  }
+  if(syncInFlight) return {title:'Syncing...',description:'Syncing...',color:'var(--primary)',offline:false};
+  if(pendingCount){
+    const message=pendingCount+' change(s) waiting to sync';
+    return {title:message,description:message,color:'var(--warning)',offline:false};
+  }
+  return {title:'Up to date',description:'Up to date',color:'var(--success)',offline:false};
 }
 function editApiUrl(){
   const url=prompt('Account Database (API) URL:',API_BASE_URL);
   if(url===null) return;
-  API_BASE_URL=url.trim().replace(/\/+$/,'');
+  API_BASE_URL=url.trim();
+  while(API_BASE_URL.endsWith('/')) API_BASE_URL=API_BASE_URL.slice(0,-1);
   if(API_BASE_URL) localStorage.setItem('taskflow_api_url',API_BASE_URL);
   else localStorage.removeItem('taskflow_api_url');
   refreshSettingsStatus();
@@ -152,7 +162,7 @@ const i18n = {
     bulk_mark_done:'Mark Done', bulk_mark_todo:'Mark To Do', action_archive:'Archive', action_delete:'Delete', action_cancel:'Cancel',
     kanban_subtitle:'Drag and drop tasks between columns to update status',
     title_prev_month:'Previous month', title_next_month:'Next month', today_label:'Today', new_event:'New Event',
-    timetable_subtitle:'Tasks are auto-scheduled into free hours', title_prev_day:'Previous day', title_next_day:'Next day', label_from:'From', label_to:'To', tt_not_scheduled:'Not Scheduled Today', tt_add_block:'Add time block', modal_new_time_block:'New time block', modal_edit_time_block:'Edit time block', tt_block_title:'What will you work on?', tt_block_saved:'Time block saved', tt_block_deleted:'Time block deleted', tt_time_error:'Choose an end time after the start time', tt_manual_block:'Fixed time block',
+    timetable_subtitle:'Tasks are auto-scheduled into free hours', title_prev_day:'Previous day', title_next_day:'Next day', label_from:'From', label_to:'To', tt_not_scheduled:'Not Scheduled Today', tt_add_block:'Add time block', modal_new_time_block:'New time block', modal_edit_time_block:'Edit time block', tt_block_title:'What will you work on?', tt_block_saved:'Time block saved', tt_block_deleted:'Time block deleted', tt_time_error:'Choose an end time after the start time', tt_manual_block:'Fixed time block', tt_progress:'Completed', tt_mark_done:'Mark time block complete', tt_mark_undone:'Reopen time block',
     eisenhower_subtitle:'Prioritize tasks by urgency and importance', eh_do_first:'Do First', eh_schedule:'Schedule', eh_delegate:'Delegate', eh_eliminate:'Eliminate',
     new_project:'+ New Project', new_goal:'+ New Goal', new_habit:'+ New Habit', new_note:'+ New Note', goal_weekly:'Weekly', goal_monthly:'Monthly', ph_search_notes:'Search notes...',
     gantt_timeline:'Gantt Timeline',
@@ -176,7 +186,7 @@ const i18n = {
     modal_new_goal:'New Goal', field_goal:'Goal', ph_goal_example:'e.g. Complete 10 tasks', field_type:'Type', field_target:'Target', field_unit:'Unit', ph_unit_example:'tasks, hours, etc.', field_current_progress:'Current Progress',
     modal_new_habit:'New Habit', field_habit_name:'Habit Name', ph_habit_example:'e.g. Read 30 minutes',
     modal_new_challenge:'New Challenge', field_title_optional:'Title (optional)', ph_auto_generated:'Auto-generated if left blank', field_track:'Track', opt_tasks_completed:'Tasks Completed', opt_hours_logged:'Hours Logged', opt_habit_checkins:'Habit Check-ins', opt_daily_streak:'Daily Completion Streak', field_over_days:'Over how many days', btn_start_challenge:'Start Challenge',
-    modal_new_event:'New Event', ph_event_title:'Meeting with team...', field_date:'Date', field_time:'Time', field_end_time:'End Time', field_type:'Type', opt_meeting:'Meeting', opt_event:'Event', opt_reminder:'Reminder', opt_deadline:'Deadline', field_description_optional:'Description (optional)',
+    modal_new_event:'New Event', ph_event_title:'Meeting with team...', field_date:'Date', field_time:'Time', field_end_time:'End Time', opt_meeting:'Meeting', opt_event:'Event', opt_reminder:'Reminder', opt_deadline:'Deadline', field_description_optional:'Description (optional)',
     modal_new_note:'New Note', ph_note_title:'Note title', field_folder:'Folder', ph_folder_general:'General', field_pin_note:'Pin Note', field_content_md:'Content (Markdown)', ph_write_note:'Write your note...', field_preview:'Preview', preview_placeholder:'Preview will appear here...',
     modal_import_preview:'Import Preview', import_no_file:'No file selected', import_note:'Import replaces matching data after validation.',
     ph_quick_add:'Quick add task... (Enter to create)', quick_add_hint:'Enter = create, Esc = close',
@@ -208,7 +218,7 @@ const i18n = {
     bulk_mark_done:'وضع علامة منجز', bulk_mark_todo:'وضع علامة قيد الانتظار', action_archive:'أرشفة', action_delete:'حذف', action_cancel:'إلغاء',
     kanban_subtitle:'اسحب المهام وأفلتها بين الأعمدة لتحديث حالتها',
     title_prev_month:'الشهر السابق', title_next_month:'الشهر التالي', today_label:'اليوم', new_event:'حدث جديد',
-    timetable_subtitle:'تتم جدولة المهام تلقائيًا في الأوقات الفارغة من يومك', title_prev_day:'اليوم السابق', title_next_day:'اليوم التالي', label_from:'من', label_to:'إلى', tt_not_scheduled:'غير مجدول اليوم', tt_add_block:'إضافة فترة زمنية', modal_new_time_block:'فترة زمنية جديدة', modal_edit_time_block:'تعديل الفترة الزمنية', tt_block_title:'ما الذي ستعمل عليه؟', tt_block_saved:'تم حفظ الفترة الزمنية', tt_block_deleted:'تم حذف الفترة الزمنية', tt_time_error:'اختر وقت انتهاء بعد وقت البدء', tt_manual_block:'فترة زمنية ثابتة',
+    timetable_subtitle:'تتم جدولة المهام تلقائيًا في الأوقات الفارغة من يومك', title_prev_day:'اليوم السابق', title_next_day:'اليوم التالي', label_from:'من', label_to:'إلى', tt_not_scheduled:'غير مجدول اليوم', tt_add_block:'إضافة فترة زمنية', modal_new_time_block:'فترة زمنية جديدة', modal_edit_time_block:'تعديل الفترة الزمنية', tt_block_title:'ما الذي ستعمل عليه؟', tt_block_saved:'تم حفظ الفترة الزمنية', tt_block_deleted:'تم حذف الفترة الزمنية', tt_time_error:'اختر وقت انتهاء بعد وقت البدء', tt_manual_block:'فترة زمنية ثابتة', tt_progress:'مكتمل', tt_mark_done:'وضع علامة مكتمل للفترة', tt_mark_undone:'إعادة فتح الفترة',
     eisenhower_subtitle:'رتب أولويات المهام حسب الإلحاح والأهمية', eh_do_first:'افعلها أولًا', eh_schedule:'جدولها', eh_delegate:'فوضها', eh_eliminate:'تخلص منها',
     new_project:'+ مشروع جديد', new_goal:'+ هدف جديد', new_habit:'+ عادة جديدة', new_note:'+ ملاحظة جديدة', goal_weekly:'أسبوعي', goal_monthly:'شهري', ph_search_notes:'ابحث في الملاحظات...',
     gantt_timeline:'مخطط جانت الزمني',
@@ -232,7 +242,7 @@ const i18n = {
     modal_new_goal:'هدف جديد', field_goal:'الهدف', ph_goal_example:'مثال: إنجاز 10 مهام', field_type:'النوع', field_target:'الهدف الرقمي', field_unit:'الوحدة', ph_unit_example:'مهام، ساعات، إلخ', field_current_progress:'التقدم الحالي',
     modal_new_habit:'عادة جديدة', field_habit_name:'اسم العادة', ph_habit_example:'مثال: القراءة 30 دقيقة',
     modal_new_challenge:'تحدٍ جديد', field_title_optional:'العنوان (اختياري)', ph_auto_generated:'يُنشأ تلقائيًا إذا ترك فارغًا', field_track:'تتبع', opt_tasks_completed:'المهام المنجزة', opt_hours_logged:'الساعات المسجلة', opt_habit_checkins:'تسجيلات العادات', opt_daily_streak:'سلسلة الإنجاز اليومي', field_over_days:'خلال كم يومًا', btn_start_challenge:'ابدأ التحدي',
-    modal_new_event:'حدث جديد', ph_event_title:'اجتماع مع الفريق...', field_date:'التاريخ', field_time:'الوقت', field_end_time:'وقت الانتهاء', field_type:'النوع', opt_meeting:'اجتماع', opt_event:'حدث', opt_reminder:'تذكير', opt_deadline:'موعد نهائي', field_description_optional:'الوصف (اختياري)',
+    modal_new_event:'حدث جديد', ph_event_title:'اجتماع مع الفريق...', field_date:'التاريخ', field_time:'الوقت', field_end_time:'وقت الانتهاء', opt_meeting:'اجتماع', opt_event:'حدث', opt_reminder:'تذكير', opt_deadline:'موعد نهائي', field_description_optional:'الوصف (اختياري)',
     modal_new_note:'ملاحظة جديدة', ph_note_title:'عنوان الملاحظة', field_folder:'المجلد', ph_folder_general:'عام', field_pin_note:'تثبيت الملاحظة', field_content_md:'المحتوى (Markdown)', ph_write_note:'اكتب ملاحظتك...', field_preview:'معاينة', preview_placeholder:'ستظهر المعاينة هنا...',
     modal_import_preview:'معاينة الاستيراد', import_no_file:'لم يتم اختيار ملف', import_note:'يستبدل الاستيراد البيانات المطابقة بعد التحقق.',
     ph_quick_add:'إضافة سريعة للمهمة... (Enter للإنشاء)', quick_add_hint:'Enter = إنشاء, Esc = إغلاق',
@@ -253,7 +263,7 @@ const i18n = {
   }
 };
 let lang = localStorage.getItem('taskflow_lang') || 'en';
-function tr(key) { return (i18n[lang] && i18n[lang][key]) || i18n.en[key] || key; }
+function tr(key) { return i18n[lang]?.[key] || i18n.en[key] || key; }
 function applyLang() {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -278,7 +288,7 @@ function toggleLang() {
 let currentUser = null;
 function userKey(base) { return base + '_' + (currentUser || 'anon'); }
 function isAdmin() { return currentUser === ADMIN_EMAIL; }
-const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,32}$/;
+const USERNAME_PATTERN = /^\w{3,32}$/;
 function toggleAuthMode(){
   authMode = authMode==='login' ? 'register' : 'login';
   document.getElementById('loginSubmitBtn').textContent = authMode==='login' ? tr('sign_in') : tr('create_account');
@@ -386,7 +396,7 @@ function getUserLabel(email) {
   const clean=asText(email, 120);
   return clean ? clean.split('@')[0].replaceAll(/[._]/g,' ').replaceAll(/\b\w/g,c=>c.toUpperCase()) : 'Unassigned';
 }
-function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function genId() { return globalThis.crypto.randomUUID(); }
 function ensureNumIds() {
   const tasks = loadTasks();
   let maxId = 0;
@@ -417,6 +427,7 @@ function normalizeTask(t, idx=0) {
     description: asText(t.description, 2000),
     status,
     priority: asChoice(t.priority, ['low','medium','high'], 'medium'),
+    important: Boolean(t.important),
     category: asText(t.category, 50),
     project: asText(t.project, 80),
     assignee: asText(t.assignee, 120),
@@ -465,7 +476,7 @@ function computeGoalProgress(g, tasks, habits){
     current=tasks.filter(t=>t.status==='done'&&t[field]===g.linkId&&t.completedAt&&dateOfMs(t.completedAt)>=periodStart).length;
   } else if(g.linkType==='habit'){
     const h=habits.find(x=>x.id===g.linkId);
-    if(h&&h.completions) current=Object.keys(h.completions).filter(ds=>h.completions[ds]&&ds>=periodStart&&ds<=todayStr()).length;
+    if(h?.completions) current=Object.keys(h.completions).filter(ds=>h.completions[ds]&&ds>=periodStart&&ds<=todayStr()).length;
   }
   return {current, target:g.target, pct:Math.min(100,Math.round(current/g.target*100)), auto:true};
 }
@@ -556,8 +567,8 @@ function launchConfetti() {
   const colors = ['#ef4444','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899'];
   for (let i = 0; i < 60; i++) {
     const p = document.createElement('div');
-    const x = Math.random()*100, d = Math.random()*3+2, clr = colors[Math.floor(Math.random()*colors.length)];
-    Object.assign(p.style, {position:'absolute',left:x+'%',top:'-10px',width:'8px',height:'8px',background:clr,borderRadius:Math.random()>.5?'50%':'2px',animation:'confettiFall '+d+'s ease-in forwards',animationDelay:(Math.random()*.5)+'s'});
+    const x = randomUnit()*100, d = randomUnit()*3+2, clr = colors[Math.floor(randomUnit()*colors.length)];
+    Object.assign(p.style, {position:'absolute',left:x+'%',top:'-10px',width:'8px',height:'8px',background:clr,borderRadius:randomUnit()>.5?'50%':'2px',animation:'confettiFall '+d+'s ease-in forwards',animationDelay:(randomUnit()*.5)+'s'});
     c.appendChild(p);
   }
   setTimeout(() => { c.innerHTML = ''; }, 4000);
@@ -644,11 +655,11 @@ function getProjectColor(pid) {
   return p?p.color:'';
 }
 function userOptionHtml(selected='') {
-  const users=[...new Set([currentUser, ...loadUsers(), ...loadTasks().map(t=>t.assignee)].filter(Boolean))].sort();
+  const users=[...new Set([currentUser, ...loadUsers(), ...loadTasks().map(t=>t.assignee)].filter(Boolean))].sort((a,b)=>a.localeCompare(b));
   return '<option value="">Unassigned</option>' + users.map(email=>'<option value="'+escHtml(email)+'"'+(email===selected?' selected':'')+'>'+escHtml(getUserLabel(email))+'</option>').join('');
 }
 function populateAssigneeFilter(){
-  const users=[...new Set([currentUser, ...loadUsers(), ...loadTasks().map(t=>t.assignee)].filter(Boolean))].sort();
+  const users=[...new Set([currentUser, ...loadUsers(), ...loadTasks().map(t=>t.assignee)].filter(Boolean))].sort((a,b)=>a.localeCompare(b));
   ['filterAssignee','dashAssigneeFilter'].forEach(id=>{
     const el=document.getElementById(id);
     if(!el) return;
@@ -859,7 +870,7 @@ function toggleDone(id) {
 }
 function toggleSubtask(taskId, idx) {
   const tasks=loadTasks(), t=tasks.find(x=>x.id===taskId);
-  if(!t||!t.subtasks||!t.subtasks[idx]) return;
+  if(!t?.subtasks?.[idx]) return;
   t.subtasks[idx].done=!t.subtasks[idx].done; t.updatedAt=Date.now();
   saveTasks(tasks); sheetPost({action:'UPDATE',...taskToSheetRow(t)}); refreshAll();
 }
@@ -1006,7 +1017,7 @@ function renderDashGoals() {
 function renderDashHabits() {
   const habits=loadHabits().slice(0,4), c=document.getElementById('dashHabits'), today=todayStr();
   if(!habits.length){c.innerHTML='<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:12px">No habits tracked</p>';return;}
-  c.innerHTML=habits.map(h=>{const done=h.completions&&h.completions[today];const streak=calcHabitStreak(h); return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0"><div style="width:24px;height:24px;border-radius:50%;background:'+(done?'var(--success)':'var(--surface3)')+';display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff">'+(done?'&#10003;':'')+'</div><span style="flex:1;font-size:.82rem">'+escHtml(h.name)+'</span><span style="font-size:.72rem;color:var(--text3)">'+streak+' day streak</span></div>';}).join('');
+  c.innerHTML=habits.map(h=>{const done=h.completions?.[today];const streak=calcHabitStreak(h); return '<div style="display:flex;align-items:center;gap:10px;padding:6px 0"><div style="width:24px;height:24px;border-radius:50%;background:'+(done?'var(--success)':'var(--surface3)')+';display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff">'+(done?'&#10003;':'')+'</div><span style="flex:1;font-size:.82rem">'+escHtml(h.name)+'</span><span style="font-size:.72rem;color:var(--text3)">'+streak+' day streak</span></div>';}).join('');
 }
 function renderActivityList() {
   const list=loadActivity().slice(0,10), c=document.getElementById('activityList');
@@ -1291,9 +1302,14 @@ function addToMyDay(){const tasks=loadTasks().filter(t=>t.status!=='done'&&t.due
 /* ═══════ TIMETABLE (dynamic daily auto-scheduler) ═══════ */
 let timetableDate = todayStr();
 let editingTimetableBlockId=null;
-function loadTimetableBlocks(){try{const blocks=JSON.parse(localStorage.getItem(userKey('taskflow_timetable_blocks')))||[];return Array.isArray(blocks)?blocks:[];}catch{return [];}}
+function loadTimetableBlocks(){try{const blocks=JSON.parse(localStorage.getItem(userKey('taskflow_timetable_blocks')))||[];return Array.isArray(blocks)?blocks.map(b=>({...b,priority:asChoice(b.priority,['low','medium','high'],'medium'),reminder:asText(b.reminder,40),important:Boolean(b.important),reminderDismissed:Boolean(b.reminderDismissed),completedAt:Number(b.completedAt)||null})):[];}catch{return [];}}
 function saveTimetableBlocks(blocks){localStorage.setItem(userKey('taskflow_timetable_blocks'),JSON.stringify(blocks));syncKey(userKey('taskflow_timetable_blocks'));}
-function timeToMinutes(time){const match=/^(\d{2}):(\d{2})$/.exec(time||'');if(!match)return null;const h=Number(match[1]),m=Number(match[2]);return h<24&&m<60?h*60+m:null;}
+function timeToMinutes(time){
+  const match=/^(\d{2}):(\d{2})$/.exec(time||'');
+  if(!match) return null;
+  const hours=Number(match[1]),minutes=Number(match[2]);
+  return hours<24&&minutes<60?hours*60+minutes:null;
+}
 function minutesToTime(minutes){const n=Math.max(0,Math.min(1439,Math.round(minutes)));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');}
 function openTimetableBlockModal(id){
   const block=id&&loadTimetableBlocks().find(b=>b.id===id); editingTimetableBlockId=block?block.id:null;
@@ -1302,6 +1318,9 @@ function openTimetableBlockModal(id){
   document.getElementById('ttBlockDateInput').value=block?block.date:timetableDate;
   document.getElementById('ttBlockStartInput').value=block?minutesToTime(block.start):'09:00';
   document.getElementById('ttBlockEndInput').value=block?minutesToTime(block.end):'10:00';
+  document.getElementById('ttBlockPriorityInput').value=block?block.priority:'medium';
+  document.getElementById('ttBlockReminderInput').value=block?block.reminder||'':'';
+  document.getElementById('ttBlockImportantInput').checked=block?!!block.important:false;
   document.getElementById('ttBlockDeleteBtn').style.display=block?'inline-flex':'none';
   document.getElementById('timetableBlockModal').classList.add('active');document.getElementById('ttBlockTitleInput').focus();
 }
@@ -1310,11 +1329,21 @@ function saveTimetableBlock(){
   const title=document.getElementById('ttBlockTitleInput').value.trim(),date=document.getElementById('ttBlockDateInput').value;
   const start=timeToMinutes(document.getElementById('ttBlockStartInput').value),end=timeToMinutes(document.getElementById('ttBlockEndInput').value);
   if(!title){toast('Please enter a title');return;} if(!date){toast('Please select a date');return;} if(start===null||end===null||end<=start){toast(tr('tt_time_error'),'error');return;}
-  const blocks=loadTimetableBlocks(),data={title,date,start,end,updatedAt:Date.now()};
-  if(editingTimetableBlockId){const i=blocks.findIndex(b=>b.id===editingTimetableBlockId);if(i>=0)blocks[i]={...blocks[i],...data};}else blocks.push({id:genId(),...data,createdAt:Date.now()});
+  const reminder=document.getElementById('ttBlockReminderInput').value,important=document.getElementById('ttBlockImportantInput').checked;
+  const blocks=loadTimetableBlocks(),data={title,date,start,end,priority:document.getElementById('ttBlockPriorityInput').value,reminder,important,updatedAt:Date.now()};
+  if(editingTimetableBlockId){const i=blocks.findIndex(b=>b.id===editingTimetableBlockId);if(i>=0){const old=blocks[i];blocks[i]={...old,...data,reminderDismissed:old.reminder===reminder?old.reminderDismissed:false};}}else blocks.push({id:genId(),...data,reminderDismissed:false,completedAt:null,createdAt:Date.now()});
   saveTimetableBlocks(blocks);closeTimetableBlockModal();renderTimetable();toast(tr('tt_block_saved'));
 }
-function deleteTimetableBlock(){if(!editingTimetableBlockId)return;saveTimetableBlocks(loadTimetableBlocks().filter(b=>b.id!==editingTimetableBlockId));closeTimetableBlockModal();renderTimetable();toast(tr('tt_block_deleted'));}
+function toggleTimetableBlockDone(id){
+  const blocks=loadTimetableBlocks(),block=blocks.find(b=>b.id===id);if(!block)return;
+  block.completedAt=block.completedAt?null:Date.now();block.updatedAt=Date.now();
+  saveTimetableBlocks(blocks);renderTimetable();
+}
+function deleteTimetableBlock(){
+  if(!editingTimetableBlockId) return;
+  saveTimetableBlocks(loadTimetableBlocks().filter(b=>b.id!==editingTimetableBlockId));
+  closeTimetableBlockModal();renderTimetable();toast(tr('tt_block_deleted'));
+}
 function getWorkHours(){
   let wh=null;
   try{ wh=JSON.parse(localStorage.getItem(userKey('taskflow_workhours'))); }catch{ wh=null; }
@@ -1353,9 +1382,17 @@ function buildTimetableSchedule(date, wh){
   const manualBlocks=loadTimetableBlocks().filter(b=>b.date===date&&Number.isFinite(b.start)&&Number.isFinite(b.end)&&b.end>b.start).sort((a,b)=>a.start-b.start);
   const occupied=manualBlocks.map(b=>({start:Math.max(startMin,b.start),end:Math.min(endMin,b.end)})).filter(b=>b.end>b.start).sort((a,b)=>a.start-b.start);
   const free=[];let cursor=startMin,reservedMin=0;
-  occupied.forEach(b=>{const uncoveredStart=Math.max(cursor,b.start);if(b.end>uncoveredStart)reservedMin+=b.end-uncoveredStart;cursor=Math.max(cursor,b.end);});
+  occupied.forEach(b=>{
+    const uncoveredStart=Math.max(cursor,b.start);
+    if(b.end>uncoveredStart) reservedMin+=b.end-uncoveredStart;
+    cursor=Math.max(cursor,b.end);
+  });
   cursor=startMin;
-  occupied.forEach(b=>{if(b.start>cursor)free.push({start:cursor,end:b.start});cursor=Math.max(cursor,b.end);});if(cursor<endMin)free.push({start:cursor,end:endMin});
+  occupied.forEach(b=>{
+    if(b.start>cursor) free.push({start:cursor,end:b.start});
+    cursor=Math.max(cursor,b.end);
+  });
+  if(cursor<endMin) free.push({start:cursor,end:endMin});
   const blocks=[], overflow=[];
   tasks.forEach(t=>{
     const dur=Math.max(15, Math.round((t.estimated_hours||1)*60));
@@ -1372,6 +1409,7 @@ function renderTimetable(){
   const isToday=timetableDate===todayStr();
   document.getElementById('ttDateLabel').innerHTML=(isToday?'Today &bull; ':'')+escHtml(new Date(timetableDate+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}));
   const {blocks, manualBlocks, reservedMin, overflow}=buildTimetableSchedule(timetableDate, wh);
+  const completedBlocks=manualBlocks.filter(b=>b.completedAt).length,blockProgress=manualBlocks.length?Math.round(completedBlocks/manualBlocks.length*100):0;
   const totalMin=(wh.end-wh.start)*60;
   const usedMin=blocks.reduce((s,b)=>s+(b.end-b.start),0)+reservedMin;
   const freeMin=Math.max(0, totalMin-usedMin);
@@ -1379,7 +1417,8 @@ function renderTimetable(){
     '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Scheduled</h3><div class="num">'+(blocks.length+manualBlocks.length)+'</div></div></div>'+
     '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Planned Hours</h3><div class="num">'+(usedMin/60).toFixed(1)+'</div></div></div>'+
     '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Free Hours</h3><div class="num">'+(freeMin/60).toFixed(1)+'</div></div></div>'+
-    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Unscheduled</h3><div class="num">'+overflow.length+'</div></div></div>';
+    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Unscheduled</h3><div class="num">'+overflow.length+'</div></div></div>'+
+    '<div class="stat-card tt-progress-stat" style="flex:1;min-width:140px"><div class="stat-info"><h3>'+escHtml(tr('tt_progress'))+'</h3><div class="num">'+completedBlocks+'/'+manualBlocks.length+' <span class="tt-progress-percent">'+blockProgress+'%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+blockProgress+'%;background:var(--success)"></div></div></div></div>';
   const grid=document.getElementById('ttGrid');
   grid.style.height=totalMin+'px';
   let html='';
@@ -1388,7 +1427,8 @@ function renderTimetable(){
   }
   manualBlocks.forEach(b=>{
     const top=b.start-wh.start*60, h=Math.max(20,b.end-b.start);
-    html+='<div class="tt-block tt-manual-block" style="top:'+top+'px;height:'+(h-2)+'px" onclick="openTimetableBlockModal(\''+b.id+'\')" title="'+escHtml(b.title)+'"><div class="tt-block-title">'+escHtml(b.title)+'</div><div class="tt-block-meta">'+fmtHourLabel(b.start/60)+' &ndash; '+fmtHourLabel(b.end/60)+' &bull; '+escHtml(tr('tt_manual_block'))+'</div></div>';
+    const done=!!b.completedAt,priorityLabel=tr('priority_'+b.priority);
+    html+='<div class="tt-block tt-manual-block'+(done?' tt-done':'')+'" style="top:'+top+'px;height:'+(h-2)+'px;background:'+priorityColor(b.priority)+'" onclick="openTimetableBlockModal(\''+b.id+'\')" title="'+escHtml(b.title)+'"><button class="tt-complete-toggle" aria-label="'+escHtml(tr(done?'tt_mark_undone':'tt_mark_done'))+'" title="'+escHtml(tr(done?'tt_mark_undone':'tt_mark_done'))+'" onclick="event.stopPropagation();toggleTimetableBlockDone(\''+b.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg></button><div class="tt-block-title">'+escHtml(b.title)+'</div><div class="tt-block-meta">'+fmtHourLabel(b.start/60)+' &ndash; '+fmtHourLabel(b.end/60)+' &bull; '+escHtml(tr('tt_manual_block'))+' &bull; '+escHtml(priorityLabel)+(b.reminder?' &bull; '+escHtml(tr('field_reminder')):'')+'</div></div>';
   });
   blocks.forEach(b=>{
     const t=b.task, top=b.start-wh.start*60, h=Math.max(20, b.end-b.start);
@@ -1457,7 +1497,8 @@ function populateProjectFilter(){
     const val=el.value;
     const opts='<option value="all">All Projects</option>'+projects.map(p=>'<option value="'+p.id+'">'+escHtml(p.name)+'</option>').join('');
     el.innerHTML=elId==='taskProjectInput'?opts.replace('value="all">All Projects','value="">None'):opts;
-    el.value=[...el.options].some(o=>o.value===val)?val:(elId==='taskProjectInput'?'':'all');
+    const fallbackValue=elId==='taskProjectInput'?'':'all';
+    el.value=[...el.options].some(o=>o.value===val)?val:fallbackValue;
   });
   populateAssigneeFilter();
 }
@@ -1536,7 +1577,9 @@ function updateGoalLinkUI(selectedValue){
   }
   valueGroup.style.display='block'; currentGroup.style.display='none'; hint.style.display='block';
   const options=goalLinkOptions(linkType, selectedValue);
-  document.getElementById('goalLinkValueInput').innerHTML=options||'<option value="">'+(linkType==='habit'?'No habits yet':linkType==='project'?'No projects yet':'No categories yet')+'</option>';
+  const emptyLabels={habit:'No habits yet',project:'No projects yet',category:'No categories yet'};
+  const emptyLabel=emptyLabels[linkType]||emptyLabels.category;
+  document.getElementById('goalLinkValueInput').innerHTML=options||'<option value="">'+emptyLabel+'</option>';
 }
 function openGoalModal(id){
   const g=id?loadGoals().find(x=>x.id===id):null;
@@ -1574,7 +1617,7 @@ function renderHabits(){
   if(!habits.length){c.innerHTML='<div class="empty-state"><h3>No Habits</h3><p>Start tracking a habit</p><button class="btn btn-sm btn-primary" onclick="openHabitModal()">Create Habit</button></div>';return;}
   c.innerHTML=habits.map(h=>{
     const streak=calcHabitStreak(h);
-    const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);days.push({ds:ds,done:h.completions&&h.completions[ds],label:['S','M','T','W','T','F','S'][d.getDay()],today:i===0});}
+    const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);days.push({ds:ds,done:h.completions?.[ds],label:['S','M','T','W','T','F','S'][d.getDay()],today:i===0});}
     return '<div class="habit-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><h3 style="font-size:.95rem;font-weight:700">'+escHtml(h.name)+'</h3><div style="display:flex;gap:4px;align-items:center"><span style="font-size:.72rem;color:var(--text3)">'+streak+' day streak &#128293;</span><button class="btn-icon" onclick="openHabitModal(\''+h.id+'\')" style="color:var(--text3)">&#9998;</button><button class="btn-icon" onclick="deleteHabit(\''+h.id+'\')" style="color:var(--danger)">&#128465;</button></div></div><div class="habit-week">'+days.map(d=>'<div class="habit-day'+(d.done?' done':'')+(d.today?' today':'')+'" onclick="toggleHabitDay(\''+h.id+'\',\''+d.ds+'\')"><div class="habit-dot"></div><span>'+d.label+'</span></div>').join('')+'</div></div>';
   }).join('');
 }
@@ -1800,7 +1843,7 @@ function lbWeeklyWorkSummary(){
   for(let i=0;i<7;i++){
     const ds=addDaysToDateStr(lbDate, -i);
     const log=loadLbLog(ds);
-    if(log&&Object.prototype.hasOwnProperty.call(log,'work')){ totalHours+=lbClampHours(log.work); daysLogged++; }
+    if(log&&Object.hasOwn(log,'work')){ totalHours+=lbClampHours(log.work); daysLogged++; }
   }
   return {totalHours, daysLogged, evaluation:lbEvaluateWeeklyWork(totalHours, daysLogged)};
 }
@@ -1847,7 +1890,7 @@ function calcActivityScore(dateStr, tasks, habits){
   const hoursSum=dayTasks.reduce((s,t)=>s+(t.logged_hours||0),0);
   const hoursScore=hoursSum>0?Math.min(100, hoursSum/8*100):null;
   let habitScore=null;
-  if(habits.length){ const doneCount=habits.filter(h=>h.completions&&h.completions[dateStr]).length; habitScore=Math.round(doneCount/habits.length*100); }
+  if(habits.length){ const doneCount=habits.filter(h=>h.completions?.[dateStr]).length; habitScore=Math.round(doneCount/habits.length*100); }
   const lbScore=lbDailyScore(loadLbLog(dateStr));
   const parts=[taskScore,hoursScore,habitScore,lbScore].filter(v=>v!=null);
   return parts.length?Math.round(parts.reduce((a,b)=>a+b,0)/parts.length):null;
@@ -1859,7 +1902,12 @@ function getActivityScoreSeries(days){
 }
 function calcBestRollingWeek(tasks, metric, lookbackDays=180){
   const perDay={};
-  tasks.forEach(t=>{ if(t.completedAt){ const ds=dateOfMs(t.completedAt); if(!perDay[ds]) perDay[ds]={tasks:0,hours:0}; perDay[ds].tasks++; perDay[ds].hours+=(t.logged_hours||0); } });
+  tasks.forEach(t=>{
+    if(!t.completedAt) return;
+    const ds=dateOfMs(t.completedAt);
+    if(!perDay[ds]) perDay[ds]={tasks:0,hours:0};
+    perDay[ds].tasks++;perDay[ds].hours+=(t.logged_hours||0);
+  });
   const today=todayStr();
   let best=0;
   for(let i=0;i<lookbackDays;i++){
@@ -1871,7 +1919,7 @@ function calcBestRollingWeek(tasks, metric, lookbackDays=180){
   return Math.round(best*10)/10;
 }
 function calcBestStreakEver(tasks){
-  const uniq=[...new Set(tasks.filter(t=>t.completedAt).map(t=>dateOfMs(t.completedAt)))].sort();
+  const uniq=[...new Set(tasks.filter(t=>t.completedAt).map(t=>dateOfMs(t.completedAt)))].sort((a,b)=>a.localeCompare(b));
   let best=0,cur=0,prev=null;
   uniq.forEach(ds=>{ cur=(prev&&ds===addDaysToDateStr(prev,1))?cur+1:1; best=Math.max(best,cur); prev=ds; });
   return best;
@@ -1879,10 +1927,11 @@ function calcBestStreakEver(tasks){
 function calcBestHabitStreakEver(){
   let best=0;
   loadHabits().forEach(h=>{
-    if(!h.completions) return;
-    const dates=Object.keys(h.completions).filter(k=>h.completions[k]).sort();
-    let cur=0,prev=null;
-    dates.forEach(ds=>{ cur=(prev&&ds===addDaysToDateStr(prev,1))?cur+1:1; best=Math.max(best,cur); prev=ds; });
+    if(h.completions){
+      const dates=Object.keys(h.completions).filter(k=>h.completions[k]).sort((a,b)=>a.localeCompare(b));
+      let cur=0,prev=null;
+      dates.forEach(ds=>{ cur=(prev&&ds===addDaysToDateStr(prev,1))?cur+1:1; best=Math.max(best,cur); prev=ds; });
+    }
   });
   return best;
 }
@@ -1891,7 +1940,7 @@ function loadChallenges(){ try{ return JSON.parse(localStorage.getItem(userKey('
 function saveChallenges(list){ localStorage.setItem(userKey('taskflow_challenges'), JSON.stringify(list)); syncKey(userKey('taskflow_challenges')); }
 function normalizeChallenge(c){
   return {
-    id:asText(c.id,80)||'ch'+Date.now()+Math.random().toString(36).slice(2,6),
+    id:asText(c.id,80)||'ch'+genId(),
     title:asText(c.title,100),
     metric:asChoice(c.metric,['tasks','hours','habits','streak'],'tasks'),
     target:Math.max(1, Number.parseFloat(c.target)||1),
@@ -1913,7 +1962,10 @@ function getChallengeProgress(ch, tasks, habits){
   if(ch.metric==='tasks'||ch.metric==='hours'){
     tasks.forEach(t=>{ if(t.completedAt){ const ds=dateOfMs(t.completedAt); if(ds>=ch.startDate&&ds<periodEnd) current+=ch.metric==='tasks'?1:(t.logged_hours||0); } });
   } else if(ch.metric==='habits'){
-    habits.forEach(h=>{ if(!h.completions) return; Object.keys(h.completions).forEach(ds=>{ if(h.completions[ds]&&ds>=ch.startDate&&ds<periodEnd) current++; }); });
+    habits.forEach(h=>{
+      if(!h.completions) return;
+      Object.keys(h.completions).forEach(ds=>{ if(h.completions[ds]&&ds>=ch.startDate&&ds<periodEnd) current++; });
+    });
   }
   current=Math.round(current*10)/10;
   const done=current>=ch.target;
@@ -1935,7 +1987,8 @@ function refreshChallengeStatuses(){
 function autoChallengeTitle(metric,target,days){
   if(metric==='streak') return 'Reach a '+target+'-day streak';
   const plural=target===1;
-  const unit=metric==='hours'?(plural?'hour logged':'hours logged'):metric==='habits'?(plural?'habit check-in':'habit check-ins'):(plural?'task completed':'tasks completed');
+  const units={hours:['hours logged','hour logged'],habits:['habit check-ins','habit check-in'],tasks:['tasks completed','task completed']};
+  const unit=(units[metric]||units.tasks)[plural?1:0];
   return target+' '+unit+' in '+days+' day'+(days===1?'':'s');
 }
 function openChallengeModal(){
@@ -2013,11 +2066,10 @@ function renderProgressTasksChart(tasks){
 }
 function habitConsistencyPct(h, windowDays, today){
   let done=0;
-  for(let i=0;i<windowDays;i++){ const ds=addDaysToDateStr(today,-i); if(h.completions&&h.completions[ds]) done++; }
+  for(let i=0;i<windowDays;i++){ const ds=addDaysToDateStr(today,-i); if(h.completions?.[ds]) done++; }
   return Math.round(done/windowDays*100);
 }
-function renderHabitConsistency(containerId,windowDays){
-  containerId=containerId||'progHabitConsistency'; windowDays=windowDays||30;
+function renderHabitConsistency(containerId='progHabitConsistency',windowDays=30){
   const el=document.getElementById(containerId); if(!el) return;
   const habits=loadHabits();
   if(!habits.length){ el.innerHTML='<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:12px">No habits tracked yet</p>'; return; }
@@ -2034,8 +2086,10 @@ function renderChallengeList(){
   if(!challenges.length){ el.innerHTML='<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:12px">No challenges yet &mdash; start one below or create your own.</p>'; return; }
   el.innerHTML=challenges.map(ch=>{
     const p=getChallengeProgress(ch,tasks,habits);
-    const badgeColor=ch.status==='completed'?'var(--success)':ch.status==='expired'?'var(--text3)':'var(--primary)';
-    const badgeLabel=ch.status==='completed'?'&#127942; Completed':ch.status==='expired'?'Ended':'Active';
+    const badgeColors={completed:'var(--success)',expired:'var(--text3)',active:'var(--primary)'};
+    const badgeLabels={completed:'&#127942; Completed',expired:'Ended',active:'Active'};
+    const badgeColor=badgeColors[ch.status]||badgeColors.active;
+    const badgeLabel=badgeLabels[ch.status]||badgeLabels.active;
     return '<div class="lb-cat-card" style="border-left-color:'+badgeColor+'">'+
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><strong>'+escHtml(ch.title)+'</strong><span style="display:flex;align-items:center;gap:8px"><span class="lb-badge" style="background:'+badgeColor+'">'+badgeLabel+'</span><button class="btn-icon" onclick="deleteChallenge(\''+ch.id+'\')" style="color:var(--text3)" title="Remove">&#128465;</button></span></div>'+
       '<div style="font-size:.78rem;color:var(--text2);margin:4px 0 6px">'+p.current+' / '+ch.target+' '+CHALLENGE_METRIC_LABEL[ch.metric]+(ch.metric!=='streak'?' &bull; '+ch.days+'-day window':'')+'</div>'+
@@ -2101,14 +2155,7 @@ function goalExpectedPct(g){
   if(g.type==='monthly'){ const totalDays=new Date(Date.UTC(today.getUTCFullYear(),today.getUTCMonth()+1,0)).getUTCDate(); return Math.min(100,Math.round(today.getUTCDate()/totalDays*100)); }
   return Math.min(100,Math.round((today.getUTCDay()+1)/7*100));
 }
-function renderReview(){
-  const tasks=loadTasks(), habits=loadHabits(), goals=loadGoals();
-
-  const goalRows=goals.map(g=>{
-    const p=computeGoalProgress(g,tasks,habits), expected=goalExpectedPct(g);
-    const behind=p.pct<100&&p.pct<expected-15;
-    return {goal:g, progress:p, behind};
-  });
+function renderReviewGoals(goalRows){
   const c=document.getElementById('reviewGoals');
   if(!goalRows.length){ c.innerHTML='<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:12px">'+tr('review_no_goals')+'</p>'; }
   else {
@@ -2117,15 +2164,15 @@ function renderReview(){
       return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;align-items:center;font-size:.82rem;margin-bottom:3px;gap:8px"><span>'+escHtml(r.goal.title)+'</span>'+badge+'</div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+r.progress.pct+'%;background:'+(r.behind?'var(--warning)':'var(--primary)')+'"></div></div></div>';
     }).join('');
   }
-
-  renderHabitConsistency('reviewHabits',7);
-  const worstHabit=habits.map(h=>({h,pct:habitConsistencyPct(h,7,todayStr())})).sort((a,b)=>a.pct-b.pct)[0];
-
+}
+function renderReviewVelocity(tasks){
   const thisWeek=weekRange(0), lastWeek=weekRange(1);
   const thisWeekCount=countTasksCompletedInRange(tasks,thisWeek.start,thisWeek.end);
   const lastWeekCount=countTasksCompletedInRange(tasks,lastWeek.start,lastWeek.end);
   const delta=thisWeekCount-lastWeekCount;
-  const deltaColor=delta>0?'var(--success)':delta<0?'var(--danger)':'var(--text3)';
+  let deltaColor='var(--text3)';
+  if(delta>0) deltaColor='var(--success)';
+  else if(delta<0) deltaColor='var(--danger)';
   const deltaSign=delta>0?'+':'';
   document.getElementById('reviewVelocity').innerHTML=
     '<div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">'+
@@ -2134,20 +2181,39 @@ function renderReview(){
       '<div style="font-weight:700;color:'+deltaColor+'">'+deltaSign+delta+'</div>'+
     '</div>';
 
+}
+function renderReviewLifeBalance(){
   const lbAvg=lbWeeklyAverage();
   const lbEl=document.getElementById('reviewLifeBalance');
   if(lbAvg==null){ lbEl.innerHTML='<p style="color:var(--text3);font-size:.82rem;text-align:center;padding:12px">'+tr('review_no_lb')+'</p>'; }
   else{
-    const color=lbAvg>=85?'var(--success)':lbAvg>=65?'var(--success)':lbAvg>=45?'var(--warning)':'var(--danger)';
+    let color='var(--danger)';
+    if(lbAvg>=65) color='var(--success)';
+    else if(lbAvg>=45) color='var(--warning)';
     lbEl.innerHTML='<div style="display:flex;align-items:center;gap:16px"><div style="width:64px;height:64px;border-radius:50%;border:5px solid '+color+';display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:1.1rem;font-weight:800">'+lbAvg+'</span></div><div style="font-size:.82rem;color:var(--text2)">'+tr('review_lb_avg')+'</div></div>';
   }
-
+  return lbAvg;
+}
+function renderReviewFocus(goalRows,worstHabit,lbAvg){
   let focusMsg=tr('focus_great'), focusColor='var(--success)';
   const worstGoal=goalRows.filter(r=>r.behind).sort((a,b)=>(a.progress.pct-goalExpectedPct(a.goal))-(b.progress.pct-goalExpectedPct(b.goal)))[0];
   if(worstGoal){ focusMsg=tr('focus_goal').replace('{name}',worstGoal.goal.title); focusColor='var(--warning)'; }
   else if(worstHabit&&worstHabit.pct<50){ focusMsg=tr('focus_habit').replace('{name}',worstHabit.h.name); focusColor='var(--warning)'; }
   else if(lbAvg!=null&&lbAvg<45){ focusMsg=tr('focus_lb'); focusColor='var(--warning)'; }
   document.getElementById('reviewFocusCard').innerHTML='<div style="display:flex;align-items:center;gap:12px"><div style="width:10px;height:10px;border-radius:50%;background:'+focusColor+';flex-shrink:0"></div><div style="font-size:.9rem;font-weight:600">'+focusMsg+'</div></div>';
+}
+function renderReview(){
+  const tasks=loadTasks(),habits=loadHabits();
+  const goalRows=loadGoals().map(goal=>{
+    const progress=computeGoalProgress(goal,tasks,habits),expected=goalExpectedPct(goal);
+    return {goal,progress,behind:progress.pct<100&&progress.pct<expected-15};
+  });
+  renderReviewGoals(goalRows);
+  renderHabitConsistency('reviewHabits',7);
+  const worstHabit=habits.map(h=>({h,pct:habitConsistencyPct(h,7,todayStr())})).sort((a,b)=>a.pct-b.pct)[0];
+  renderReviewVelocity(tasks);
+  const lbAvg=renderReviewLifeBalance();
+  renderReviewFocus(goalRows,worstHabit,lbAvg);
 }
 
 /* ═══════ TODAY'S FOCUS (turns "what's behind" into "do this specific thing") ═══════ */
@@ -2165,7 +2231,7 @@ function computeTodaysFocus(){
     }
     if(g.linkType==='habit'&&g.linkId){
       const h=habits.find(x=>x.id===g.linkId);
-      if(h&&!(h.completions&&h.completions[today])){ items.push({color:'var(--accent)',tag:tr('focus_tag_habit'),text:tr('focus_checkin_habit').replace('{habit}',escHtml(h.name)).replace('{goal}',escHtml(g.title)),onclick:"showPage('habits')"}); return; }
+      if(h&&!h.completions?.[today]){ items.push({color:'var(--accent)',tag:tr('focus_tag_habit'),text:tr('focus_checkin_habit').replace('{habit}',escHtml(h.name)).replace('{goal}',escHtml(g.title)),onclick:"showPage('habits')"}); return; }
     }
     items.push({color:'var(--primary)',tag:tr('focus_tag_goal'),text:tr('focus_update_goal').replace('{goal}',escHtml(g.title)),onclick:"showPage('goals')"});
   });
@@ -2297,7 +2363,7 @@ function savePomoTime(){
 }
 function selectFocusTask(){
   const sel=document.getElementById('focusTaskSelect');
-  if(!sel||!sel.value){return;}
+  if(!sel?.value){return;}
   focusTaskId=sel.value;
   const tasks=loadTasks(),t=tasks.find(x=>x.id===sel.value);
   if(t){document.getElementById('focusTaskTitle').textContent=escHtml(t.title);}
@@ -2322,8 +2388,22 @@ function checkReminders(){
     }
   });
   saveTasks(tasks);
+  checkTimetableBlockReminders(now);
   checkEventReminders(now);
   maybeSendDailyDigest();
+}
+function checkTimetableBlockReminders(now){
+  const blocks=loadTimetableBlocks();let changed=false;
+  blocks.forEach(block=>{
+    if(!block.reminder||block.reminderDismissed||block.completedAt)return;
+    const reminderTime=new Date(block.reminder);
+    if(reminderTime<=now&&(now-reminderTime)<300000){
+      const title='Reminder: '+block.title,body=tr('event_reminder_body_generic');
+      if(block.important)triggerAlarm(title,body);else showNotification(title,body);
+      block.reminderDismissed=true;changed=true;
+    }
+  });
+  if(changed)saveTimetableBlocks(blocks);
 }
 function checkEventReminders(now){
   const events=loadEvents();
@@ -2333,7 +2413,8 @@ function checkEventReminders(now){
     const eventTime=new Date(ev.date+'T'+(ev.time||'00:00')+':00');
     const triggerTime=new Date(eventTime.getTime()-ev.remindBefore*60000);
     if(triggerTime<=now&&(now-triggerTime)<300000){
-      const bodyKey=ev.type==='meeting'?'event_reminder_body_meeting':ev.type==='deadline'?'event_reminder_body_deadline':'event_reminder_body_generic';
+      const bodyKeys={meeting:'event_reminder_body_meeting',deadline:'event_reminder_body_deadline'};
+      const bodyKey=bodyKeys[ev.type]||'event_reminder_body_generic';
       const title=tr('event_reminder_title').replace('{title}',ev.title), body=tr(bodyKey);
       if(ev.important) triggerAlarm(title,body); else showNotification(title,body);
       ev.reminderFired=true; changed=true;
@@ -2421,10 +2502,10 @@ function requestNotifPermission(){
 }
 function urlBase64ToUint8Array(base64String){
   const padding='='.repeat((4-base64String.length%4)%4);
-  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const base64=(base64String+padding).replaceAll('-','+').replaceAll('_','/');
   const raw=atob(base64);
   const arr=new Uint8Array(raw.length);
-  for(let i=0;i<raw.length;i++) arr[i]=raw.charCodeAt(i);
+  for(let i=0;i<raw.length;i++) arr[i]=raw.codePointAt(i);
   return arr;
 }
 async function subscribeToPush(){
@@ -2453,7 +2534,7 @@ function renderCategoryNav(){
     return;
   }
   el.innerHTML='<button class="cat-pill active" onclick="filterByCat(\'\')">All</button>'+
-    [...cats].sort().map(c=>'<button class="cat-pill" onclick="filterByCat(\''+escHtml(c)+'\')">'+escHtml(c)+'</button>').join('');
+    [...cats].sort((a,b)=>a.localeCompare(b)).map(c=>'<button class="cat-pill" onclick="filterByCat(\''+escHtml(c)+'\')">'+escHtml(c)+'</button>').join('');
 }
 
 function filterByCat(cat){
@@ -2467,7 +2548,7 @@ function filterByCat(cat){
 
 /* ═══════ GLOBAL SEARCH ═══════ */
 function handleGlobalSearch(e){
-  const input=e&&e.target ? e.target : document.getElementById('searchInput');
+  const input=e?.target || document.getElementById('searchInput');
   const q=input ? input.value.trim().toLowerCase() : '';
   const results=document.getElementById('searchResults');
   if(!q){results.innerHTML='';results.style.display='none';return;}
@@ -2531,7 +2612,7 @@ function useTemplate(id){
   const tasks=loadTasks();
   let nextTemplateNumId=getNextNumId();
   tpl.tasks.forEach(tt=>{
-    tasks.push({id:'t'+Date.now()+Math.random().toString(36).slice(2,6),numId:nextTemplateNumId++,title:tt.title,description:tt.description||'',status:'todo',priority:tt.priority||'medium',category:tt.category||'',tags:tt.tags||[],due:'',recurring:'',subtasks:(tt.subtasks||[]).map(s=>({text:s.text,done:false})),progress:0,estimated_hours:tt.estimated_hours||0,logged_hours:0,link:'',createdAt:Date.now(),completedAt:null,sortOrder:tasks.length,project:'',dependencies:[],eisenhower:'',milestone:false,reminder:'',comments:[],smartScore:0,myDay:'',myDaySlot:'morning'});
+    tasks.push({id:'t'+genId(),numId:nextTemplateNumId++,title:tt.title,description:tt.description||'',status:'todo',priority:tt.priority||'medium',category:tt.category||'',tags:tt.tags||[],due:'',recurring:'',subtasks:(tt.subtasks||[]).map(s=>({text:s.text,done:false})),progress:0,estimated_hours:tt.estimated_hours||0,logged_hours:0,link:'',createdAt:Date.now(),completedAt:null,sortOrder:tasks.length,project:'',dependencies:[],eisenhower:'',milestone:false,reminder:'',comments:[],smartScore:0,myDay:'',myDaySlot:'morning'});
   });
   saveTasks(tasks);closeTemplates();toast('Template applied');refreshAll();
 }
@@ -2578,7 +2659,7 @@ function processRecurring(){
       if(period>0&&elapsed>=period){
         const nd=new Date();
         if(t.due){const dd=new Date(t.due);dd.setDate(dd.getDate()+period);nd.setTime(dd.getTime());}
-        tasks.push({id:'t'+Date.now()+Math.random().toString(36).slice(2,6),numId:nextRecurNumId++,title:t.title,description:t.description,status:'todo',priority:t.priority,category:t.category,tags:[...(t.tags||[])],due:nd.toISOString().slice(0,10),recurring:t.recurring,subtasks:(t.subtasks||[]).map(s=>({text:s.text,done:false})),progress:0,estimated_hours:t.estimated_hours||0,logged_hours:0,link:t.link||'',createdAt:Date.now(),updatedAt:Date.now(),completedAt:null,sortOrder:tasks.length,project:t.project||'',assignee:t.assignee||currentUser||'',dependencies:[],eisenhower:t.eisenhower||'',milestone:t.milestone||false,reminder:'',comments:[],smartScore:0,myDay:'',myDaySlot:'morning'});
+        tasks.push({id:'t'+genId(),numId:nextRecurNumId++,title:t.title,description:t.description,status:'todo',priority:t.priority,category:t.category,tags:[...(t.tags||[])],due:nd.toISOString().slice(0,10),recurring:t.recurring,subtasks:(t.subtasks||[]).map(s=>({text:s.text,done:false})),progress:0,estimated_hours:t.estimated_hours||0,logged_hours:0,link:t.link||'',createdAt:Date.now(),updatedAt:Date.now(),completedAt:null,sortOrder:tasks.length,project:t.project||'',assignee:t.assignee||currentUser||'',dependencies:[],eisenhower:t.eisenhower||'',milestone:t.milestone||false,reminder:'',comments:[],smartScore:0,myDay:'',myDaySlot:'morning'});
         t.recurring='';added=true;
       }
     }
@@ -2630,9 +2711,8 @@ function downloadFile(name,content,type){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);
 }
 function importJSON(event){
-  let file;
-  if(event&&event.target&&event.target.files&&event.target.files[0]){file=event.target.files[0];}
-  else{const input=document.createElement('input');input.type='file';input.accept='.json';input.onchange=e=>{importJSON(e);};input.click();return;}
+  const file=event?.target?.files?.[0];
+  if(!file){const input=document.createElement('input');input.type='file';input.accept='.json';input.onchange=e=>{importJSON(e);};input.click();return;}
   file.text().then(text=>{
     try{
       const data=JSON.parse(text);
@@ -2649,7 +2729,8 @@ function importJSON(event){
       document.getElementById('importPreviewModal').classList.add('active');
     }catch(err){toast('Invalid JSON: '+err.message);}
   });
-  if(event&&event.target)event.target.value='';
+  const inputElement=event?.target;
+  if(inputElement) inputElement.value='';
 }
 function closeImportPreview(){
   pendingImport=null;
@@ -2715,7 +2796,12 @@ function refreshSettingsStatus(){
   if(urlEl) urlEl.textContent=APPS_SCRIPT_URL ? 'Configured' : 'Not configured';
   if(tokenEl) tokenEl.textContent=getSyncToken() ? 'Configured for this account' : 'Required for Google Sheets sync';
   if(syncEl) syncEl.textContent=getSyncStatusText();
-  if(apiEl) apiEl.textContent=apiConfigured() ? (getAuthSession(currentUser)?'Configured — signed in':'Configured — not signed in') : 'Not configured';
+  let apiStatus='Not configured';
+  if(apiConfigured()){
+    apiStatus='Configured — not signed in';
+    if(getAuthSession(currentUser)) apiStatus='Configured — signed in';
+  }
+  if(apiEl) apiEl.textContent=apiStatus;
 }
 function getLastSyncAt(){return Number(localStorage.getItem(userKey('taskflow_last_sync_at')))||0;}
 function setLastSyncAt(ts=Date.now()){localStorage.setItem(userKey('taskflow_last_sync_at'),String(ts));refreshSettingsStatus();}

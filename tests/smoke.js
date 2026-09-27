@@ -1,18 +1,44 @@
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
-const { spawn } = require('child_process');
+const path = require('node:path');
+const { pathToFileURL } = require('node:url');
+const fs = require('node:fs');
+const os = require('node:os');
+const { spawn, execFileSync } = require('node:child_process');
 const { chromium } = require('playwright-core');
-const http = require('http');
+const http = require('node:http');
 
 const root = path.resolve(__dirname, '..');
-const appUrl = 'file:///' + path.join(root, 'index.html').replace(/\\/g, '/').replace(/ /g, '%20');
+const appUrl = pathToFileURL(path.join(root, 'index.html')).href;
+const DOTNET_EXECUTABLE = 'C:/Program Files/dotnet/dotnet.exe';
+const TASKKILL_EXECUTABLE = 'C:/Windows/System32/taskkill.exe';
+function createTestEnvironment(overrides={}) {
+  return {
+    SystemRoot: process.env.SystemRoot || process.env.windir,
+    windir: process.env.windir || process.env.SystemRoot,
+    SystemDrive: process.env.SystemDrive,
+    TEMP: os.tmpdir(),
+    TMP: os.tmpdir(),
+    USERPROFILE: process.env.USERPROFILE,
+    HOMEDRIVE: process.env.HOMEDRIVE,
+    HOMEPATH: process.env.HOMEPATH,
+    APPDATA: process.env.APPDATA,
+    LOCALAPPDATA: process.env.LOCALAPPDATA,
+    ProgramData: process.env.ProgramData,
+    ProgramFiles: process.env.ProgramFiles,
+    'ProgramFiles(x86)': process.env['ProgramFiles(x86)'],
+    ComSpec: process.env.ComSpec,
+    ...overrides,
+    DOTNET_ROOT: 'C:/Program Files/dotnet',
+    DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  };
+}
 const chromePaths = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
 ];
+const TEST_DATE = new Date().toISOString().slice(0, 10);
 const TEST_API_PORT = 51789;
 const TEST_API_URL = `http://127.0.0.1:${TEST_API_PORT}`;
+const SAFE_TEST_PATH = String.raw`C:\Windows\System32`;
 
 async function step(name, fn, failures) {
   try {
@@ -46,29 +72,27 @@ function waitForHealth(url, timeoutMs) {
    Runs the pre-built DLL directly (not `dotnet run`, which wraps MSBuild and leaves orphan
    processes behind that a plain proc.kill() can't reach) so the process tree stays killable. */
 function buildTestApi() {
-  const { execFileSync } = require('child_process');
-  execFileSync('dotnet', ['build', path.join(root, 'src/TaskFlow.Api'), '-c', 'Debug'], { cwd: root, stdio: 'ignore' });
+  execFileSync(DOTNET_EXECUTABLE, ['build', path.join(root, 'src/TaskFlow.Api'), '-c', 'Debug'], { cwd: root, env: { ...createTestEnvironment(), PATH: SAFE_TEST_PATH }, stdio: 'ignore' });
   return path.join(root, 'src/TaskFlow.Api/bin/Debug/net9.0/TaskFlow.Api.dll');
 }
 function startTestApi(dllPath) {
   const dbPath = path.join(os.tmpdir(), `taskflow-smoke-${Date.now()}.db`);
-  const jwtKey = require('crypto').randomBytes(48).toString('base64');
-  const proc = spawn('dotnet', [dllPath], {
+  const jwtKey = require('node:crypto').randomBytes(48).toString('base64');
+  const proc = spawn(DOTNET_EXECUTABLE, [dllPath], {
     cwd: path.dirname(dllPath),
-    env: {
-      ...process.env,
+    env: { ...createTestEnvironment({
       ASPNETCORE_URLS: TEST_API_URL,
       ASPNETCORE_ENVIRONMENT: 'Development',
       ConnectionStrings__TaskFlow: `Data Source=${dbPath};Default Timeout=5`,
       Jwt__Key: jwtKey
-    },
+    }), PATH: SAFE_TEST_PATH },
     stdio: 'ignore'
   });
   return { proc, dbPath };
 }
 
 (async () => {
-  const executablePath = chromePaths.find(p => require('fs').existsSync(p));
+  const executablePath = chromePaths.find(p => fs.existsSync(p));
   if (!executablePath) throw new Error('Chrome or Edge executable was not found.');
 
   const dllPath = buildTestApi();
@@ -79,7 +103,7 @@ function startTestApi(dllPath) {
     exitCode = await runSmokeTests(executablePath);
   } finally {
     if (process.platform === 'win32') {
-      try { require('child_process').execFileSync('taskkill', ['/PID', String(apiProc.pid), '/T', '/F'], { stdio: 'ignore' }); } catch {}
+      try { execFileSync(TASKKILL_EXECUTABLE, ['/PID', String(apiProc.pid), '/T', '/F'], { env: { ...createTestEnvironment(), PATH: SAFE_TEST_PATH }, stdio: 'ignore' }); } catch {}
     } else {
       apiProc.kill();
     }
@@ -180,12 +204,28 @@ async function runSmokeTests(executablePath) {
     if (addBlockLabel !== 'Add time block') throw new Error('timetable controls were not translated after navigation');
     await page.click('#page-timetable button:has-text("Add time block")');
     await page.fill('#ttBlockTitleInput', 'Audit Project A');
-    await page.fill('#ttBlockDateInput', '2026-08-02');
+    await page.fill('#ttBlockDateInput', TEST_DATE);
     await page.fill('#ttBlockStartInput', '09:00');
     await page.fill('#ttBlockEndInput', '12:00');
+    await page.selectOption('#ttBlockPriorityInput', 'high');
+    await page.fill('#ttBlockReminderInput', TEST_DATE+'T08:45');
+    await page.check('#ttBlockImportantInput');
     await page.click('#timetableBlockModal button:has-text("Save")');
     const block = await page.evaluate(() => loadTimetableBlocks().find(b => b.title === 'Audit Project A'));
-    if (!block || block.start !== 540 || block.end !== 720) throw new Error('timetable block was not saved');
+    if (block?.start !== 540 || block.end !== 720 || block.priority !== 'high' || block.reminder !== TEST_DATE+'T08:45' || !block.important) throw new Error('timetable block fields were not saved');
+    const alarmTriggered = await page.evaluate(() => {
+      const saved = loadTimetableBlocks().find(b => b.title === 'Audit Project A');
+      checkTimetableBlockReminders(new Date(saved.reminder));
+      return saved.id && loadTimetableBlocks().find(b => b.id === saved.id).reminderDismissed && document.getElementById('alarmModal').classList.contains('active');
+    });
+    if (!alarmTriggered) throw new Error('important timetable reminder did not trigger its alarm');
+    await page.evaluate(() => { dismissAlarm(); renderTimetable(); });
+    await page.click('#ttGrid [aria-label="Mark time block complete"]');
+    const progress = await page.evaluate(() => ({
+      completedAt: loadTimetableBlocks().find(b => b.title === 'Audit Project A').completedAt,
+      text: document.getElementById('ttStats').innerText
+    }));
+    if (!progress.completedAt || !progress.text.includes('100%')) throw new Error('completing the time block did not update timetable progress');
   }, failures);
 
   await step('dashboard filters and settings status', async () => {
@@ -200,10 +240,10 @@ async function runSmokeTests(executablePath) {
   }, failures);
 
   await step('import preview validation', async () => {
-    await page.evaluate(() => {
-      pendingImport = validateBackup({ tasks: [{ title: 'Preview Task', priority: 'high' }], projects: [], goals: [], habits: [], notes: [] });
-      document.getElementById('importPreviewSummary').innerHTML = '<div class="sync-row"><span>Tasks</span><strong>1</strong></div>';
-      document.getElementById('importPreviewModal').classList.add('active');
+    await page.locator('#importFile').setInputFiles({
+      name: 'preview-backup.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify({ tasks: [{ title: 'Preview Task', priority: 'high' }], projects: [], goals: [], habits: [], notes: [] }))
     });
     await page.waitForSelector('#importPreviewModal.active');
     await page.click('#importPreviewModal button:has-text("Import")');
