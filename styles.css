@@ -489,6 +489,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tt-block .tt-block-title{font-size:.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tt-block .tt-block-meta{font-size:.68rem;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tt-block.tt-done{opacity:.55;text-decoration:line-through}
+.tt-block.tt-manual-block{background:#7c3aed;border-left:4px solid #c4b5fd;z-index:1}
 .tt-now-line{position:absolute;left:0;right:0;height:0;border-top:2px solid var(--danger);z-index:2}
 .tt-now-line::before{content:'';position:absolute;left:-5px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--danger)}
 .tt-side{width:220px;flex-shrink:0}

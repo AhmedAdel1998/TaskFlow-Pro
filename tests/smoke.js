@@ -172,6 +172,18 @@ async function runSmokeTests(executablePath) {
     await page.click('#eventModal button:has-text("Save")');
   }, failures);
 
+  await step('reserve a fixed timetable block', async () => {
+    await page.click('[data-page="timetable"]');
+    await page.click('#page-timetable button:has-text("Add time block")');
+    await page.fill('#ttBlockTitleInput', 'Audit Project A');
+    await page.fill('#ttBlockDateInput', '2026-08-02');
+    await page.fill('#ttBlockStartInput', '09:00');
+    await page.fill('#ttBlockEndInput', '12:00');
+    await page.click('#timetableBlockModal button:has-text("Save")');
+    const block = await page.evaluate(() => loadTimetableBlocks().find(b => b.title === 'Audit Project A'));
+    if (!block || block.start !== 540 || block.end !== 720) throw new Error('timetable block was not saved');
+  }, failures);
+
   await step('dashboard filters and settings status', async () => {
     await page.click('[data-page="dashboard"]');
     await page.selectOption('#dashAssigneeFilter', await page.evaluate(() => currentUser));

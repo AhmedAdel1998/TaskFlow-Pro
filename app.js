@@ -152,7 +152,7 @@ const i18n = {
     bulk_mark_done:'Mark Done', bulk_mark_todo:'Mark To Do', action_archive:'Archive', action_delete:'Delete', action_cancel:'Cancel',
     kanban_subtitle:'Drag and drop tasks between columns to update status',
     title_prev_month:'Previous month', title_next_month:'Next month', today_label:'Today', new_event:'New Event',
-    timetable_subtitle:'Tasks are auto-scheduled into free hours', title_prev_day:'Previous day', title_next_day:'Next day', label_from:'From', label_to:'To', tt_not_scheduled:'Not Scheduled Today',
+    timetable_subtitle:'Tasks are auto-scheduled into free hours', title_prev_day:'Previous day', title_next_day:'Next day', label_from:'From', label_to:'To', tt_not_scheduled:'Not Scheduled Today', tt_add_block:'Add time block', modal_new_time_block:'New time block', modal_edit_time_block:'Edit time block', tt_block_title:'What will you work on?', tt_block_saved:'Time block saved', tt_block_deleted:'Time block deleted', tt_time_error:'Choose an end time after the start time', tt_manual_block:'Fixed time block',
     eisenhower_subtitle:'Prioritize tasks by urgency and importance', eh_do_first:'Do First', eh_schedule:'Schedule', eh_delegate:'Delegate', eh_eliminate:'Eliminate',
     new_project:'+ New Project', new_goal:'+ New Goal', new_habit:'+ New Habit', new_note:'+ New Note', goal_weekly:'Weekly', goal_monthly:'Monthly', ph_search_notes:'Search notes...',
     gantt_timeline:'Gantt Timeline',
@@ -208,7 +208,7 @@ const i18n = {
     bulk_mark_done:'وضع علامة منجز', bulk_mark_todo:'وضع علامة قيد الانتظار', action_archive:'أرشفة', action_delete:'حذف', action_cancel:'إلغاء',
     kanban_subtitle:'اسحب المهام وأفلتها بين الأعمدة لتحديث حالتها',
     title_prev_month:'الشهر السابق', title_next_month:'الشهر التالي', today_label:'اليوم', new_event:'حدث جديد',
-    timetable_subtitle:'تتم جدولة المهام تلقائيًا في الأوقات الفارغة من يومك', title_prev_day:'اليوم السابق', title_next_day:'اليوم التالي', label_from:'من', label_to:'إلى', tt_not_scheduled:'غير مجدول اليوم',
+    timetable_subtitle:'تتم جدولة المهام تلقائيًا في الأوقات الفارغة من يومك', title_prev_day:'اليوم السابق', title_next_day:'اليوم التالي', label_from:'من', label_to:'إلى', tt_not_scheduled:'غير مجدول اليوم', tt_add_block:'إضافة فترة زمنية', modal_new_time_block:'فترة زمنية جديدة', modal_edit_time_block:'تعديل الفترة الزمنية', tt_block_title:'ما الذي ستعمل عليه؟', tt_block_saved:'تم حفظ الفترة الزمنية', tt_block_deleted:'تم حذف الفترة الزمنية', tt_time_error:'اختر وقت انتهاء بعد وقت البدء', tt_manual_block:'فترة زمنية ثابتة',
     eisenhower_subtitle:'رتب أولويات المهام حسب الإلحاح والأهمية', eh_do_first:'افعلها أولًا', eh_schedule:'جدولها', eh_delegate:'فوضها', eh_eliminate:'تخلص منها',
     new_project:'+ مشروع جديد', new_goal:'+ هدف جديد', new_habit:'+ عادة جديدة', new_note:'+ ملاحظة جديدة', goal_weekly:'أسبوعي', goal_monthly:'شهري', ph_search_notes:'ابحث في الملاحظات...',
     gantt_timeline:'مخطط جانت الزمني',
@@ -1289,6 +1289,31 @@ function addToMyDay(){const tasks=loadTasks().filter(t=>t.status!=='done'&&t.due
 
 /* ═══════ TIMETABLE (dynamic daily auto-scheduler) ═══════ */
 let timetableDate = todayStr();
+let editingTimetableBlockId=null;
+function loadTimetableBlocks(){try{const blocks=JSON.parse(localStorage.getItem(userKey('taskflow_timetable_blocks')))||[];return Array.isArray(blocks)?blocks:[];}catch{return [];}}
+function saveTimetableBlocks(blocks){localStorage.setItem(userKey('taskflow_timetable_blocks'),JSON.stringify(blocks));syncKey(userKey('taskflow_timetable_blocks'));}
+function timeToMinutes(time){const match=/^(\d{2}):(\d{2})$/.exec(time||'');if(!match)return null;const h=Number(match[1]),m=Number(match[2]);return h<24&&m<60?h*60+m:null;}
+function minutesToTime(minutes){const n=Math.max(0,Math.min(1439,Math.round(minutes)));return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');}
+function openTimetableBlockModal(id){
+  const block=id&&loadTimetableBlocks().find(b=>b.id===id); editingTimetableBlockId=block?block.id:null;
+  document.getElementById('ttBlockModalTitle').textContent=tr(block?'modal_edit_time_block':'modal_new_time_block');
+  document.getElementById('ttBlockTitleInput').value=block?block.title:'';
+  document.getElementById('ttBlockDateInput').value=block?block.date:timetableDate;
+  document.getElementById('ttBlockStartInput').value=block?minutesToTime(block.start):'09:00';
+  document.getElementById('ttBlockEndInput').value=block?minutesToTime(block.end):'10:00';
+  document.getElementById('ttBlockDeleteBtn').style.display=block?'inline-flex':'none';
+  document.getElementById('timetableBlockModal').classList.add('active');document.getElementById('ttBlockTitleInput').focus();
+}
+function closeTimetableBlockModal(){document.getElementById('timetableBlockModal').classList.remove('active');editingTimetableBlockId=null;}
+function saveTimetableBlock(){
+  const title=document.getElementById('ttBlockTitleInput').value.trim(),date=document.getElementById('ttBlockDateInput').value;
+  const start=timeToMinutes(document.getElementById('ttBlockStartInput').value),end=timeToMinutes(document.getElementById('ttBlockEndInput').value);
+  if(!title){toast('Please enter a title');return;} if(!date){toast('Please select a date');return;} if(start===null||end===null||end<=start){toast(tr('tt_time_error'),'error');return;}
+  const blocks=loadTimetableBlocks(),data={title,date,start,end,updatedAt:Date.now()};
+  if(editingTimetableBlockId){const i=blocks.findIndex(b=>b.id===editingTimetableBlockId);if(i>=0)blocks[i]={...blocks[i],...data};}else blocks.push({id:genId(),...data,createdAt:Date.now()});
+  saveTimetableBlocks(blocks);closeTimetableBlockModal();renderTimetable();toast(tr('tt_block_saved'));
+}
+function deleteTimetableBlock(){if(!editingTimetableBlockId)return;saveTimetableBlocks(loadTimetableBlocks().filter(b=>b.id!==editingTimetableBlockId));closeTimetableBlockModal();renderTimetable();toast(tr('tt_block_deleted'));}
 function getWorkHours(){
   let wh=null;
   try{ wh=JSON.parse(localStorage.getItem(userKey('taskflow_workhours'))); }catch{ wh=null; }
@@ -1324,15 +1349,20 @@ function buildTimetableSchedule(date, wh){
     return (b.smartScore||0)-(a.smartScore||0);
   });
   const startMin=wh.start*60, endMin=wh.end*60;
-  let cursor=startMin;
+  const manualBlocks=loadTimetableBlocks().filter(b=>b.date===date&&Number.isFinite(b.start)&&Number.isFinite(b.end)&&b.end>b.start).sort((a,b)=>a.start-b.start);
+  const occupied=manualBlocks.map(b=>({start:Math.max(startMin,b.start),end:Math.min(endMin,b.end)})).filter(b=>b.end>b.start).sort((a,b)=>a.start-b.start);
+  const free=[];let cursor=startMin,reservedMin=0;
+  occupied.forEach(b=>{const uncoveredStart=Math.max(cursor,b.start);if(b.end>uncoveredStart)reservedMin+=b.end-uncoveredStart;cursor=Math.max(cursor,b.end);});
+  cursor=startMin;
+  occupied.forEach(b=>{if(b.start>cursor)free.push({start:cursor,end:b.start});cursor=Math.max(cursor,b.end);});if(cursor<endMin)free.push({start:cursor,end:endMin});
   const blocks=[], overflow=[];
   tasks.forEach(t=>{
     const dur=Math.max(15, Math.round((t.estimated_hours||1)*60));
-    if(cursor+dur>endMin){ overflow.push(t); return; }
-    blocks.push({task:t, start:cursor, end:cursor+dur});
-    cursor+=dur;
+    const slot=free.find(s=>s.end-s.start>=dur);
+    if(!slot){ overflow.push(t); return; }
+    blocks.push({task:t, start:slot.start, end:slot.start+dur});slot.start+=dur;
   });
-  return {blocks, overflow};
+  return {blocks, manualBlocks, reservedMin, overflow};
 }
 function renderTimetable(){
   const wh=getWorkHours();
@@ -1340,12 +1370,12 @@ function renderTimetable(){
   document.getElementById('ttEndInput').value=wh.end;
   const isToday=timetableDate===todayStr();
   document.getElementById('ttDateLabel').innerHTML=(isToday?'Today &bull; ':'')+escHtml(new Date(timetableDate+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}));
-  const {blocks, overflow}=buildTimetableSchedule(timetableDate, wh);
+  const {blocks, manualBlocks, reservedMin, overflow}=buildTimetableSchedule(timetableDate, wh);
   const totalMin=(wh.end-wh.start)*60;
-  const usedMin=blocks.reduce((s,b)=>s+(b.end-b.start),0);
+  const usedMin=blocks.reduce((s,b)=>s+(b.end-b.start),0)+reservedMin;
   const freeMin=Math.max(0, totalMin-usedMin);
   document.getElementById('ttStats').innerHTML=
-    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Scheduled</h3><div class="num">'+blocks.length+'</div></div></div>'+
+    '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Scheduled</h3><div class="num">'+(blocks.length+manualBlocks.length)+'</div></div></div>'+
     '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Planned Hours</h3><div class="num">'+(usedMin/60).toFixed(1)+'</div></div></div>'+
     '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Free Hours</h3><div class="num">'+(freeMin/60).toFixed(1)+'</div></div></div>'+
     '<div class="stat-card" style="flex:1;min-width:120px"><div class="stat-info"><h3>Unscheduled</h3><div class="num">'+overflow.length+'</div></div></div>';
@@ -1355,6 +1385,10 @@ function renderTimetable(){
   for(let h=wh.start; h<wh.end; h++){
     html+='<div class="tt-hour-label" style="top:'+((h-wh.start)*60)+'px">'+fmtHourLabel(h)+'</div>';
   }
+  manualBlocks.forEach(b=>{
+    const top=b.start-wh.start*60, h=Math.max(20,b.end-b.start);
+    html+='<div class="tt-block tt-manual-block" style="top:'+top+'px;height:'+(h-2)+'px" onclick="openTimetableBlockModal(\''+b.id+'\')" title="'+escHtml(b.title)+'"><div class="tt-block-title">'+escHtml(b.title)+'</div><div class="tt-block-meta">'+fmtHourLabel(b.start/60)+' &ndash; '+fmtHourLabel(b.end/60)+' &bull; '+escHtml(tr('tt_manual_block'))+'</div></div>';
+  });
   blocks.forEach(b=>{
     const t=b.task, top=b.start-wh.start*60, h=Math.max(20, b.end-b.start);
     const done=t.status==='done';
