@@ -72,3 +72,15 @@ test('storage quota failure rolls back the data instead of losing its queue',()=
   assert.throws(()=>h.run('persistData("taskflow_tasks_alice","new")'),/QuotaExceededError/);
   assert.equal(h.data.get('taskflow_tasks_alice'),'old');
 });
+test('queued deletion survives hydration and is retried as DELETE',async()=>{
+  const calls=[];
+  const h=harness(async(url,options)=>{
+    calls.push(options.method);
+    return options.method==='GET'?response(200,[{key:'taskflow_tasks_alice',value:'old',updatedAt:'date'}]):response(204,null);
+  });
+  h.run('setPendingSync({taskflow_tasks_alice:null})');
+  await h.run('hydrateFromServer()');
+  assert.equal(h.data.has('taskflow_tasks_alice'),false);
+  assert.deepEqual(calls,['GET','DELETE']);
+  assert.equal(h.run('Object.keys(getPendingSync()).length'),0);
+});

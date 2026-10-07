@@ -190,4 +190,17 @@ module.exports=async function features(page,step,failures){
     const response=await page.request.get(new URL('/config.js',page.url()).href);
     assert.equal(response.status(),200);assert.match(await response.text(),/http:\/\/localhost:5299/);
   },failures);
+  await step('clear account data persists server deletions across reload',async()=>{
+    await page.waitForFunction(()=>!syncInFlight&&!hydrationInFlight);
+    await page.evaluate(async()=>{await flushSyncQueue();});
+    await page.waitForFunction(()=>!syncInFlight);
+    page.once('dialog',dialog=>dialog.accept());
+    await page.evaluate(async()=>{await clearAllData();});
+    await page.waitForFunction(()=>!syncInFlight&&Object.keys(getPendingSync()).length===0);
+    const data=await page.evaluate(async()=>await apiRaw('/api/data','GET'));
+    assert.equal(data.length,0);
+    await page.reload({waitUntil:'domcontentloaded'});
+    await page.waitForFunction(()=>!!currentUser&&!hydrationInFlight);
+    assert.equal(await page.evaluate(()=>loadTasks().length),0);
+  },failures);
 };

@@ -1,0 +1,1 @@
+PASS independent frontend server: root, subpath, JS/config, non-public files denied

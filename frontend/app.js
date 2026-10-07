@@ -125,10 +125,11 @@ async function flushSyncQueue(){
       if(currentUser!==user) break;
       if(!ownsDataKey(key,user)) continue;
       try{
-        const result=await apiRaw('/api/data/'+encodeURIComponent(key),'PUT',{
+        const deleting=snapshot[key]===null;
+        const result=await apiRaw('/api/data/'+encodeURIComponent(key),deleting?'DELETE':'PUT',deleting?undefined:{
           value:snapshot[key],expectedUpdatedAt:getSyncVersions(user)[key]||null,requireVersion:true
         },true,user);
-        setSyncVersion(key,result.updatedAt,user);
+        setSyncVersion(key,result?.updatedAt||null,user);
         const pending=getPendingSync(user);
         // An edit made during this PUT must remain queued.
         if(pending[key]===snapshot[key]) delete pending[key];
@@ -2976,11 +2977,21 @@ function getSyncStatusText(){
   if(!APPS_SCRIPT_URL||!getSyncToken()) return 'Not configured';
   return ts ? 'Last synced '+fmtRelative(ts) : 'Ready, not synced yet';
 }
-function clearAllData(){
-  if(!confirm('Delete ALL data for this account? This cannot be undone!')) return;
-  const keys=Object.keys(localStorage).filter(k=>ownsDataKey(k));
-  keys.forEach(k=>localStorage.removeItem(k));
-  toast('All data cleared');refreshAll();
+async function clearAllData(){
+  if(!currentUser||!confirm('Delete ALL synced data for this account? This cannot be undone!'))return;
+  const user=currentUser;
+  try{
+    const server=await apiRaw('/api/data','GET');
+    if(currentUser!==user)return;
+    const keys=new Set([...Object.keys(localStorage),...server.map(item=>item.key)].filter(key=>ownsDataKey(key,user)));
+    const pending=getPendingSync(user);
+    for(const key of keys)pending[key]=null;
+    // Persist all tombstones first so a failed request/reload cannot resurrect deleted data.
+    setPendingSync(pending,user);
+    for(const key of keys)localStorage.removeItem(key);
+    refreshAll();await flushSyncQueue();
+    toast(Object.keys(getPendingSync(user)).length?'Deletion queued; waiting for synchronization':'Account data cleared');
+  }catch(error){toast('Could not clear account data: '+error.message,'error');}
 }
 
 /* ═══════ ONBOARDING ═══════ */

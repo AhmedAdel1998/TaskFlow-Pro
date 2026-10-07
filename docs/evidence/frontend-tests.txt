@@ -1,0 +1,84 @@
+
+> taskflow-pro-audit@1.0.0 test
+> npm run test:syntax && npm run test:unit && npm run test:deployment && npm run test:smoke
+
+
+> taskflow-pro-audit@1.0.0 test:syntax
+> node tests/syntax-check.js
+
+Syntax checks passed.
+Translation dictionary parity: 371 keys; static HTML references present. Dynamic prose requires separate review.
+
+> taskflow-pro-audit@1.0.0 test:unit
+> node --test tests/sync-regression.js tests/service-worker.js
+
+✔ mocked push retains alarm flags and notification click opens the application scope (4.7257ms)
+✔ failed HTTP writes remain queued for retry (18.2026ms)
+✔ in-flight edit is not removed by acknowledgment of an older write (13.0838ms)
+✔ legacy queue migration isolates accounts and excludes credentials (2.8356ms)
+✔ hydration preserves unsynced changes and ignores foreign keys (3.3066ms)
+✔ concurrent expired requests share one refresh and invalid refresh stops (10.9249ms)
+✔ account switch during hydration cannot overwrite another account (2.7385ms)
+✔ storage quota failure rolls back the data instead of losing its queue (2.9427ms)
+✔ queued deletion survives hydration and is retried as DELETE (3.8496ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 252.6472
+
+> taskflow-pro-audit@1.0.0 test:deployment
+> node tests/deployment-check.js
+
+PASS static artifact (8 files), relative assets/manifest, API configuration, Docker context, Railway readiness, CI paths
+
+> taskflow-pro-audit@1.0.0 test:smoke
+> node tests/smoke.js
+
+PASS load app
+PASS register and login
+PASS open dashboard
+PASS open myday
+PASS open tasks
+PASS open kanban
+PASS open calendar
+PASS open timetable
+PASS open eisenhower
+PASS open projects
+PASS open goals
+PASS open habits
+PASS open notes
+PASS open analytics
+PASS open reports
+PASS open lifebalance
+PASS open progress
+PASS open review
+PASS open archive
+PASS create task and search
+PASS create planning records
+PASS create note and calendar event
+PASS reserve a fixed timetable block
+PASS dashboard filters and settings status
+PASS import preview validation
+PASS accessibility attributes
+PASS verify local data
+PASS known dashboard counts, goal progress, habit streak and overdue time
+PASS task dependencies, subtasks, completion, archive, restore and deletion
+PASS task editor preserves all supported fields and rearms changed reminder
+PASS quick-add syntax and recurrence produce exactly one new copy
+PASS reports, achievements, life balance and Pomodoro use known quantities
+PASS unsafe text, category quotes, CSV formulas and missing Excel dependency
+PASS Escape closes the task modal while an input has focus
+PASS backup validation and task round-trip preserve supported data
+PASS real API sync, reload, offline edit and reconnection
+PASS Arabic RTL and mobile navigation
+PASS local calendar dates across Cairo midnight and DST
+PASS PWA subpath offline startup and app asset availability
+PASS logout clears credentials and account switching isolates templates and tasks
+PASS Kanban transitions, matrix placement, and reserved timetable hours
+PASS calendar reminder rearming, alarm dismissal and mocked snooze timer
+PASS root hosting loads the same independent frontend
+PASS clear account data persists server deletions across reload

@@ -1,0 +1,10 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  TaskFlow.Domain -> E:\Task Pro\backend\src\TaskFlow.Domain\bin\Release\net9.0\TaskFlow.Domain.dll
+  TaskFlow.Application -> E:\Task Pro\backend\src\TaskFlow.Application\bin\Release\net9.0\TaskFlow.Application.dll
+  TaskFlow.Infrastructure -> E:\Task Pro\backend\src\TaskFlow.Infrastructure\bin\Release\net9.0\TaskFlow.Infrastructure.dll
+  TaskFlow.Api -> E:\Task Pro\backend\src\TaskFlow.Api\bin\Release\net9.0\TaskFlow.Api.dll
+  TaskFlow.Api -> E:\Task Pro\backend\artifacts\publish\
+
+Workload updates are available. Run `dotnet workload list` for more information.
+PASS published Production API: migrate, register, write, restart, login, persistent read, readiness
