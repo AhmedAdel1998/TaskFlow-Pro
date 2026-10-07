@@ -36,7 +36,6 @@ const chromePaths = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
 ];
-const TEST_DATE = new Date().toISOString().slice(0, 10);
 const TEST_API_PORT = 51789;
 const TEST_API_URL = `http://127.0.0.1:${TEST_API_PORT}`;
 const SAFE_TEST_PATH = String.raw`C:\Windows\System32`;
@@ -215,19 +214,22 @@ async function runSmokeTests(executablePath) {
     await page.click('[data-page="timetable"]');
     await page.click('[data-page="dashboard"]');
     await page.click('[data-page="timetable"]');
+    // Use the displayed Cairo date, not the runner's UTC date. Near Cairo midnight
+    // those differ, which used to create yesterday's block and fail the click below.
+    const timetableDay = await page.evaluate(() => timetableDate);
     const addBlockLabel = await page.locator('#page-timetable [data-i18n="tt_add_block"]').innerText();
     if (addBlockLabel !== 'Add time block') throw new Error('timetable controls were not translated after navigation');
     await page.click('#page-timetable button:has-text("Add time block")');
     await page.fill('#ttBlockTitleInput', 'Audit Project A');
-    await page.fill('#ttBlockDateInput', TEST_DATE);
+    await page.fill('#ttBlockDateInput', timetableDay);
     await page.fill('#ttBlockStartInput', '09:00');
     await page.fill('#ttBlockEndInput', '12:00');
     await page.selectOption('#ttBlockPriorityInput', 'high');
-    await page.fill('#ttBlockReminderInput', TEST_DATE+'T08:45');
+    await page.fill('#ttBlockReminderInput', timetableDay+'T08:45');
     await page.check('#ttBlockImportantInput');
     await page.click('#timetableBlockModal button:has-text("Save")');
     const block = await page.evaluate(() => loadTimetableBlocks().find(b => b.title === 'Audit Project A'));
-    if (block?.start !== 540 || block.end !== 720 || block.priority !== 'high' || block.reminder !== TEST_DATE+'T08:45' || !block.important) throw new Error('timetable block fields were not saved');
+    if (block?.start !== 540 || block.end !== 720 || block.priority !== 'high' || block.reminder !== timetableDay+'T08:45' || !block.important) throw new Error('timetable block fields were not saved');
     const alarmTriggered = await page.evaluate(() => {
       const saved = loadTimetableBlocks().find(b => b.title === 'Audit Project A');
       checkTimetableBlockReminders(new Date(saved.reminder));
