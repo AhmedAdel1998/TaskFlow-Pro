@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TaskFlow Pro — Team Task Monitor</title>
+<title data-i18n="TaskFlow Pro — Team Task Monitor">TaskFlow Pro — Team Task Monitor</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#4f46e5">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,12 +20,13 @@
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
-    <div class="logo-big">T</div>
-    <h1>TaskFlow Pro</h1>
+    <div class="logo-big" aria-hidden="true">ت</div>
+    <h1 data-i18n="TaskFlow Pro">TaskFlow Pro</h1>
     <p data-i18n="login_tagline">Team Task Monitoring System</p>
+    <button type="button" onclick="toggleLang()" data-i18n="setting_language" style="margin-bottom:16px;color:var(--primary)">Language / RTL</button>
     <div class="login-error" id="loginError"></div>
-    <input type="text" id="loginUsername" aria-label="Username" data-i18n-ph="ph_username" placeholder="Username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
-    <input type="password" id="loginPassword" aria-label="Password" data-i18n-ph="ph_password" placeholder="Password (min 6 characters)" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+    <input type="text" id="loginUsername" aria-label="Username" data-i18n-aria="Username" data-i18n-ph="ph_username" placeholder="Username" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+    <input type="password" id="loginPassword" aria-label="Password" data-i18n-aria="Password" data-i18n-ph="ph_password" placeholder="Password (min 6 characters)" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     <button class="btn btn-primary" onclick="doLogin()" id="loginSubmitBtn" data-i18n="sign_in">Sign In</button>
     <div style="font-size:.82rem;color:var(--text2);margin-top:10px"><span id="loginSwitchText" data-i18n="new_here">New here?</span> <button type="button" onclick="toggleAuthMode()" id="loginSwitchLink" style="background:none;border:0;padding:0;font:inherit;color:var(--primary);font-weight:600;cursor:pointer" data-i18n="switch_to_create">Create an account</button></div>
     <div class="login-team" data-i18n="login_footer">Powered by TaskFlow Pro &bull; Team Edition</div>
@@ -34,7 +35,7 @@
 <!-- APP -->
 <div class="app" id="appContainer" style="display:none">
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-header"><div class="logo">T</div><h1>TaskFlow Pro</h1></div>
+  <div class="sidebar-header"><div class="logo" aria-hidden="true">ت</div><h1 data-i18n="TaskFlow Pro">TaskFlow Pro</h1></div>
   <nav class="sidebar-nav">
     <div class="nav-section" data-i18n="nav_main">Main</div>
     <button class="nav-item active" data-page="dashboard" onclick="showPage('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span data-i18n="dashboard">Dashboard</span></button>
@@ -75,7 +76,7 @@
     <button class="hamburger" onclick="toggleSidebar()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="search-box" id="globalSearchBox">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="searchInput" aria-label="Search tasks" data-i18n-ph="ph_search_tasks" placeholder="Search tasks..." oninput="handleGlobalSearch(event)" onfocus="handleGlobalSearch(event)" onblur="setTimeout(()=>closeSearch(),200)">
+      <input type="text" id="searchInput" aria-label="Search tasks" data-i18n-aria="Search tasks" data-i18n-ph="ph_search_tasks" placeholder="Search tasks..." oninput="handleGlobalSearch(event)" onfocus="handleGlobalSearch(event)" onblur="setTimeout(()=>closeSearch(),200)">
       <span class="shortcut-hint">/</span>
       <div class="search-results" id="searchResults"></div>
     </div>
@@ -93,9 +94,9 @@
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
       <div style="font-size:1.3rem;font-weight:700"><span id="greeting"></span> <span id="greetUser" style="color:var(--primary)"></span></div>
       <div class="filter-bar">
-        <select id="dashDateFilter" class="filter-select" aria-label="Filter dashboard by date" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_dates">All Dates</option><option value="today" data-i18n-opt="filter_today">Today</option><option value="week" data-i18n-opt="filter_this_week">This Week</option><option value="month" data-i18n-opt="filter_this_month">This Month</option></select>
-        <select id="dashProjectFilter" class="filter-select" aria-label="Filter dashboard by project" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_projects">All Projects</option></select>
-        <select id="dashAssigneeFilter" class="filter-select" aria-label="Filter dashboard by owner" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_owners">All Owners</option></select>
+        <select id="dashDateFilter" class="filter-select" aria-label="Filter dashboard by date" data-i18n-aria="Filter dashboard by date" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_dates">All Dates</option><option value="today" data-i18n-opt="filter_today">Today</option><option value="week" data-i18n-opt="filter_this_week">This Week</option><option value="month" data-i18n-opt="filter_this_month">This Month</option></select>
+        <select id="dashProjectFilter" class="filter-select" aria-label="Filter dashboard by project" data-i18n-aria="Filter dashboard by project" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_projects">All Projects</option></select>
+        <select id="dashAssigneeFilter" class="filter-select" aria-label="Filter dashboard by owner" data-i18n-aria="Filter dashboard by owner" onchange="renderDashboard()"><option value="all" data-i18n-opt="filter_all_owners">All Owners</option></select>
       </div>
     </div>
     <div class="card" id="todaysFocusCard"></div>
@@ -110,19 +111,19 @@
     <div style="display:flex;align-items:center;justify-content:space-between"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="my_day">My Day</h2><div style="display:flex;gap:6px"><span id="myDayDate" style="font-size:.85rem;color:var(--text2)"></span></div></div>
     <div class="stats-grid" id="myDayStats"></div>
     <div id="myDayBlocks"></div>
-    <div class="card"><div class="card-title" data-i18n="daily_notes">Daily Notes</div><textarea id="dailyNoteInput" aria-label="Daily notes" rows="3" data-i18n-ph="ph_daily_notes" placeholder="Write your notes for today..." style="width:100%;resize:vertical" oninput="saveDailyNote()"></textarea></div>
+    <div class="card"><div class="card-title" data-i18n="daily_notes">Daily Notes</div><textarea id="dailyNoteInput" aria-label="Daily notes" data-i18n-aria="Daily notes" rows="3" data-i18n-ph="ph_daily_notes" placeholder="Write your notes for today..." style="width:100%;resize:vertical" oninput="saveDailyNote()"></textarea></div>
   </div>
   <!-- TASKS -->
   <div class="page" id="page-tasks">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
       <h2 style="font-size:1.2rem;font-weight:700" data-i18n="all_tasks">All Tasks</h2>
       <div class="filter-bar">
-        <select id="filterStatus" class="filter-select" aria-label="Filter tasks by status" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_status">All Status</option><option value="todo" data-i18n-opt="status_todo">To Do</option><option value="in-progress" data-i18n-opt="status_inprogress">In Progress</option><option value="done" data-i18n-opt="status_done">Done</option></select>
-        <select id="filterPriority" class="filter-select" aria-label="Filter tasks by priority" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_priorities">All Priorities</option><option value="high" data-i18n-opt="priority_high">High</option><option value="medium" data-i18n-opt="priority_medium">Medium</option><option value="low" data-i18n-opt="priority_low">Low</option></select>
-        <select id="filterCategory" class="filter-select" aria-label="Filter tasks by category" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_categories">All Categories</option></select>
-        <select id="filterProject" class="filter-select" aria-label="Filter tasks by project" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_projects">All Projects</option></select>
-        <select id="filterAssignee" class="filter-select" aria-label="Filter tasks by owner" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_owners">All Owners</option></select>
-        <select id="sortBy" class="filter-select" aria-label="Sort tasks" onchange="renderTasks()"><option value="created-desc" data-i18n-opt="sort_newest">Newest</option><option value="created-asc" data-i18n-opt="sort_oldest">Oldest</option><option value="due-asc" data-i18n-opt="sort_due_soon">Due Soon</option><option value="priority-desc" data-i18n-opt="sort_priority">Priority</option><option value="score-desc" data-i18n-opt="sort_smart_score">Smart Score</option><option value="alpha-asc" data-i18n-opt="sort_az">A-Z</option></select>
+        <select id="filterStatus" class="filter-select" aria-label="Filter tasks by status" data-i18n-aria="Filter tasks by status" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_status">All Status</option><option value="todo" data-i18n-opt="status_todo">To Do</option><option value="in-progress" data-i18n-opt="status_inprogress">In Progress</option><option value="done" data-i18n-opt="status_done">Done</option></select>
+        <select id="filterPriority" class="filter-select" aria-label="Filter tasks by priority" data-i18n-aria="Filter tasks by priority" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_priorities">All Priorities</option><option value="high" data-i18n-opt="priority_high">High</option><option value="medium" data-i18n-opt="priority_medium">Medium</option><option value="low" data-i18n-opt="priority_low">Low</option></select>
+        <select id="filterCategory" class="filter-select" aria-label="Filter tasks by category" data-i18n-aria="Filter tasks by category" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_categories">All Categories</option></select>
+        <select id="filterProject" class="filter-select" aria-label="Filter tasks by project" data-i18n-aria="Filter tasks by project" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_projects">All Projects</option></select>
+        <select id="filterAssignee" class="filter-select" aria-label="Filter tasks by owner" data-i18n-aria="Filter tasks by owner" onchange="renderTasks()"><option value="all" data-i18n-opt="filter_all_owners">All Owners</option></select>
+        <select id="sortBy" class="filter-select" aria-label="Sort tasks" data-i18n-aria="Sort tasks" onchange="renderTasks()"><option value="created-desc" data-i18n-opt="sort_newest">Newest</option><option value="created-asc" data-i18n-opt="sort_oldest">Oldest</option><option value="due-asc" data-i18n-opt="sort_due_soon">Due Soon</option><option value="priority-desc" data-i18n-opt="sort_priority">Priority</option><option value="score-desc" data-i18n-opt="sort_smart_score">Smart Score</option><option value="alpha-asc" data-i18n-opt="sort_az">A-Z</option></select>
         <button class="filter-star" onclick="openSavedFilters()" data-i18n-title="title_saved_filters" title="Saved filters">&#9733;</button>
       </div>
     </div>
@@ -218,7 +219,7 @@
   </div>
   <!-- NOTES -->
   <div class="page" id="page-notes">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="notes">Notes</h2><div style="display:flex;gap:8px;align-items:center"><input id="noteSearch" type="search" aria-label="Search notes" data-i18n-ph="ph_search_notes" placeholder="Search notes..." oninput="renderNotes()" style="min-width:180px"><button class="btn btn-sm btn-primary" onclick="openNoteEditor()" data-i18n="new_note">+ New Note</button></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2 style="font-size:1.2rem;font-weight:700" data-i18n="notes">Notes</h2><div style="display:flex;gap:8px;align-items:center"><input id="noteSearch" type="search" aria-label="Search notes" data-i18n-aria="Search notes" data-i18n-ph="ph_search_notes" placeholder="Search notes..." oninput="renderNotes()" style="min-width:180px"><button class="btn btn-sm btn-primary" onclick="openNoteEditor()" data-i18n="new_note">+ New Note</button></div></div>
     <div class="notes-layout"><div class="notes-sidebar" id="notesFolders"></div><div class="notes-grid" id="notesGrid"></div></div>
   </div>
   <!-- ANALYTICS -->
@@ -319,7 +320,7 @@
 <!-- TASK MODAL -->
 <div class="modal-overlay" id="taskModal">
   <div class="modal" style="max-width:600px">
-    <div class="modal-header"><h2 id="modalTitle" data-i18n="modal_new_task">New Task</h2><button class="icon-btn" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="modalTitle">New Task</h2><button class="icon-btn" onclick="closeModal()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="form-group"><label for="taskTitleInput" data-i18n="field_title">Title *</label><input type="text" id="taskTitleInput" data-i18n-ph="ph_task_title" placeholder="What needs to be done?" maxlength="200"></div>
       <div class="form-group"><label for="taskDescInput" data-i18n="field_description">Description</label><textarea id="taskDescInput" rows="3" data-i18n-ph="ph_add_details" placeholder="Add details..." maxlength="2000"></textarea></div>
@@ -368,8 +369,8 @@
     <div class="modal-footer">
       <button class="btn btn-sm btn-outline" onclick="saveAsTemplate()" data-i18n-title="title_save_template" title="Save as template">&#9733; <span data-i18n="btn_save_template">Template</span></button>
       <div style="flex:1"></div>
-      <button class="btn btn-outline" onclick="closeModal()" data-i18n="btn_cancel">Cancel</button>
-      <button class="btn btn-primary" id="saveTaskBtn" onclick="saveTask()" data-i18n="btn_create_task">Create Task</button>
+      <button class="btn btn-outline" onclick="closeModal()" aria-label="Close" data-i18n-aria="Close" data-i18n="btn_cancel">Cancel</button>
+      <button class="btn btn-primary" id="saveTaskBtn" onclick="saveTask()">Create Task</button>
     </div>
   </div>
 </div>
@@ -377,30 +378,30 @@
 <div class="modal-overlay confirm-modal" id="confirmModal">
   <div class="modal"><div class="modal-body" style="padding:28px">
     <div class="confirm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></div>
-    <h3 style="font-size:1rem;font-weight:700;margin:4px 0" id="confirmTitle" data-i18n="confirm_delete_title">Delete?</h3>
-    <p style="font-size:.88rem;color:var(--text2)" id="confirmMsg" data-i18n="confirm_delete_msg">This cannot be undone.</p>
-    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-outline" onclick="closeConfirm()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-danger" id="confirmBtn" onclick="confirmAction()" data-i18n="btn_delete">Delete</button></div>
+    <h3 style="font-size:1rem;font-weight:700;margin:4px 0" id="confirmTitle">Delete?</h3>
+    <p style="font-size:.88rem;color:var(--text2)" id="confirmMsg">This cannot be undone.</p>
+    <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-outline" onclick="closeConfirm()" aria-label="Close" data-i18n-aria="Close" data-i18n="btn_cancel">Cancel</button><button class="btn btn-danger" id="confirmBtn" onclick="confirmAction()">Delete</button></div>
   </div></div>
 </div>
 <!-- SETTINGS MODAL -->
 <div class="modal-overlay" id="settingsModal">
   <div class="modal" style="max-width:480px">
-    <div class="modal-header"><h2 data-i18n="settings">Settings</h2><button class="icon-btn" onclick="closeSettings()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 data-i18n="settings">Settings</h2><button class="icon-btn" onclick="closeSettings()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body"><div class="settings-grid">
       <div class="setting-item"><div><div class="setting-label" data-i18n="logged_in_as">Logged in as</div><div class="setting-desc" id="settingsEmail">user@example.com</div></div><button class="btn btn-sm btn-outline" onclick="doLogout()" data-i18n="logout">Logout</button></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_api_url">Account Database URL</div><div class="setting-desc" id="apiUrlStatus" data-i18n="setting_not_configured">Not configured</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="testApiConnection()" data-i18n="btn_test">Test</button><button class="btn btn-sm btn-outline" onclick="editApiUrl()" data-i18n="btn_edit">Edit</button></div></div>
-      <div class="setting-item"><button class="btn btn-sm btn-outline" onclick="resolveSyncConflicts()">Resolve sync conflicts</button></div>
-      <div class="setting-item" id="syncNowSetting" style="display:none"><div><div class="setting-label" data-i18n="setting_sync_status">Sync Status</div><div class="setting-desc" id="syncPendingStatus" data-i18n="setting_up_to_date">Up to date</div></div><button class="btn btn-sm btn-primary" onclick="pushAllLocalDataToServer()" data-i18n="btn_sync_now">Sync Now</button></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_apps_script_url">Apps Script URL</div><div class="setting-desc" id="scriptUrlStatus" data-i18n="setting_not_configured">Not configured</div></div><button class="btn btn-sm btn-outline" onclick="editSheetUrl()" data-i18n="btn_edit">Edit</button></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_sync_token">Sync Token</div><div class="setting-desc" id="syncTokenStatus" data-i18n="setting_sync_token_desc">Required for Google Sheets sync</div></div><button class="btn btn-sm btn-outline" onclick="editSyncToken()" data-i18n="btn_edit">Edit</button></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_gsheets_sync">Google Sheets Sync</div><div class="setting-desc" id="syncStateLabel" data-i18n="setting_not_synced">Not synced yet</div></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-sm btn-outline" onclick="testSyncConnection()" data-i18n="btn_test">Test</button><button class="btn btn-sm btn-outline" onclick="syncPullAll()" data-i18n="btn_pull">Pull</button><button class="btn btn-sm btn-primary" onclick="syncPushAll()" data-i18n="btn_push">Push</button></div></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_api_url">Account Database URL</div><div class="setting-desc" id="apiUrlStatus">Not configured</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="testApiConnection()" data-i18n="btn_test">Test</button><button class="btn btn-sm btn-outline" onclick="editApiUrl()" data-i18n="btn_edit">Edit</button></div></div>
+      <div class="setting-item"><button class="btn btn-sm btn-outline" onclick="resolveSyncConflicts()" data-i18n="Resolve sync conflicts">Resolve sync conflicts</button></div>
+      <div class="setting-item" id="syncNowSetting" style="display:none"><div><div class="setting-label" data-i18n="setting_sync_status">Sync Status</div><div class="setting-desc" id="syncPendingStatus">Up to date</div></div><button class="btn btn-sm btn-primary" onclick="pushAllLocalDataToServer()" data-i18n="btn_sync_now">Sync Now</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_apps_script_url">Apps Script URL</div><div class="setting-desc" id="scriptUrlStatus">Not configured</div></div><button class="btn btn-sm btn-outline" onclick="editSheetUrl()" data-i18n="btn_edit">Edit</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_sync_token">Sync Token</div><div class="setting-desc" id="syncTokenStatus">Required for Google Sheets sync</div></div><button class="btn btn-sm btn-outline" onclick="editSyncToken()" data-i18n="btn_edit">Edit</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_gsheets_sync">Google Sheets Sync</div><div class="setting-desc" id="syncStateLabel">Not synced yet</div></div><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"><button class="btn btn-sm btn-outline" onclick="testSyncConnection()" data-i18n="btn_test">Test</button><button class="btn btn-sm btn-outline" onclick="syncPullAll()" data-i18n="btn_pull">Pull</button><button class="btn btn-sm btn-primary" onclick="syncPushAll()" data-i18n="btn_push">Push</button></div></div>
       <div class="setting-item" id="adminSyncSetting" style="display:none"><div><div class="setting-label" data-i18n="setting_sync_all">Sync All to Google Sheets</div><div class="setting-desc" data-i18n="setting_sync_all_desc">Admin token required; pushes all local users</div></div><button class="btn btn-sm btn-primary" onclick="syncAllUsersToSheet()" data-i18n="btn_sync_all">Sync All</button></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_pomo_work">Pomodoro Work (min)</div><div class="setting-desc"><span data-i18n="setting_default_prefix">Default</span>: 25</div></div><input type="number" id="pomoWorkMin" aria-label="Pomodoro work duration in minutes" value="25" min="1" max="90" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_pomo_break">Pomodoro Break (min)</div><div class="setting-desc"><span data-i18n="setting_default_prefix">Default</span>: 5</div></div><input type="number" id="pomoBreakMin" aria-label="Pomodoro break duration in minutes" value="5" min="1" max="30" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_language">Language / RTL</div><div class="setting-desc" id="currentLangLabel">English</div></div><button class="btn btn-sm btn-outline" onclick="toggleLang()" data-i18n="btn_toggle">Toggle</button></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_export">Export Tasks</div><div class="setting-desc" data-i18n="setting_export_desc">CSV, JSON, or Excel</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="exportCSV()">CSV</button><button class="btn btn-sm btn-outline" onclick="exportJSON()">JSON</button><button class="btn btn-sm btn-outline" onclick="exportExcel()">Excel</button></div></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_import">Import Tasks</div><div class="setting-desc" data-i18n="setting_import_desc">Upload JSON backup</div></div><button class="btn btn-sm btn-outline" onclick="document.getElementById('importFile').click()" data-i18n="btn_import">Import</button><input type="file" id="importFile" aria-label="Import task backup file" accept=".json" style="display:none" onchange="importJSON(event)"></div>
-      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_notifications">Enable Notifications</div><div class="setting-desc" data-i18n="setting_notifications_desc">Browser reminders</div></div><button class="btn btn-sm btn-outline" onclick="requestNotifPermission()" data-i18n="btn_enable">Enable</button><button class="btn btn-sm btn-outline" onclick="disableNotifications()">Disable push</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_pomo_work">Pomodoro Work (min)</div><div class="setting-desc"><span data-i18n="setting_default_prefix">Default</span>: 25</div></div><input type="number" id="pomoWorkMin" aria-label="Pomodoro work duration in minutes" data-i18n-aria="Pomodoro work duration in minutes" value="25" min="1" max="90" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_pomo_break">Pomodoro Break (min)</div><div class="setting-desc"><span data-i18n="setting_default_prefix">Default</span>: 5</div></div><input type="number" id="pomoBreakMin" aria-label="Pomodoro break duration in minutes" data-i18n-aria="Pomodoro break duration in minutes" value="5" min="1" max="30" style="width:60px;padding:6px;text-align:center" onchange="savePomodoroSettings()"></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_language">Language / RTL</div><div class="setting-desc" id="currentLangLabel" data-i18n="English">English</div></div><button class="btn btn-sm btn-outline" onclick="toggleLang()" data-i18n="btn_toggle">Toggle</button></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_export">Export Tasks</div><div class="setting-desc" data-i18n="setting_export_desc">CSV, JSON, or Excel</div></div><div style="display:flex;gap:4px"><button class="btn btn-sm btn-outline" onclick="exportCSV()">CSV</button><button class="btn btn-sm btn-outline" onclick="exportJSON()">JSON</button><button class="btn btn-sm btn-outline" onclick="exportExcel()" data-i18n="Excel">Excel</button></div></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_import">Import Tasks</div><div class="setting-desc" data-i18n="setting_import_desc">Upload JSON backup</div></div><button class="btn btn-sm btn-outline" onclick="document.getElementById('importFile').click()" data-i18n="btn_import">Import</button><input type="file" id="importFile" aria-label="Import task backup file" data-i18n-aria="Import task backup file" accept=".json" style="display:none" onchange="importJSON(event)"></div>
+      <div class="setting-item"><div><div class="setting-label" data-i18n="setting_notifications">Enable Notifications</div><div class="setting-desc" data-i18n="setting_notifications_desc">Browser reminders</div></div><button class="btn btn-sm btn-outline" onclick="requestNotifPermission()" data-i18n="btn_enable">Enable</button><button class="btn btn-sm btn-outline" onclick="disableNotifications()" data-i18n="Disable push">Disable push</button></div>
       <div class="setting-item"><div><div class="setting-label" data-i18n="setting_clear_data">Clear All Data</div><div class="setting-desc" data-i18n="setting_clear_data_desc">Permanently erase</div></div><button class="btn btn-sm btn-danger" onclick="clearAllData()" data-i18n="btn_clear">Clear</button></div>
     </div></div>
   </div>
@@ -408,33 +409,33 @@
 <!-- TEMPLATES MODAL -->
 <div class="modal-overlay" id="templatesModal">
   <div class="modal" style="max-width:440px">
-    <div class="modal-header"><h2 data-i18n="modal_templates_title">Task Templates</h2><button class="icon-btn" onclick="closeTemplates()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 data-i18n="modal_templates_title">Task Templates</h2><button class="icon-btn" onclick="closeTemplates()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body"><div class="template-list" id="templateList"><p style="color:var(--text3);font-size:.85rem;text-align:center" data-i18n="no_templates">No templates yet.</p></div></div>
   </div>
 </div>
 <!-- SAVED FILTERS MODAL -->
 <div class="modal-overlay" id="filtersModal">
   <div class="modal" style="max-width:400px">
-    <div class="modal-header"><h2 data-i18n="modal_saved_filters">Saved Filters</h2><button class="icon-btn" onclick="closeFiltersModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 data-i18n="modal_saved_filters">Saved Filters</h2><button class="icon-btn" onclick="closeFiltersModal()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body"><button class="btn btn-sm btn-primary" onclick="saveCurrentFilter()" style="align-self:flex-start" data-i18n="btn_save_current_filter">Save Current Filter</button><div id="savedFiltersList"></div></div>
   </div>
 </div>
 <!-- PROJECT MODAL -->
 <div class="modal-overlay" id="projectModal">
   <div class="modal" style="max-width:420px">
-    <div class="modal-header"><h2 id="projectModalTitle" data-i18n="modal_new_project">New Project</h2><button class="icon-btn" onclick="closeProjectModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="projectModalTitle" data-i18n="modal_new_project">New Project</h2><button class="icon-btn" onclick="closeProjectModal()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="form-group"><label for="projectNameInput" data-i18n="field_name">Name</label><input type="text" id="projectNameInput" maxlength="100" data-i18n-ph="ph_project_name" placeholder="Project name"></div>
       <div class="form-group"><label for="projectDescInput" data-i18n="field_description">Description</label><textarea id="projectDescInput" rows="2" maxlength="300" data-i18n-ph="ph_description_dots" placeholder="Description..."></textarea></div>
       <div class="form-group"><label for="projectColorInput" data-i18n="field_color">Color</label><input type="color" id="projectColorInput" value="#4f46e5" style="width:50px;height:36px;padding:2px;cursor:pointer"></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeProjectModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveProject()" data-i18n="btn_save">Save</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeProjectModal()" aria-label="Close" data-i18n-aria="Close" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveProject()" data-i18n="btn_save">Save</button></div>
   </div>
 </div>
 <!-- GOAL MODAL -->
 <div class="modal-overlay" id="goalModal">
   <div class="modal" style="max-width:420px">
-    <div class="modal-header"><h2 id="goalModalTitle" data-i18n="modal_new_goal">New Goal</h2><button class="icon-btn" onclick="closeGoalModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="goalModalTitle" data-i18n="modal_new_goal">New Goal</h2><button class="icon-btn" onclick="closeGoalModal()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="form-group"><label for="goalTitleInput" data-i18n="field_goal">Goal</label><input type="text" id="goalTitleInput" maxlength="150" data-i18n-ph="ph_goal_example" placeholder="e.g. Complete 10 tasks"></div>
       <div class="form-row">
@@ -449,23 +450,23 @@
       <div class="form-group" id="goalCurrentGroup"><label for="goalCurrentInput" data-i18n="field_current_progress">Current Progress</label><input type="number" id="goalCurrentInput" min="0" value="0"></div>
       <p class="field-hint" id="goalAutoHint" style="display:none" data-i18n="goal_auto_hint">Progress is counted automatically from completed tasks or habit check-ins in the current week/month &mdash; no need to update it by hand.</p>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeGoalModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveGoal()" data-i18n="btn_save">Save</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeGoalModal()" aria-label="Close" data-i18n-aria="Close" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveGoal()" data-i18n="btn_save">Save</button></div>
   </div>
 </div>
 <!-- HABIT MODAL -->
 <div class="modal-overlay" id="habitModal">
   <div class="modal" style="max-width:400px">
-    <div class="modal-header"><h2 id="habitModalTitle" data-i18n="modal_new_habit">New Habit</h2><button class="icon-btn" onclick="closeHabitModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="habitModalTitle" data-i18n="modal_new_habit">New Habit</h2><button class="icon-btn" onclick="closeHabitModal()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="form-group"><label for="habitNameInput" data-i18n="field_habit_name">Habit Name</label><input type="text" id="habitNameInput" maxlength="100" data-i18n-ph="ph_habit_example" placeholder="e.g. Read 30 minutes"></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeHabitModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveHabit()" data-i18n="btn_save">Save</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeHabitModal()" aria-label="Close" data-i18n-aria="Close" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveHabit()" data-i18n="btn_save">Save</button></div>
   </div>
 </div>
 <!-- CHALLENGE MODAL -->
 <div class="modal-overlay" id="challengeModal">
   <div class="modal" style="max-width:420px">
-    <div class="modal-header"><h2 data-i18n="modal_new_challenge">New Challenge</h2><button class="icon-btn" onclick="closeChallengeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 data-i18n="modal_new_challenge">New Challenge</h2><button class="icon-btn" onclick="closeChallengeModal()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="form-group"><label for="challengeTitleInput" data-i18n="field_title_optional">Title (optional)</label><input type="text" id="challengeTitleInput" maxlength="100" data-i18n-ph="ph_auto_generated" placeholder="Auto-generated if left blank"></div>
       <div class="form-row">
@@ -474,13 +475,13 @@
       </div>
       <div class="form-group" id="challengeDaysGroup"><label for="challengeDaysInput" data-i18n="field_over_days">Over how many days</label><input type="number" id="challengeDaysInput" min="1" max="90" value="7"></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeChallengeModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveChallenge()" data-i18n="btn_start_challenge">Start Challenge</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeChallengeModal()" aria-label="Close" data-i18n-aria="Close" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveChallenge()" data-i18n="btn_start_challenge">Start Challenge</button></div>
   </div>
 </div>
 <!-- TIMETABLE BLOCK MODAL -->
 <div class="modal-overlay" id="timetableBlockModal">
   <div class="modal" style="max-width:440px">
-    <div class="modal-header"><h2 id="ttBlockModalTitle">New time block</h2><button class="icon-btn" onclick="closeTimetableBlockModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="ttBlockModalTitle">New time block</h2><button class="icon-btn" onclick="closeTimetableBlockModal()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="form-group"><label for="ttBlockTitleInput" data-i18n="field_title">Title</label><input type="text" id="ttBlockTitleInput" maxlength="150" data-i18n-ph="tt_block_title" placeholder="What will you work on?"></div>
       <div class="form-group"><label for="ttBlockDateInput" data-i18n="field_date">Date</label><input type="date" id="ttBlockDateInput"></div>
@@ -488,13 +489,13 @@
       <div class="form-row"><div class="form-group"><label for="ttBlockPriorityInput" data-i18n="field_priority">Priority</label><select id="ttBlockPriorityInput"><option value="low" data-i18n-opt="priority_low">Low</option><option value="medium" data-i18n-opt="priority_medium">Medium</option><option value="high" data-i18n-opt="priority_high">High</option></select></div><div class="form-group"><label for="ttBlockReminderInput" data-i18n="field_reminder">Reminder</label><input type="datetime-local" id="ttBlockReminderInput"></div></div>
       <div class="form-group"><label for="ttBlockImportantInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="ttBlockImportantInput" style="width:auto"> <span data-i18n="field_important_alarm">Important (alarm)</span></label></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" id="ttBlockDeleteBtn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteTimetableBlock()" data-i18n="btn_delete">Delete</button><div style="flex:1"></div><button class="btn btn-outline" onclick="closeTimetableBlockModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveTimetableBlock()" data-i18n="btn_save">Save</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" id="ttBlockDeleteBtn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteTimetableBlock()" data-i18n="btn_delete">Delete</button><div style="flex:1"></div><button class="btn btn-outline" onclick="closeTimetableBlockModal()" aria-label="Close" data-i18n-aria="Close" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveTimetableBlock()" data-i18n="btn_save">Save</button></div>
   </div>
 </div>
 <!-- NOTE EDITOR MODAL -->
 <div class="modal-overlay" id="eventModal">
   <div class="modal" style="max-width:480px">
-    <div class="modal-header"><h2 id="eventModalTitle" data-i18n="modal_new_event">New Event</h2><button class="icon-btn" onclick="closeEventModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="eventModalTitle">New Event</h2><button class="icon-btn" onclick="closeEventModal()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="form-group"><label for="eventTitleInput" data-i18n="field_title">Title</label><input type="text" id="eventTitleInput" maxlength="150" data-i18n-ph="ph_event_title" placeholder="Meeting with team..."></div>
       <div class="form-row">
@@ -512,12 +513,12 @@
       <div class="form-group"><label for="eventColorInput" data-i18n="field_color">Color</label><div style="display:flex;gap:8px;flex-wrap:wrap" id="eventColorPicker"><button type="button" class="ev-color-opt" data-color="#818cf8" style="background:#818cf8" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#f59e0b" style="background:#f59e0b" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#10b981" style="background:#10b981" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#ef4444" style="background:#ef4444" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#3b82f6" style="background:#3b82f6" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#ec4899" style="background:#ec4899" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#8b5cf6" style="background:#8b5cf6" onclick="pickEventColor(this)"></button><button type="button" class="ev-color-opt" data-color="#64748b" style="background:#64748b" onclick="pickEventColor(this)"></button></div></div>
       <div class="form-group"><label for="eventDescInput" data-i18n="field_description_optional">Description (optional)</label><textarea id="eventDescInput" rows="3" data-i18n-ph="ph_add_details" placeholder="Add details..."></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" id="eventDeleteBtn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteEvent()" data-i18n="btn_delete">Delete</button><div style="flex:1"></div><button class="btn btn-outline" onclick="closeEventModal()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveEvent()" data-i18n="btn_save">Save</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" id="eventDeleteBtn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteEvent()" data-i18n="btn_delete">Delete</button><div style="flex:1"></div><button class="btn btn-outline" onclick="closeEventModal()" aria-label="Close" data-i18n-aria="Close" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveEvent()" data-i18n="btn_save">Save</button></div>
   </div>
 </div>
 <div class="modal-overlay" id="noteEditorModal">
   <div class="modal" style="max-width:640px">
-    <div class="modal-header"><h2 id="noteEditorTitle" data-i18n="modal_new_note">New Note</h2><button class="icon-btn" onclick="closeNoteEditor()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 id="noteEditorTitle" data-i18n="modal_new_note">New Note</h2><button class="icon-btn" onclick="closeNoteEditor()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div class="form-group"><label for="noteTitleInput" data-i18n="field_title">Title</label><input type="text" id="noteTitleInput" maxlength="150" data-i18n-ph="ph_note_title" placeholder="Note title"></div>
       <div class="form-row">
@@ -527,18 +528,18 @@
       <div class="form-group"><label for="noteContentInput" data-i18n="field_content_md">Content (Markdown)</label><textarea id="noteContentInput" rows="10" data-i18n-ph="ph_write_note" placeholder="Write your note..." style="font-family:monospace;font-size:.85rem" oninput="updateNotePreview()"></textarea></div>
       <div class="form-group"><div style="font-weight:600;font-size:.85rem;margin-bottom:4px" data-i18n="field_preview">Preview</div><div id="notePreview" style="border:1px solid var(--border);border-radius:8px;padding:10px;min-height:60px;font-size:.85rem;background:var(--surface2)"><p style="color:var(--text3)" data-i18n="preview_placeholder">Preview will appear here...</p></div></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeNoteEditor()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveNote()" data-i18n="btn_save">Save</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeNoteEditor()" aria-label="Close" data-i18n-aria="Close" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveNote()" data-i18n="btn_save">Save</button></div>
   </div>
 </div>
 <!-- IMPORT PREVIEW MODAL -->
 <div class="modal-overlay" id="importPreviewModal">
   <div class="modal" style="max-width:460px">
-    <div class="modal-header"><h2 data-i18n="modal_import_preview">Import Preview</h2><button class="icon-btn" onclick="closeImportPreview()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><h2 data-i18n="modal_import_preview">Import Preview</h2><button class="icon-btn" onclick="closeImportPreview()" aria-label="Close" data-i18n-aria="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body">
       <div id="importPreviewSummary" class="sync-panel" data-i18n="import_no_file">No file selected</div>
       <p class="setting-desc" style="margin-top:10px" data-i18n="import_note">Import replaces the current account's matching data sections after validation.</p>
     </div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeImportPreview()" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="confirmImportPreview()" data-i18n="btn_import">Import</button></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeImportPreview()" aria-label="Close" data-i18n-aria="Close" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="confirmImportPreview()" data-i18n="btn_import">Import</button></div>
   </div>
 </div>
 <div class="modal-overlay" id="alarmModal" style="z-index:9999">
@@ -557,13 +558,13 @@
 <!-- QUICK ADD -->
 <div class="quick-add-overlay" id="quickAddOverlay">
   <div class="quick-add-box">
-    <input type="text" id="quickAddInput" aria-label="Quick add task" data-i18n-ph="ph_quick_add" placeholder="Quick add task... (Enter to create)" onkeydown="handleQuickAdd(event)">
+    <input type="text" id="quickAddInput" aria-label="Quick add task" data-i18n-aria="Quick add task" data-i18n-ph="ph_quick_add" placeholder="Quick add task... (Enter to create)" onkeydown="handleQuickAdd(event)">
     <div class="quick-add-hint" data-i18n="quick_add_hint">Enter = create &bull; Esc = close &bull; #tag !high @category ~project</div>
   </div>
 </div>
 <!-- POMODORO -->
 <div class="focus-overlay" id="focusOverlay">
-  <button class="icon-btn" onclick="closePomodoro()" style="position:absolute;top:20px;right:20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  <button class="icon-btn" onclick="closePomodoro()" aria-label="Close" data-i18n-aria="Close" style="position:absolute;top:20px;right:20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px;height:24px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
   <div id="pomoModeLabel" class="pomo-mode pomo-work" data-i18n="pomo_work">WORK</div>
   <div class="focus-task-title" id="focusTaskTitle" data-i18n="pomo_select_task">Select a task to focus on</div>
   <div class="focus-timer" id="focusTimer">25:00</div>
@@ -573,14 +574,14 @@
     <button class="btn btn-outline" onclick="resetPomoTimer()" data-i18n="btn_reset">Reset</button>
     <button class="btn btn-success" onclick="savePomoTime()" data-i18n="btn_save_time">Save Time</button>
   </div>
-  <select id="focusTaskSelect" aria-label="Choose a task to focus on" onchange="selectFocusTask()" style="margin-top:20px;max-width:400px;width:100%"></select>
+  <select id="focusTaskSelect" aria-label="Choose a task to focus on" data-i18n-aria="Choose a task to focus on" onchange="selectFocusTask()" style="margin-top:20px;max-width:400px;width:100%"></select>
 </div>
 <!-- ONBOARDING -->
 <div class="onboard-overlay" id="onboardOverlay">
   <div class="onboard-card">
     <div class="onboard-icon" id="onboardIcon">&#128640;</div>
-    <h2 id="onboardTitle" data-i18n="onboard_welcome">Welcome to TaskFlow Pro!</h2>
-    <p id="onboardDesc" data-i18n="onboard_desc">Your all-in-one professional task platform.</p>
+    <h2 id="onboardTitle">Welcome to TaskFlow Pro!</h2>
+    <p id="onboardDesc">Your all-in-one professional task platform.</p>
     <div class="onboard-dots" id="onboardProgress"></div>
     <div style="display:flex;gap:8px;justify-content:center"><button class="btn btn-outline" onclick="skipOnboarding()" data-i18n="btn_skip">Skip</button><button class="btn btn-primary" id="onboardNextBtn" onclick="nextOnboardStep()" data-i18n="btn_next">Next</button></div>
   </div>
@@ -590,6 +591,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
 <!-- Versioned URL prevents a browser/PWA cache from pairing this HTML with an older app.js. -->
 <script src="config.js"></script>
-<script src="app.js?v=20261007-1"></script>
+<script src="app.js?v=20261007-2"></script>
 </body>
 </html>

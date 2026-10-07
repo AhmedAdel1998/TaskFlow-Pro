@@ -37,6 +37,10 @@ const context = {};
 vm.runInNewContext(appJs.slice(appJs.indexOf('const i18n ='), appJs.indexOf('let lang ='))+';this.translations=i18n;', context);
 const en=Object.keys(context.translations.en), ar=Object.keys(context.translations.ar);
 require('node:assert/strict').deepEqual(en.slice().sort(),ar.slice().sort());
-const translationRefs=[...html.matchAll(/data-i18n(?:-ph)?="([^"]+)"/g)].map(m=>m[1]);
+const translationRefs=[...html.matchAll(/data-i18n(?:-(?:ph|title|html|opt|aria))?="([^"]+)"/g)].map(m=>m[1]);
 for(const key of translationRefs)if(!en.includes(key))throw new Error('Missing translation: '+key);
-console.log('Translation dictionary parity: '+en.length+' keys; static HTML references present. Dynamic prose requires separate review.');
+for(const key of en){
+  const placeholders=value=>[...value.matchAll(/\{(\w+)\}/g)].map(m=>m[1]).sort();
+  require('node:assert/strict').deepEqual(placeholders(context.translations.en[key]),placeholders(context.translations.ar[key]),'Translation placeholders: '+key);
+}
+console.log('Translation parity: '+en.length+' keys; all static attributes and interpolation placeholders checked.');

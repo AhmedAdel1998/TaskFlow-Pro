@@ -12,6 +12,7 @@ function harness(fetch){
     toast:()=>{},Date,console,setInterval:()=>{},window:{addEventListener:()=>{}}
   });
   vm.runInContext('let currentUser="alice";'+source.slice(0,source.indexOf('/* ═══════ i18n')),context);
+  vm.runInContext(source.slice(source.indexOf('const i18n ='),source.indexOf('function applyLang()')),context);
   vm.runInContext('saveAuthSession("alice",{accessToken:"token",refreshToken:"refresh",expiresAt:new Date(Date.now()+600000).toISOString()})',context);
   return {context,data,run:code=>vm.runInContext(code,context)};
 }
