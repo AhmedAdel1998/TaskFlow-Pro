@@ -20,6 +20,7 @@ integrations/google-sheets/     Optional AppsScript.gs mirror
  docs/                         Shared guides and verification evidence
 ```
 
+- [Project documentation](docs/project-documentation.md)
 - [Frontend installation, configuration, testing, and deployment](frontend/README.md)
 - [Backend installation, configuration, testing, and deployment](backend/README.md)
 - [User guide](docs/user-guide.md)
