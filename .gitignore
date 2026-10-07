@@ -14,3 +14,10 @@ TestResults/
 *.db
 *.db-shm
 *.db-wal
+
+# Private environment configuration
+.env
+.env.*
+!.env.example
+artifacts/
+site/

@@ -1,0 +1,42 @@
+const fs = require('fs');
+const path = require('path');
+
+const root = path.resolve(__dirname, '..');
+const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const appJs = fs.readFileSync(path.join(root, 'app.js'), 'utf8');
+const scripts = [...html.matchAll(/<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/gi)].map(match => match[1]);
+
+scripts.forEach((script, index) => {
+  try {
+    new Function(script);
+  } catch (err) {
+    console.error(`Inline script ${index} syntax error: ${err.message}`);
+    process.exitCode = 1;
+  }
+});
+
+JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+new Function(appJs);
+new Function(fs.readFileSync(path.join(root, 'sw.js'), 'utf8'));
+
+
+const ids = new Set([...html.matchAll(/id="([^"]+)"/g)].map(match => match[1]));
+const refs = new Set([...appJs.matchAll(/getElementById\('([^']+)'\)/g)].map(match => match[1]));
+const dynamicIds = new Set(['taskDragList', 'burndownChart']);
+const missingIds = [...refs].filter(id => !ids.has(id) && !dynamicIds.has(id));
+if (missingIds.length) {
+  console.error(`Missing DOM ids: ${missingIds.join(', ')}`);
+  process.exitCode = 1;
+}
+
+if (process.exitCode) process.exit(process.exitCode);
+console.log('Syntax checks passed.');
+
+const vm = require('node:vm');
+const context = {};
+vm.runInNewContext(appJs.slice(appJs.indexOf('const i18n ='), appJs.indexOf('let lang ='))+';this.translations=i18n;', context);
+const en=Object.keys(context.translations.en), ar=Object.keys(context.translations.ar);
+require('node:assert/strict').deepEqual(en.slice().sort(),ar.slice().sort());
+const translationRefs=[...html.matchAll(/data-i18n(?:-ph)?="([^"]+)"/g)].map(m=>m[1]);
+for(const key of translationRefs)if(!en.includes(key))throw new Error('Missing translation: '+key);
+console.log('Translation dictionary parity: '+en.length+' keys; static HTML references present. Dynamic prose requires separate review.');

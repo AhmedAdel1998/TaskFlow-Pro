@@ -1,0 +1,17 @@
+{
+  "name": "taskflow-pro-audit",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:syntax": "node tests/syntax-check.js",
+    "test:smoke": "node tests/smoke.js",
+    "test": "npm run test:syntax && npm run test:unit && npm run test:deployment && npm run test:smoke",
+    "test:unit": "node --test tests/sync-regression.js tests/service-worker.js",
+    "start": "node serve.js",
+    "build": "node stage.js dist",
+    "test:deployment": "node tests/deployment-check.js"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.55.0"
+  }
+}

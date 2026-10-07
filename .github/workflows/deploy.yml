@@ -30,7 +30,9 @@ jobs:
         with:
           dotnet-version: '9.0.x'
       - run: npm ci
+        working-directory: frontend
       - run: npm test
+        working-directory: frontend
 
   backend-test:
     runs-on: ubuntu-latest
@@ -39,7 +41,7 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - run: dotnet test tests/TaskFlow.IntegrationTests/TaskFlow.IntegrationTests.csproj
+      - run: dotnet test backend/tests/TaskFlow.IntegrationTests/TaskFlow.IntegrationTests.csproj
 
   deploy-pages:
     needs: [frontend-test, backend-test]
@@ -49,10 +51,13 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Stage static site
-        run: |
-          mkdir site
-          cp index.html app.js styles.css manifest.json sw.js icon-192.png icon-512.png site/
+        env:
+          TASKFLOW_API_URL: ${{ vars.TASKFLOW_API_URL }}
+        run: node frontend/stage.js site
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
