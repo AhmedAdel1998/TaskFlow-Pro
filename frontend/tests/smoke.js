@@ -36,8 +36,7 @@ const chromePaths = [
   'C:/Program Files/Google/Chrome/Application/chrome.exe',
   'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe'
 ];
-const TEST_API_PORT = 51789;
-const TEST_API_URL = `http://127.0.0.1:${TEST_API_PORT}`;
+let TEST_API_URL;
 const SAFE_TEST_PATH = String.raw`C:\Windows\System32`;
 
 async function step(name, fn, failures) {
@@ -95,6 +94,15 @@ function startTestApi(dllPath) {
   const executablePath = chromePaths.find(p => fs.existsSync(p));
   if (!executablePath) throw new Error('Chrome or Edge executable was not found.');
 
+  // Ask the OS for an available port; fixed ports can fall in Windows/Hyper-V
+  // reserved ranges and fail with SocketException 10013 before tests begin.
+  const probe = require('node:net').createServer();
+  await new Promise((resolve,reject) => {
+    probe.once('error',reject);
+    probe.listen(0,'127.0.0.1',resolve);
+  });
+  TEST_API_URL = `http://127.0.0.1:${probe.address().port}`;
+  await new Promise(resolve => probe.close(resolve));
   const dllPath = buildTestApi();
   const { proc: apiProc, dbPath } = startTestApi(dllPath);
   const staticServer = http.createServer((req, res) => {
@@ -103,6 +111,8 @@ function startTestApi(dllPath) {
     if (!file.startsWith(root + path.sep)) { res.writeHead(403).end(); return; }
     fs.readFile(file, (err, data) => {
       if (err) { res.writeHead(404).end(); return; }
+      // Allow only this run's temporary API origin in the served test document.
+      if (path.extname(file) === '.html') data = data.toString().replace('http://127.0.0.1:51789', TEST_API_URL);
       res.setHeader('Content-Type', ({'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.png':'image/png'})[path.extname(file)] || 'application/octet-stream');
       res.end(data);
     });

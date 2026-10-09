@@ -27,7 +27,9 @@ npm run test:smoke
 npm test
 ```
 
-Syntax and unit tests run independently without .NET. The browser integration test requires the sibling backend checkout, .NET 9 SDK, and installed Chrome or Edge on Windows. It launches a disposable SQLite API on port 51789 and a temporary HTTP frontend, tests `/TaskFlow-Pro/`, and stops both processes. It does not use your development database. Mocked request-race tests and real API/browser tests are separately reported. See [verification matrix](../docs/verification-matrix.md).
+Syntax and unit tests run independently without .NET. The browser integration test requires the sibling backend checkout, .NET 9 SDK, and installed Chrome or Edge on Windows. It launches a disposable SQLite API on an OS-selected available port (allowed in the test server's HTML CSP only) and a temporary HTTP frontend, tests `/TaskFlow-Pro/`, and stops both processes. It does not use your development database. Mocked request-race tests and real API/browser tests are separately reported. See [verification matrix](../docs/verification-matrix.md).
+
+`npm run test:responsive` checks 17 populated screens and 12 dialogs in English and Arabic at widths from 320 to 1440 pixels. It verifies document overflow, timetable dimensions, fixed blocks outside working hours, and block editing/completion. Screenshots are written to `../artifacts/`. Set `RESPONSIVE_URL` to the hosted frontend URL (including its trailing slash) to repeat the checks against deployed assets; the test uses an isolated browser and blocks external API requests.
 
 ## Deploy
 

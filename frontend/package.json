@@ -5,7 +5,8 @@
   "scripts": {
     "test:syntax": "node tests/syntax-check.js",
     "test:smoke": "node tests/smoke.js",
-    "test": "npm run test:syntax && npm run test:unit && npm run test:deployment && npm run test:arabic && npm run test:smoke",
+    "test": "npm run test:syntax && npm run test:unit && npm run test:deployment && npm run test:arabic && npm run test:responsive && npm run test:smoke",
+    "test:responsive": "node tests/responsive.js",
     "test:arabic": "node tests/arabic.js",
     "test:unit": "node --test tests/sync-regression.js tests/service-worker.js",
     "start": "node serve.js",

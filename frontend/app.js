@@ -3186,18 +3186,22 @@ function renderTimetable(){
     ("<div class=\"stat-card\" style=\"flex:1;min-width:120px\"><div class=\"stat-info\"><h3>"+tr("Unscheduled")+"</h3><div class=\"num\">")+overflow.length+'</div></div></div>'+
     '<div class="stat-card tt-progress-stat" style="flex:1;min-width:140px"><div class="stat-info"><h3>'+escHtml(tr('tt_progress'))+'</h3><div class="num">'+completedBlocks+'/'+manualBlocks.length+' <span class="tt-progress-percent">'+blockProgress+'%</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:'+blockProgress+'%;background:var(--success)"></div></div></div></div>';
   const grid=document.getElementById('ttGrid');
-  grid.style.height=totalMin+'px';
+  // Fixed blocks can sit outside working hours. Include them in the visible
+  // timeline without changing the hours used by the automatic scheduler.
+  const displayStart=Math.min(wh.start*60,...manualBlocks.map(b=>Math.floor(b.start/60)*60));
+  const displayEnd=Math.max(wh.end*60,...manualBlocks.map(b=>Math.ceil(Math.max(b.end,b.start+20)/60)*60));
+  grid.style.height=(displayEnd-displayStart)+'px';
   let html='';
-  for(let h=wh.start; h<wh.end; h++){
-    html+='<div class="tt-hour-label" style="top:'+((h-wh.start)*60)+'px">'+fmtHourLabel(h)+'</div>';
+  for(let h=displayStart/60; h<displayEnd/60; h++){
+    html+='<div class="tt-hour-label" style="top:'+(h*60-displayStart)+'px">'+fmtHourLabel(h)+'</div>';
   }
   manualBlocks.forEach(b=>{
-    const top=b.start-wh.start*60, h=Math.max(20,b.end-b.start);
+    const top=b.start-displayStart, h=Math.max(20,b.end-b.start);
     const done=!!b.completedAt,priorityLabel=tr('priority_'+b.priority);
     html+='<div class="tt-block tt-manual-block'+(done?' tt-done':'')+'" style="top:'+top+'px;height:'+(h-2)+'px;background:'+priorityColor(b.priority)+'" onclick="openTimetableBlockModal(\''+b.id+'\')" title="'+escHtml(b.title)+'"><button class="tt-complete-toggle" aria-label="'+escHtml(tr(done?'tt_mark_undone':'tt_mark_done'))+'" title="'+escHtml(tr(done?'tt_mark_undone':'tt_mark_done'))+'" onclick="event.stopPropagation();toggleTimetableBlockDone(\''+b.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg></button><div class="tt-block-title">'+escHtml(b.title)+'</div><div class="tt-block-meta">'+fmtHourLabel(b.start/60)+' &ndash; '+fmtHourLabel(b.end/60)+' &bull; '+escHtml(tr('tt_manual_block'))+' &bull; '+escHtml(priorityLabel)+(b.reminder?' &bull; '+escHtml(tr('field_reminder')):'')+'</div></div>';
   });
   blocks.forEach(b=>{
-    const t=b.task, top=b.start-wh.start*60, h=Math.max(20, b.end-b.start);
+    const t=b.task, top=b.start-displayStart, h=Math.max(20, b.end-b.start);
     const done=t.status==='done';
     html+='<div class="tt-block'+(done?' tt-done':'')+'" style="top:'+top+'px;height:'+(h-2)+'px;background:'+priorityColor(t.priority)+'" onclick="openModal(\''+t.id+'\')" title="'+escHtml(t.title)+'">'+
       '<div class="tt-block-title">'+escHtml(t.title)+'</div>'+
@@ -3206,8 +3210,8 @@ function renderTimetable(){
   });
   if(isToday){
     const now=new Date(), nowMin=now.getHours()*60+now.getMinutes();
-    if(nowMin>=wh.start*60&&nowMin<=wh.end*60){
-      html+='<div class="tt-now-line" style="top:'+(nowMin-wh.start*60)+'px"></div>';
+    if(nowMin>=displayStart&&nowMin<=displayEnd){
+      html+='<div class="tt-now-line" style="top:'+(nowMin-displayStart)+'px"></div>';
     }
   }
   grid.innerHTML=html;

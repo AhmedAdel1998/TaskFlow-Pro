@@ -219,7 +219,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .cal-today-btn:hover{background:var(--primary);color:#fff}
 .cal-add-btn{padding:6px 16px;border-radius:10px;border:none;background:var(--primary);color:#fff;font-weight:600;font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .2s ease}
 .cal-add-btn:hover{opacity:.85;transform:translateY(-1px)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
 .cal-day-name{text-align:center;font-size:.72rem;font-weight:700;color:var(--text3);padding:10px 0;text-transform:uppercase;letter-spacing:.5px}
 .cal-cell{min-height:100px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px 8px;font-size:.7rem;transition:all .2s ease;cursor:pointer;position:relative}
 .cal-cell:hover{background:var(--surface2);box-shadow:0 2px 8px rgba(0,0,0,.05);transform:translateY(-1px)}
@@ -309,7 +309,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .toast.error{background:var(--danger)}
 .toast.info{background:var(--primary)}
 .toast .undo-btn{background:rgba(0,0,0,.25);border:none;color:#fff;padding:3px 10px;border-radius:4px;font-size:.75rem;font-weight:600;cursor:pointer;margin-left:auto;white-space:nowrap}
-@keyframes toastIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
 .quick-add-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(3px);z-index:300;display:none;align-items:flex-start;justify-content:center;padding-top:20vh}
 .quick-add-overlay.active{display:flex}
 .quick-add-box{background:var(--surface);border-radius:var(--radius);padding:20px;width:90%;max-width:500px;box-shadow:var(--shadow-xl)}
@@ -432,7 +432,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .note-card .nc-body{font-size:.78rem;color:var(--text2);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;line-clamp:4;-webkit-box-orient:vertical}
 .note-card .nc-time{font-size:.65rem;color:var(--text3);margin-top:8px}
 /* ═══ TIME REPORTS ═══ */
-.report-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.report-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
 .report-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
 .report-card .rc-title{font-weight:700;font-size:.9rem;margin-bottom:14px}
 .report-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
@@ -447,12 +447,20 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .comment-input-row{display:flex;gap:6px}
 .comment-input-row input{flex:1;font-size:.82rem}
 /* ═══ RESPONSIVE ═══ */
+.dash-row>*{min-width:0}
+.cal-cell{min-width:0}
+.cal-event{max-width:100%}
+.form-group,.stat-info,.habit-info{min-width:0}
+.form-group input,.form-group select,.form-group textarea{min-width:0;max-width:100%}
+.card,.task-body,.habit-info,.project-card,.note-card{overflow-wrap:anywhere}
+.topbar .hamburger,.topbar .icon-btn{flex-shrink:0}
+.topbar-actions .btn{white-space:nowrap}
 @media(max-width:900px){
   .sidebar{transform:translateX(-100%)}
   .sidebar.open{transform:none}
   [dir="rtl"] .sidebar{transform:translateX(100%)}
   [dir="rtl"] .sidebar.open{transform:none}
-  .main{margin-left:0!important;margin-right:0!important}
+  .main{margin-left:0!important;margin-right:0!important;transition:none}
   .topbar .hamburger{display:flex}
   .dash-row{grid-template-columns:1fr}
   .form-row{grid-template-columns:1fr}
@@ -464,15 +472,28 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 }
 @media(max-width:600px){
   .page{padding:14px}
-  .topbar{padding:10px 14px}
-  .stats-grid{grid-template-columns:1fr 1fr}
+  .topbar{padding:10px 14px;flex-wrap:wrap;gap:8px}
+  .topbar-actions{flex:1;min-width:0;flex-wrap:wrap;justify-content:flex-end;gap:4px}
+  .topbar-actions .btn{padding:8px 10px}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .stat-card{padding:12px;gap:8px;flex-wrap:wrap}
   .kanban-col{min-width:250px;max-width:280px}
-  .cal-cell{min-height:60px}
+  .cal-cell{min-height:60px;padding:4px 2px}
+  .cal-day-name{font-size:.6rem;letter-spacing:0;overflow-wrap:anywhere}
+  .cal-header-actions{flex-wrap:wrap}
   .project-grid{grid-template-columns:1fr}
   .search-box{order:2;flex-basis:100%;max-width:none}
   .task-card{align-items:flex-start}
   .task-actions{opacity:1}
   .filter-select{max-width:100%;flex:1 1 150px}
+  .habit-card{flex-wrap:wrap}
+  .habit-week{flex-basis:100%;justify-content:flex-end}
+  .modal-body,.modal-header,.modal-footer{padding:14px}
+  .modal-footer{flex-wrap:wrap}
+  .comment-input-row input{min-width:0}
+  .toast-container{max-width:calc(100vw - 40px)}
+  .login-screen{overflow-y:auto}
+  .login-box{padding:24px 20px;margin-block:auto}
 }
 @media print{
   .sidebar,.topbar,.modal-overlay,.toast-container,.login-screen{display:none!important}
@@ -512,6 +533,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tt-overflow-card .tt-ov-meta{font-size:.7rem;color:var(--text3);margin-top:2px}
 @media(max-width:900px){
   .tt-layout{flex-direction:column}
+  /* Column flex must preserve the explicit schedule height and stretch its width. */
+  .tt-container{flex:none;align-self:stretch}
   .tt-side{width:100%}
 }
 
