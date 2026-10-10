@@ -12,7 +12,7 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
   }
   var vapid = new VapidDetails(subject, publicKey, privateKey);
 
-  using var timer = new PeriodicTimer(TimeSpan.FromSeconds(60));
+  using var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
   do {
    try { await TickAsync(vapid, stoppingToken); }
    catch (Exception ex) { logger.LogError(ex, "Reminder push tick failed"); }
@@ -37,14 +37,20 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
    if (due.Count == 0) continue;
    foreach (var item in due) {
     if (await db.SentReminders.AnyAsync(x => x.UserId == userId && x.Kind == item.Kind && x.ItemKey == item.ItemKey, ct)) continue;
-    var delivered=false;
+
     var payload = JsonSerializer.Serialize(new { title = item.Title, body = item.Body, important = item.Important, tag = item.Kind+"-"+item.ItemKey });
     foreach (var sub in subs.ToList()) {
-     try { await sender.SendAsync(new WebPush.PushSubscription(sub.Endpoint, sub.P256dh, sub.Auth), payload, vapid, ct); delivered=true; }
+     var deviceKey=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(item.ItemKey+"|"+sub.Id)));
+     if(await db.SentReminders.AnyAsync(x=>x.UserId==userId&&x.Kind==item.Kind&&x.ItemKey==deviceKey,ct))continue;
+     try {
+      await sender.SendAsync(new WebPush.PushSubscription(sub.Endpoint, sub.P256dh, sub.Auth), payload, vapid, ct);
+      db.SentReminders.Add(new(){UserId=userId,Kind=item.Kind,ItemKey=deviceKey});
+      await db.SaveChangesAsync(ct);
+     }
      catch (WebPushException wpEx) when (wpEx.StatusCode is HttpStatusCode.Gone or HttpStatusCode.NotFound) { db.PushSubscriptions.Remove(sub); subs.Remove(sub); }
      catch (Exception ex) { logger.LogWarning(ex, "Push send failed for subscription {SubId}", sub.Id); }
     }
-    if(delivered) db.SentReminders.Add(new() { UserId=userId, Kind=item.Kind, ItemKey=item.ItemKey });
+
    }
    await db.SaveChangesAsync(ct);
   }
@@ -58,9 +64,8 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
   foreach (var t in tasks) {
    if(t.ValueKind!=JsonValueKind.Object)continue;
    if(t.TryGetProperty("status",out var status)&&status.ValueKind==JsonValueKind.String&&status.GetString()=="done")continue;
-   if(t.TryGetProperty("reminderDismissed",out var dismissed)&&dismissed.ValueKind==JsonValueKind.True)continue;
-   if (!t.TryGetProperty("reminder", out var remEl) || remEl.ValueKind != JsonValueKind.String) continue;
-   var raw = remEl.GetString();
+   if(t.TryGetProperty("reminderDismissed",out var dismissed)&&dismissed.ValueKind==JsonValueKind.True&&Text(t,"reminderDelivery","")!="local")continue;
+   var raw = AlarmTime(t, false);
    if (string.IsNullOrEmpty(raw)) continue;
    if (!DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var localTime)) continue;
    if (!t.TryGetProperty("id", out var idEl)) continue;
@@ -80,7 +85,7 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
   if (events is null) return;
   foreach (var ev in events) {
    if(ev.ValueKind!=JsonValueKind.Object)continue;
-   if(ev.TryGetProperty("reminderFired",out var fired)&&fired.ValueKind==JsonValueKind.True)continue;
+   if(ev.TryGetProperty("reminderFired",out var fired)&&fired.ValueKind==JsonValueKind.True&&Text(ev,"reminderDelivery","")!="local")continue;
    if (!ev.TryGetProperty("remindBefore", out var rbEl) || rbEl.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined) continue;
    if (!ev.TryGetProperty("date", out var dateEl)) continue;
    var date = dateEl.ValueKind==JsonValueKind.String?dateEl.GetString():null; if (string.IsNullOrEmpty(date)) continue;
@@ -105,11 +110,10 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
   if (blocks is null) return;
   foreach (var block in blocks) {
    if(block.ValueKind!=JsonValueKind.Object)continue;
-   if (!block.TryGetProperty("reminder", out var remEl) || remEl.ValueKind != JsonValueKind.String) continue;
-   var raw = remEl.GetString();
+   var raw = AlarmTime(block, true);
    if (string.IsNullOrEmpty(raw)) continue;
    if (block.TryGetProperty("completedAt", out var completedEl) && completedEl.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined) continue;
-   if (block.TryGetProperty("reminderDismissed", out var dismissedEl) && dismissedEl.ValueKind == JsonValueKind.True) continue;
+   if (block.TryGetProperty("reminderDismissed", out var dismissedEl) && dismissedEl.ValueKind == JsonValueKind.True&&Text(block,"reminderDelivery","")!="local") continue;
    if (!DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var localTime)) continue;
    if (!block.TryGetProperty("id", out var idEl)) continue;
    var id = idEl.ToString();
@@ -119,6 +123,15 @@ public sealed class ReminderPushBackgroundService(IServiceScopeFactory scopeFact
    var age = now - utc;
    if (utc <= now && age < TimeSpan.FromMinutes(5)) due.Add(("timetable", ReminderKey(id,utc), "Reminder: " + title, "Time block is starting!", important));
   }
+ }
+ static string AlarmTime(JsonElement item, bool block) {
+  var custom=Text(item,"reminder","");
+  if(custom.Length>0)return custom;
+  if(!item.TryGetProperty("important",out var important)||important.ValueKind!=JsonValueKind.True)return "";
+  if(!block){var date=Text(item,"due","");var time=Text(item,"due_time","");return date.Length>0&&time.Length>0?date+"T"+time:"";}
+  var day=Text(item,"date","");
+  if(day.Length==0||!item.TryGetProperty("start",out var start)||start.ValueKind!=JsonValueKind.Number||!start.TryGetInt32(out var minutes)||minutes<0||minutes>=1440)return "";
+  return day+"T"+(minutes/60).ToString("D2")+":"+(minutes%60).ToString("D2");
  }
  static string Text(JsonElement item,string name,string fallback)=>item.TryGetProperty(name,out var value)&&value.ValueKind==JsonValueKind.String?value.GetString()??fallback:fallback;
  static string ReminderKey(string id,DateTimeOffset at)=>Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(id+"|"+at.ToUnixTimeMilliseconds())));

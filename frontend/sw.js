@@ -1,8 +1,8 @@
 // Bump this whenever the app shell changes so an existing install cannot mix a
 // newly deployed index.html with an older cached app.js.
-const CACHE_NAME = 'taskflow-v13';
+const CACHE_NAME = 'taskflow-v14';
 const PREFERENCES_CACHE = 'taskflow-preferences';
-const ASSETS = ['./index.html', './styles.css', './app.js', './app.js?v=20261009-1', './config.js', './manifest.json', './icon-192.png', './icon-512.png'];
+const ASSETS = ['./index.html', './styles.css', './app.js', './app.js?v=20261010-1', './config.js', './manifest.json', './icon-192.png', './icon-512.png'];
 globalThis.addEventListener('install', e => { e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS))); globalThis.skipWaiting(); });
 globalThis.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('taskflow-') && k !== CACHE_NAME && k !== PREFERENCES_CACHE).map(k => caches.delete(k))))); globalThis.clients.claim(); });
 globalThis.addEventListener('message', e => {

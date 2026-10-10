@@ -352,7 +352,7 @@
       <div class="form-group"><label for="taskNoteInput" data-i18n="field_note">Note</label><textarea id="taskNoteInput" rows="2" data-i18n-ph="ph_notes_dots" placeholder="Notes..." maxlength="500"></textarea></div>
       <div class="form-group"><label for="taskTagsInput" data-i18n="field_tags">Tags (comma separated)</label><input type="text" id="taskTagsInput" data-i18n-ph="ph_tags_example" placeholder="urgent, frontend" maxlength="200"></div>
       <div class="form-row">
-        <div class="form-group"><label for="taskReminderInput" data-i18n="field_reminder">Reminder</label><input type="datetime-local" id="taskReminderInput"></div>
+        <div class="form-group"><label for="taskReminderInput" data-i18n="field_reminder">Reminder</label><input type="datetime-local" id="taskReminderInput"><small data-i18n="alarm_auto_hint">Alarm uses the task due time or time block start. A custom reminder is optional.</small></div>
         <div class="form-group"><label for="taskImportantInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="taskImportantInput" style="width:auto"> <span data-i18n="field_important_alarm">Important (alarm)</span></label></div>
       </div>
       <div class="form-row">
@@ -486,7 +486,7 @@
       <div class="form-group"><label for="ttBlockTitleInput" data-i18n="field_title">Title</label><input type="text" id="ttBlockTitleInput" maxlength="150" data-i18n-ph="tt_block_title" placeholder="What will you work on?"></div>
       <div class="form-group"><label for="ttBlockDateInput" data-i18n="field_date">Date</label><input type="date" id="ttBlockDateInput"></div>
       <div class="form-row"><div class="form-group"><label for="ttBlockStartInput" data-i18n="label_from">From</label><input type="time" id="ttBlockStartInput"></div><div class="form-group"><label for="ttBlockEndInput" data-i18n="label_to">To</label><input type="time" id="ttBlockEndInput"></div></div>
-      <div class="form-row"><div class="form-group"><label for="ttBlockPriorityInput" data-i18n="field_priority">Priority</label><select id="ttBlockPriorityInput"><option value="low" data-i18n-opt="priority_low">Low</option><option value="medium" data-i18n-opt="priority_medium">Medium</option><option value="high" data-i18n-opt="priority_high">High</option></select></div><div class="form-group"><label for="ttBlockReminderInput" data-i18n="field_reminder">Reminder</label><input type="datetime-local" id="ttBlockReminderInput"></div></div>
+      <div class="form-row"><div class="form-group"><label for="ttBlockPriorityInput" data-i18n="field_priority">Priority</label><select id="ttBlockPriorityInput"><option value="low" data-i18n-opt="priority_low">Low</option><option value="medium" data-i18n-opt="priority_medium">Medium</option><option value="high" data-i18n-opt="priority_high">High</option></select></div><div class="form-group"><label for="ttBlockReminderInput" data-i18n="field_reminder">Reminder</label><input type="datetime-local" id="ttBlockReminderInput"><small data-i18n="alarm_auto_hint">Alarm uses the task due time or time block start. A custom reminder is optional.</small></div></div>
       <div class="form-group"><label for="ttBlockImportantInput" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="ttBlockImportantInput" style="width:auto"> <span data-i18n="field_important_alarm">Important (alarm)</span></label></div>
     </div>
     <div class="modal-footer"><button class="btn btn-outline" id="ttBlockDeleteBtn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteTimetableBlock()" data-i18n="btn_delete">Delete</button><div style="flex:1"></div><button class="btn btn-outline" onclick="closeTimetableBlockModal()" aria-label="Close" data-i18n-aria="Close" data-i18n="btn_cancel">Cancel</button><button class="btn btn-primary" onclick="saveTimetableBlock()" data-i18n="btn_save">Save</button></div>
@@ -591,6 +591,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw" crossorigin="anonymous"></script>
 <!-- Versioned URL prevents a browser/PWA cache from pairing this HTML with an older app.js. -->
 <script src="config.js"></script>
-<script src="app.js?v=20261009-1"></script>
+<script src="app.js?v=20261010-1"></script>
 </body>
 </html>

@@ -433,6 +433,9 @@ const i18n = {
     "ph_notes_dots": "Notes...",
     "field_tags": "Tags (comma separated)",
     "ph_tags_example": "urgent, frontend",
+    "alarm_time_required": "Set the task due date and time, or an optional custom reminder.",
+    "alarm_auto_hint": "Alarm uses the task due time or time block start. A custom reminder is optional.",
+    "push_setup_failed": "Background notifications could not be enabled. Check your connection and sign-in, then enable notifications again in Settings.",
     "field_reminder": "Reminder",
     "field_milestone": "Milestone",
     "field_dependencies": "Dependencies",
@@ -1275,6 +1278,9 @@ const i18n = {
     "ph_notes_dots": "ملاحظات...",
     "field_tags": "الوسوم (مفصولة بفواصل)",
     "ph_tags_example": "عاجل، واجهة",
+    "alarm_time_required": "حدد تاريخ ووقت المهمة، أو أضف موعد تذكير مخصصًا.",
+    "alarm_auto_hint": "يستخدم المنبه وقت المهمة أو بداية الفترة الزمنية. موعد التذكير المخصص اختياري.",
+    "push_setup_failed": "تعذّر تفعيل إشعارات الخلفية. تحقق من الاتصال وتسجيل الدخول، ثم فعّل الإشعارات مجددًا من الإعدادات.",
     "field_reminder": "التذكير",
     "field_milestone": "مرحلة رئيسية",
     "field_dependencies": "المهام السابقة المطلوبة",
@@ -2107,7 +2113,14 @@ function checkAutoLogin() {
 /* ═══════ DATA LAYER ═══════ */
 function loadTasks() { try { return JSON.parse(localStorage.getItem(userKey('taskflow_tasks'))) || []; } catch { return []; } }
 function reminderUtc(value){const date=new Date(value);return value&&!Number.isNaN(date.getTime())?date.toISOString():null;}
-function saveTasks(tasks) { tasks=tasks.map(t=>({...t,reminderUtc:reminderUtc(t.reminder)})); persistData(userKey('taskflow_tasks'), JSON.stringify(tasks)); }
+function alarmTime(item,kind='task'){
+  if(item.reminder)return item.reminder;
+  if(!item.important)return '';
+  if(kind==='task')return item.due&&item.due_time?item.due+'T'+item.due_time:'';
+  return item.date&&Number.isInteger(item.start)&&item.start>=0&&item.start<1440
+    ?item.date+'T'+String(Math.floor(item.start/60)).padStart(2,'0')+':'+String(item.start%60).padStart(2,'0'):'';
+}
+function saveTasks(tasks) { tasks=tasks.map(t=>({...t,reminderUtc:reminderUtc(alarmTime(t))})); persistData(userKey('taskflow_tasks'), JSON.stringify(tasks)); }
 function loadActivity() { try { return JSON.parse(localStorage.getItem(userKey('taskflow_activity'))) || []; } catch { return []; } }
 function saveActivity(list) { persistData(userKey('taskflow_activity'), JSON.stringify(list.slice(0, 80))); }
 function activityLabel(text) {
@@ -2574,12 +2587,14 @@ function saveTask() {
     milestone:document.getElementById('taskMilestoneInput').checked,
     dependencies:selDeps,
   };
+  if(data.important&&!alarmTime(data)){toast(tr('alarm_time_required'),'error');return;}
+  if(data.important)requestNotifPermission();
   if(data.status==='done'&&hasUnmetDependencies(data,tasks)){toast(tr("Complete dependencies first"),'error');return;}
   if (editingId) {
     const idx = tasks.findIndex(t=>t.id===editingId);
     if (idx>-1) {
       const old = tasks[idx], prev = old.status;
-      data.reminderDismissed=old.reminder===data.reminder ? !!old.reminderDismissed : false;
+      data.reminderDismissed=alarmTime(old)===alarmTime(data) ? !!old.reminderDismissed : false;
       Object.assign(old, data, {updatedAt:Date.now()});
       if(data.status!=='done') old.completedAt=null;
       old.smartScore = calcSmartScore(old);
@@ -3070,7 +3085,7 @@ function addToMyDay(){const tasks=loadTasks().filter(t=>t.status!=='done'&&t.due
 let timetableDate = todayStr();
 let editingTimetableBlockId=null;
 function loadTimetableBlocks(){try{const blocks=JSON.parse(localStorage.getItem(userKey('taskflow_timetable_blocks')))||[];return Array.isArray(blocks)?blocks.map(b=>({...b,priority:asChoice(b.priority,['low','medium','high'],'medium'),reminder:asText(b.reminder,40),important:Boolean(b.important),reminderDismissed:Boolean(b.reminderDismissed),completedAt:Number(b.completedAt)||null})):[];}catch{return [];}}
-function saveTimetableBlocks(blocks){blocks=blocks.map(b=>({...b,reminderUtc:reminderUtc(b.reminder)}));persistData(userKey('taskflow_timetable_blocks'),JSON.stringify(blocks));}
+function saveTimetableBlocks(blocks){blocks=blocks.map(b=>({...b,reminderUtc:reminderUtc(alarmTime(b,'timetable'))}));persistData(userKey('taskflow_timetable_blocks'),JSON.stringify(blocks));}
 function timeToMinutes(time){
   const match=/^(\d{2}):(\d{2})$/.exec(time||'');
   if(!match) return null;
@@ -3098,7 +3113,8 @@ function saveTimetableBlock(){
   if(!title){toast(tr("Please enter a title"));return;} if(!date){toast(tr("Please select a date"));return;} if(start===null||end===null||end<=start){toast(tr('tt_time_error'),'error');return;}
   const reminder=document.getElementById('ttBlockReminderInput').value,important=document.getElementById('ttBlockImportantInput').checked;
   const blocks=loadTimetableBlocks(),data={title,date,start,end,priority:document.getElementById('ttBlockPriorityInput').value,reminder,important,updatedAt:Date.now()};
-  if(editingTimetableBlockId){const i=blocks.findIndex(b=>b.id===editingTimetableBlockId);if(i>=0){const old=blocks[i];blocks[i]={...old,...data,reminderDismissed:old.reminder===reminder?old.reminderDismissed:false};}}else blocks.push({id:genId(),...data,reminderDismissed:false,completedAt:null,createdAt:Date.now()});
+  if(editingTimetableBlockId){const i=blocks.findIndex(b=>b.id===editingTimetableBlockId);if(i>=0){const old=blocks[i];blocks[i]={...old,...data,reminderDismissed:alarmTime(old,'timetable')===alarmTime(data,'timetable')?old.reminderDismissed:false};}}else blocks.push({id:genId(),...data,reminderDismissed:false,completedAt:null,createdAt:Date.now()});
+  if(important)requestNotifPermission();
   saveTimetableBlocks(blocks);closeTimetableBlockModal();renderTimetable();toast(tr('tt_block_saved'));
 }
 function toggleTimetableBlockDone(id){
@@ -4143,7 +4159,7 @@ function selectFocusTask(){
 /* ═══════ REMINDERS ═══════ */
 function startReminderCheck(){
   if(reminderInterval) clearInterval(reminderInterval);
-  reminderInterval=setInterval(checkReminders,60000);
+  reminderInterval=setInterval(checkReminders,1000);
   checkReminders();
 }
 function checkReminders(){
@@ -4151,12 +4167,12 @@ function checkReminders(){
   const tasks=loadTasks(), now=new Date();
   let changed=false;
   tasks.forEach(t=>{
-    if(t.status!=='done'&&t.reminder&&!t.reminderDismissed){
-      const rTime=new Date(t.reminder);
+    if(t.status!=='done'&&alarmTime(t)&&!t.reminderDismissed){
+      const rTime=new Date(alarmTime(t));
       if(rTime<=now&&(now-rTime)<300000){
         const title=tr("Reminder: ")+t.title, body=tr("Task \"")+t.title+tr("\" is due!");
         if(t.important) triggerAlarm(title,body); else showNotification(title,body);
-        t.reminderDismissed=true;changed=true;
+        t.reminderDismissed=true;t.reminderDelivery='local';changed=true;
       }
     }
   });
@@ -4168,12 +4184,12 @@ function checkReminders(){
 function checkTimetableBlockReminders(now){
   const blocks=loadTimetableBlocks();let changed=false;
   blocks.forEach(block=>{
-    if(!block.reminder||block.reminderDismissed||block.completedAt)return;
-    const reminderTime=new Date(block.reminder);
+    if(!alarmTime(block,'timetable')||block.reminderDismissed||block.completedAt)return;
+    const reminderTime=new Date(alarmTime(block,'timetable'));
     if(reminderTime<=now&&(now-reminderTime)<300000){
       const title=tr("Reminder: ")+block.title,body=tr('event_reminder_body_generic');
       if(block.important)triggerAlarm(title,body);else showNotification(title,body);
-      block.reminderDismissed=true;changed=true;
+      block.reminderDismissed=true;block.reminderDelivery='local';changed=true;
     }
   });
   if(changed)saveTimetableBlocks(blocks);
@@ -4190,7 +4206,7 @@ function checkEventReminders(now){
       const bodyKey=bodyKeys[ev.type]||'event_reminder_body_generic';
       const title=tr('event_reminder_title').replace('{title}',ev.title), body=tr(bodyKey);
       if(ev.important) triggerAlarm(title,body); else showNotification(title,body);
-      ev.reminderFired=true; changed=true;
+      ev.reminderFired=true;ev.reminderDelivery='local'; changed=true;
     }
   });
   if(changed) saveEvents(events);
@@ -4263,15 +4279,13 @@ function showNotification(title,body){
   try{if('Notification' in globalThis&&Notification.permission==='granted'){new Notification(title,{body,icon:'icon-192.png'});return;}}catch{}
   toast(title);
 }
-function requestNotifPermission(){
-  if('Notification' in globalThis&&Notification.permission!=='granted'){
-    Notification.requestPermission().then(p=>{
-      toast(p==='granted'?tr('notif_enabled'):tr('notif_blocked'));
-      if(p==='granted') subscribeToPush();
-    });
-  } else if('Notification' in globalThis&&Notification.permission==='granted'){
-    subscribeToPush();
-  }
+async function requestNotifPermission(){
+  try{
+  if(!('Notification' in globalThis)){toast(tr('push_setup_failed'),'error');return;}
+  const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();
+  if(permission!=='granted'){toast(tr('notif_blocked'),'error');return;}
+  await subscribeToPush(true);
+  }catch{toast(tr('push_setup_failed'),'error');}
 }
 function urlBase64ToUint8Array(base64String){
   const padding='='.repeat((4-base64String.length%4)%4);
@@ -4297,20 +4311,22 @@ async function disableNotifications(){
     toast(tr("Push notifications disabled on this browser"));
   }catch(error){toast(tr("Could not disable push: ")+error.message,'error');}
 }
-async function subscribeToPush(){
-  if(!apiConfigured()||!currentUser||!getAuthSession(currentUser)) return;
-  if(!('serviceWorker' in navigator)||!('PushManager' in globalThis)) return;
+async function subscribeToPush(report=false){
   try{
-    const reg=await navigator.serviceWorker.ready;
+    if(!apiConfigured()||!currentUser||!getAuthSession(currentUser))throw new Error('sign-in required');
+    if(!('serviceWorker' in navigator)||!('PushManager' in globalThis))throw new Error('push unavailable');
+    const reg=await Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>setTimeout(()=>reject(new Error('worker timeout')),10000))]);
     let sub=await reg.pushManager.getSubscription();
     if(!sub){
       const {publicKey}=await apiRaw('/api/push/vapid-public-key','GET',undefined,false);
-      if(!publicKey) return;
+      if(!publicKey)throw new Error('server push not configured');
       sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(publicKey)});
     }
     const json=sub.toJSON();
     await apiRaw('/api/push/subscribe','POST',{endpoint:json.endpoint,p256dh:json.keys.p256dh,auth:json.keys.auth,tzOffsetMinutes:new Date().getTimezoneOffset()});
-  }catch{ /* best-effort: push is a nice-to-have, never block the rest of the app */ }
+    if(report)toast(tr('notif_enabled'));
+    return true;
+  }catch{toast(tr('push_setup_failed'),'error');return false;}
 }
 
 /* ═══════ CATEGORY NAV & PROJECT FILTER ═══════ */

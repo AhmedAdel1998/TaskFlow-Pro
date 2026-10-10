@@ -303,6 +303,7 @@ async function runSmokeTests(executablePath) {
   }, failures);
 
   await require('./features')(page,step,failures);
+  await require('./alarm-browser')(page,step,failures);
   await browser.close();
 
   const unexpectedRuntimeErrors = runtimeErrors.filter(err => !err.includes('net::ERR_INTERNET_DISCONNECTED')); 
